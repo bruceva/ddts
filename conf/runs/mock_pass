@@ -1,0 +1,3 @@
+build: 'mock_pass'
+baseline: 'mock'
+profile: 'Mock'

@@ -1,0 +1,5 @@
+batchName: 'nuwrf'
+procLine: 'select=6:ncpus=12:mpiprocs=12'
+wallTime: '12:00:00'
+groupName: 's0942'
+modules: 'comp/intel-13.0.1.117 mpi/impi-4.0.3.008'

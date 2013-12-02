@@ -1,0 +1,10 @@
+extends: 'email_nuwrf'
+retain_builds: true
+continue: true
+group1:
+  - mock_pass
+  - mock_fail
+group2:
+  - mock_pass
+group3:
+  - mock_fail2

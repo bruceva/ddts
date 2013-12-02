@@ -1,0 +1,3 @@
+extends: weekly
+retain_builds: true
+build_only: true

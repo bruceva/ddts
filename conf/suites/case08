@@ -1,0 +1,4 @@
+extends: 'email_nuwrf'
+retain_builds: true
+group_08:
+  - case08

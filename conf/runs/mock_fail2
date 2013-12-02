@@ -1,0 +1,3 @@
+build: 'mock_fail2'
+baseline: 'mock'
+profile: 'Mock'
