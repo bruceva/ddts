@@ -1,4 +1,5 @@
 extends: 'email_nuwrf'
 retain_builds: true
+continue: true
 group:
   - mock_fail

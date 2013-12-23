@@ -1,8 +1,7 @@
 bindir: 'bin'
-param: 'kpp'
+param: 'wrf'
 executables: ["WRFV3/main/ndown.exe",
   "WRFV3/main/nup.exe",
-  "WRFV3/chem/convert_emiss.exe",
   "WRFV3/main/real.exe",
   "WRFV3/main/tc.exe",
   "WRFV3/main/wrf.exe"]

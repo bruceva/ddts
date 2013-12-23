@@ -114,13 +114,13 @@ module Common
     end
     logd_flush
     @ts.ilog.fatal("#{@pre}: #{msg}") unless msg.nil?
-    raise
+    raise DDTSException
   end
 
   def ext(cmd,props={})
 
     # Execute a system command in a subshell, collecting stdout and stderr. If
-    # property :die is true, die on a nonzero subshell exit status,printing the
+    # property :die is true, die on a nonzero subshell exit status, printing the
     # message keyed by property :msg, if any. If property :out is true, write
     # the collected stdout/stderr to the delayed log.
 
@@ -146,6 +146,19 @@ module Common
     # the test suite halts.
 
     @activemaster.synchronize { @activejobs[jobid]=run }
+  end
+
+  def job_check(stdout,restr)
+
+    # Report whether the job's stdout file contains a line matching the supplied
+    # string (converted to a regular expression).
+
+    re=Regexp.new(restr)
+    die "Run failed: Could not find #{stdout}" unless File.exist?(stdout)
+    File.open(stdout,'r') do |io|
+      io.readlines.each { |e| return true if re.match(e) }
+    end
+    false
   end
 
   def job_deactivate(jobid)
@@ -240,7 +253,6 @@ module Common
       o=YAML.load(File.open(valid_file(file)))
     rescue Exception=>x
       logd x.message
-      logd "* Backtrace:"
       x.backtrace.each { |e| logd e }
       die 'Error parsing YAML from '+file
     end
@@ -285,27 +297,25 @@ module Common
 
   def threadmon(threads,continue=false)
 
-    # Loop over the supplied array of threads, removing each from the array and
-    # joining it as it finishes. Sleep briefly between iterations. Joining each
-    # thread allows exceptions to percolate up to be handled by the top-level TS
-    # object.
+    # Initially, each thread is assumed to be live. Loop over the live threads,
+    # discarding each as it finishes. Consider threads that raised exceptions
+    # (indicated by nil status) to be failures. Join each thread if either (a)
+    # it did not raise an exception, or (b) we are running in 'fail early' mode
+    # (i.e. 'continue' is false).
 
-    runfail=false
+    live=[].replace(threads)
     failcount=0
-    totalcount=0
-    until threads.empty?
-      threads.each do |e|
+    until live.empty?
+      live.each do |e|
         unless e.alive?
-          threads.delete(e)
-          runfail=true if e.status.nil?
+          live.delete(e)
           failcount+=1 if e.status.nil?
-          totalcount+=1
-          e.join unless continue
+          e.join if e.status or not continue
         end
       end
       sleep 1
     end
-    [runfail,failcount,totalcount]
+    failcount
   end
 
   def valid_dir(dir)
@@ -332,41 +342,48 @@ class Comparison
 
   include Common
 
+  attr_reader :failruns,:totalruns
+
   def initialize(a,ts)
 
     # Receive an array of runs to be compared together, instantiate each in a
-    # separate thread, then monitor the threads for completion. Perform pairwise
-    # comparison on the collected set of output specs (run names + file lists).
-    # Instance variables from passed-in TS object are converted into instance
-    # variables of this object.
+    # thread, then monitor threads for completion. Perform pairwise comparison
+    # on the collected set of output specs (run names + file lists). Instance
+    # variables from passed-in TS object are converted into instance variables
+    # of this object.
 
     @ts=ts
     @dlog=XlogBuffer.new(ts.ilog)
     @pre="Comparison"
-    single_run=(a.size==1)
-    threads=[]
+    @totalruns=a.size
     runs=[]
-    a.each { |e| threads << Thread.new { runs << Run.new(e,ts).result } }
-    runfail,failcount,totalcount=threadmon(threads,@ts.env.suite.continue)
-    Thread.exclusive do 
-      @ts.env.suite._totalruns+=totalcount
-      @ts.env.suite._totalfailures+=failcount
-    end
+    threads=[]
     set=a.join(', ')
-    if runs.empty? or (runs.size==1 and not single_run)
-      logi "Group stats: #{failcount}/#{totalcount} failures. Skipping comparison for group #{set}."
+    a.each { |e| threads << Thread.new { runs << Run.new(e,@ts).result } }
+    @failruns=threadmon(threads,@ts.env.suite.continue)
+    return if @ts.env.suite.build_only
+    if @totalruns-@failruns > 1
+      runs.delete_if { |e| e.result==:run_failed }
+      set=runs.reduce([]) { |m,e| m.push(e.name) }.join(', ')
+      logi "#{set}: Checking..."
+      comp(runs.sort { |r1,r2| r1.name <=> r2.name })
+      logi "#{set}: OK"
     else
-      unless @ts.env.suite.build_only or runs.size==1
-        set=runs.reduce([]) { |m,e| m.push(e.name) }.join(', ')
-        logi "#{set}: Checking..."
-        comp(runs.sort { |r1,r2| r1.name <=> r2.name })
-        logi "#{set}: OK"
+      unless @totalruns==1
+        logi "Group stats: #{@failruns} of #{@totalruns} runs failed, "+
+          "skipping comparison for group #{set}"
       end
     end
-    raise if runfail
   end
 
 end # class Comparison
+
+class DDTSException < Exception
+
+  # An exception to raise for internal purposes, and to allow real runtime
+  # errors to be handled separately.
+
+end
 
 class Run
 
@@ -376,17 +393,17 @@ class Run
 
   def initialize(r,ts)
 
-    # Set up instance variables, including instance references to the exposed
-    # instance variables of the passed-in TS object. Due to the pair of mutex
-    # locks, only one thread (the first to arrive) will perform the actual run;
-    # threads that gain subsequent access to the critical region will break out
-    # of the synchronize block and return immediately. The thread that performs
-    # the run obtains its run spec, the build it needs and the canned data set.
-    # It copies the run-scripts directory created by the build, modifies the
-    # queuetime and runtime configuration files, runs and checks for the success
-    # of the job, and either registers to create a baseline or (potentially) has
-    # its output compared against the baseline. It stores into a global hash a
-    # result value comprised of its name and its output files.
+    # Set up instance variables, including references to variables exposed by
+    # the passed-in TS object. Due to the pair of mutex locks, only one thread
+    # (the first to arrive) will perform the actual run; threads that gain
+    # subsequent access to the critical region will break out of the synchronize
+    # block and return immediately. The thread that performs the run obtains its
+    # run spec, the build it needs and the canned data set. It copies the run-
+    # material directory indicated by the build, modifies the queuetime and
+    # runtime model configuration files, runs and checks for the success of the
+    # job, and either registers to create a baseline or (potentially) has its
+    # output compared against the baseline. It provides a result value comprised
+    # of its name and its output files.
 
     @r=r
     @ts=ts
@@ -425,21 +442,16 @@ class Run
         @rundir=lib_run_prep(@env,@rundir)
         logd_flush
         logd "* Output from run:"
-        stdout=lib_run(@env,@rundir)
-        
-        #die "Run failed: See #{logfile}" if stdout.nil?
-
-        if stdout.nil? and @ts.env.suite.continue
-          @ts.runmaster.synchronize { @ts.runs[@r]=:run_failed }
-          die "Run failed: See #{logfile}"
-        else
-          jobcheck(stdout)
-          lib_run_post(@env)
+        runkit=lib_run(@env,@rundir)
+        if (success=lib_run_post(@env,runkit))
           result=OpenStruct.new({:name=>@r,:files=>lib_outfiles(@env,@rundir)})
           @ts.runmaster.synchronize { @ts.runs[@r]=result }
           (@ts.genbaseline)?(baseline_reg):(baseline_comp)
           logd_flush
           logi "Completed"
+        else
+          @ts.runmaster.synchronize { @ts.runs[@r]=:run_failed }
+          die "Run failed: See #{logfile}"
         end
       end
     end
@@ -500,7 +512,7 @@ class Run
 
   def build
 
-    # Due to the pair of mutex locks, only one Run thread (the first to arrive)
+    # Due to the pair of mutexes, only one Run thread (the first to arrive)
     # will perform the actual build; threads that gain subsequent access to the
     # critical region will break out of the synchronize block and return
     # immediately. The thread that performs the build does so in an external
@@ -541,19 +553,6 @@ class Run
     # Do they match?
 
     Digest::MD5.file(file)==hash
-  end
-
-  def jobcheck(stdout)
-
-    # The job is assumed to have completed successfully if the string specified
-    # in the regular expression below is found in its stdout.
-
-    re=Regexp.new(lib_re_str_success(@env))
-    die "Run failed: Could not find #{stdout}" unless File.exist?(stdout)
-    File.open(stdout,'r') do |io|
-      io.readlines.each { |e| return if re.match(e) }
-    end
-    die "Run failed: Cause unknown, see #{stdout}"
   end
 
   def mod_namelist_file(nlfile,nlenv)
@@ -732,13 +731,11 @@ class TS
     logi "Running test suite '#{@suite}'"
     threads=[]
     begin
-      msg="ALL TESTS PASSED" # hope for the best
       suitespec=loadspec(f)
       suitespec.each do |k,v|
-        # Assume that array value are run groups and move all scalar values
+        # Assume that array values are run groups and move all scalar values
         # into env, assuming that these are either reserved or user-defined
         # suite-level settings.
-        # puts "k,v: #{k}, #{v}"
         @env[k]=suitespec.delete(k) unless v.is_a?(Array)
       end
       @env["_dlog"]=@dlog
@@ -752,34 +749,49 @@ class TS
       mkbuilds
       suitespec.each do |group,runs|
         if runs
-          threads << Thread.new { Comparison.new(runs.sort.uniq,self) }
+          threads << Thread.new do
+            Thread.current[:comparison]=Comparison.new(runs.sort.uniq,self)
+            raise DDTSException if Thread.current[:comparison].failruns > 0
+          end
         else
           logi "Suite group #{group} empty, ignoring..."
         end
       end
-      runfail,failcount,totalcount=threadmon(threads,@env["continue"])
-      logi "Suite stats: #{failcount}/#{totalcount} groups contained failures"
-    rescue Interrupt,Exception=>x
-      threads.each { |e| e.kill }
+      failgroups=threadmon(threads,@env["continue"])
+      if @env["continue"]
+        threads.each do |e|
+          @env["_totalruns"]+=e[:comparison].totalruns
+          @env["_totalfailures"]+=e[:comparison].failruns
+        end
+        logi "Suite stats: Failure in #{failgroups} of #{threads.size} group(s)"
+      end
+    rescue Interrupt,DDTSException=>x
+      threads.each { |e| e.kill if e.alive? }
       halt(x)
+    rescue Exception=>x
+      logi x.message
+      x.backtrace.each { |e| logi e }
+      exit 1
     end
     if @genbaseline
-      if runfail
-        logi "Skipping baseline generation due to #{failcount} run failure(s)"
+      if failgroups>0
+        logi "Skipping baseline generation due to #{failgroups} run failure(s)"
       else
         baseline_gen
       end
     end
     logd_flush
-    msg="#{env.suite._totalfailures} TEST(S) OUT OF #{env.suite._totalruns} FAILED" if runfail
-    msg+=" -- but note WARNING(s) above!" if @ilog.warned
+    if failgroups>0
+      msg="#{@env["_totalfailures"]} of #{@env["_totalruns"]} TEST(S) FAILED"
+    else
+      msg="ALL TESTS PASSED"
+      msg+=" -- but note WARNING(s) above!" if @ilog.warned
+    end
     logi msg
     lib_suite_post(env)
   end
 
   def env
-    return @env_ostruct if defined? @env_ostruct
-    @env.freeze
     @env_ostruct=OpenStruct.new({:suite=>OpenStruct.new(@env)})
   end
 
@@ -847,8 +859,12 @@ class TS
     begin
       mkbuilds
       Run.new(args[0],self)
-    rescue Interrupt,Exception=>x
+    rescue Interrupt,DDTSException=>x
       halt(x)
+    rescue Exception=>x
+      logi x.message
+      x.backtrace.each { |e| logi e }
+      exit 1
     end
   end
 

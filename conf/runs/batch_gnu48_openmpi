@@ -1,0 +1,6 @@
+batchName: 'nuwrf'
+procLine: 'select=6:ncpus=12:mpiprocs=12'
+wallTime: '12:00:00'
+groupName: 's0942'
+modules: 'other/comp/gcc-4.8.1 other/mpi/openmpi/1.7.2-gcc-4.8.1-shared'
+

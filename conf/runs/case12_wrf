@@ -1,0 +1,3 @@
+extends: 'base_case12'
+build: 'wrf_discover'
+testCaseJobFile: 'runWrf_72cpus.job'

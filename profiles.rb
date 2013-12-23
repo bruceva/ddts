@@ -9,11 +9,10 @@ module Mock
    alias lib_build_post lib_build_post_mock
    alias lib_data lib_data_mock
    alias lib_run_prep lib_run_prep_mock
-   alias lib_re_str_success lib_re_str_success_mock
    alias lib_run lib_run_mock
+   alias re_str_success re_str_success_mock
 
 end
-
 
 module Nightly
 
@@ -25,7 +24,7 @@ module Nightly
    alias lib_data lib_data_common
    alias lib_run_prep lib_run_prep_common
    alias lib_run lib_run_mock
-   alias lib_re_str_success lib_re_str_success_mock
+   alias re_str_success re_str_success_mock
 
 end
 
@@ -41,7 +40,7 @@ module Weekly
    alias lib_run lib_run_batch
    alias lib_outfiles lib_outfiles_batch
    alias lib_queue_del_cmd lib_queue_del_cmd_batch
-   alias lib_re_str_success lib_re_str_success_batch
+   alias re_str_success re_str_success_batch
 end
 
 #module Suite

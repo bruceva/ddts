@@ -1,0 +1,3 @@
+extends: 'base_case12_gnu48_openmpi'
+build: 'wrf_debug_discover_gnu48_openmpi'
+testCaseJobFile: 'runWrf_72cpus.job'

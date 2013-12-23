@@ -1,4 +1,5 @@
 require 'net/smtp'
+require 'open3'
 
 module Library
 
@@ -10,23 +11,63 @@ module Library
     # structure for later reference. The value of env.build._root is supplied
     # internally by the test suite; the value of env.run.build is supplied by
     # the run config.
+    buildscript="build.sh"
+    srcdir=File.join("..","src")
     env.build.dir=File.join(env.build._root,env.run.build)
-    buildfile=File.join(env.build.dir,"build.sh")
-    sourceexists=File.exists?(buildfile)
-    cmd="cd .. && svn status src"
+    sourceexists=File.exists?(File.join(srcdir,buildscript))         
     Thread.exclusive do
-       o=ext(cmd,{:msg=>"SVN status failed"})
-       if o[0].length > 0 || !sourceexists       
-          cmd="cd .. && svn co svn+ssh://progressdirect/svn/nu-wrf/code/trunk src"
-          ext(cmd,{:msg=>"SVN checkout failed",:out=>true})      
-          # Construct the path to the source files. Wrapping in valid_dir() (defined
-          # in ts.rb) ensures that it actually already exists.
-          srcdir=valid_dir(File.join("..","src"))
+       forcebuild=File.join(srcdir,"ddts.forcebuild")
+       if not sourceexists 
+          logi "First time code checkout"
+          cmd="svn co svn+ssh://progressdirect/svn/nu-wrf/code/trunk #{srcdir}"
+          ext(cmd,{:msg=>"SVN checkout failed",:out=>true})
           # Copy the source files, recursively, into the build directory.
-          FileUtils.cp_r(srcdir,env.build.dir)
-          logd "Copied #{srcdir} -> #{env.build.dir}"
+          FileUtils.touch(forcebuild)
+          logi "Created force build bread crumb"
+          if Dir.exist?(env.build.dir) 
+             logi "Removing previous build directory"
+             FileUtils.rm_rf(env.build.dir)
+          end
+          logi "Copying #{srcdir} -> #{env.build.dir}"
+          FileUtils.cp_r(srcdir,env.build.dir,{:remove_destination=>true})
        else
-          logd "SVN checkout skipped.  No change of working copy to repository"
+          logi "Source code exists"
+          if File.exists?(forcebuild)
+             # We are sharing the same source directory so if it got changed by the first
+             # build thread then we must refresh our own copy of it
+             # Copy the source files, recursively, into the build directory.
+             logi "Force build found refreshing source copy"
+             if Dir.exist?(env.build.dir) 
+                logi "Removing previous build directory"
+                FileUtils.rm_rf(env.build.dir)
+             end
+             logi "Copying #{srcdir} -> #{env.build.dir}"
+             FileUtils.cp_r(srcdir,env.build.dir,{:remove_destination=>true})
+          else 
+             logi "Running source code update"          
+             cmd="svn update #{srcdir}"
+             o,s=my_ext(cmd,{:msg=>"SVN update failed",:out=>true,:die=>true})
+             if o.length > 0 and o.grep(/^Updated|updated/).length > 0 
+                logi "Source code updated"              
+                FileUtils.touch(forcebuild)
+                logi "Created force build bread crumb"
+                if Dir.exist?(env.build.dir)
+                   logi "Removing previous build directory"
+                   FileUtils.rm_rf(env.build.dir)
+                end
+                # Copy the source files, recursively, into the build directory.
+                logi "Copying #{srcdir} -> #{env.build.dir}"
+                FileUtils.cp_r(srcdir,env.build.dir,{:remove_destination=>true})
+             else
+                logi "SVN update revealed no change of repository working copy"
+                if not Dir.exist?(env.build.dir)
+                  logi "Build directory does not exist"
+                  # Copy the source files, recursively, into the build directory.
+                  logi "Copying #{srcdir} -> #{env.build.dir}"
+                  FileUtils.cp_r(srcdir,env.build.dir)
+                end
+             end
+          end
        end
     end
     env.build.dir
@@ -34,25 +75,42 @@ module Library
 
   def lib_build_common(env)
     # Construct the command to execute in a subshell to perform the build.
+    buildscript="build.sh"
     mparam = env.build.param
     logd "Make file param: #{mparam}"
     logd "env.build.dir = #{env.build.dir}"
-    buildfile=File.join(env.build.dir,"build.sh") 
+    buildfile=File.join(env.build.dir,buildscript) 
     execfile=File.join(env.build.dir,"WRFV3","run","wrf.exe")
-    buildexists=File.exists?(execfile)
-    # check SVN status. Build only when changes have occurred.
-    cmd="cd .. && svn status src"
-    o=ext(cmd,{:msg=>"SVN status failed"})
-    if (o[0].length > 0) || !buildexists 
+    execexists=File.exists?(execfile)
+    forcebuild=File.join(env.build.dir,"ddts.forcebuild")
+    if !execexists || File.exists?(forcebuild) 
+       
+       buildcommand="#{buildfile} "  # start building the command string
+
        if !env.build.config || env.build.config.nil? == true
          logd "No --config defined. Allowing build to choose" 
-         cmd="cd #{env.build.dir} && #{buildfile} #{mparam}"
+         # no change to buildcommand
        else
          logd "Using --config #{env.build.config}" 
-         cmd="cd #{env.build.dir} && #{buildfile} --config #{env.build.config} #{mparam}"
+         buildcommand="#{buildcommand} --config #{env.build.config} "
        end
+       
+       if !env.build.debug || env.build.debug.nil? == true
+         logd "Debug not specified or false." 
+         # no change to buildcommand
+       else
+         logd "Debug build selected" 
+         buildcommand="#{buildcommand} debug "
+       end
+       
+       buildcommand="#{buildcommand} #{mparam}"
+       cmd="cd #{env.build.dir} && #{buildcommand}"
        # Execute external command via ext() (defined in ts.rb).
-       ext(cmd,{:msg=>"Build failed, see #{logfile}"})
+       o,s=ext(cmd,{:msg=>"Build failed, see #{logfile}"})
+       if s==0 and File.exists?(forcebuild) #Build completed
+         FileUtils.rm(forcebuild) 
+         logd "Deleted #{forcebuild} breadcrumb"
+       end         
     else
       logd "Skipping build. No change of working copy to repository"
     end
@@ -126,7 +184,7 @@ module Library
     'qdel'
   end
 
-  def lib_re_str_success_batch(env)
+  def re_str_success_batch
     "wrf: SUCCESS COMPLETE WRF"
   end
 
@@ -187,7 +245,7 @@ module Library
     File.join(rundir,"stdout")
   end
 
-  def lib_re_str_success_mock(env)
+  def re_str_success_mock
     "Executed mock with success."
   end
 
@@ -201,8 +259,10 @@ module Library
     'echo'
   end
 
-  def lib_run_post(env)
-    logd "Post run processing..."
+  def lib_run_post(env,runkit)
+    logd "Verifying run success..."
+    stdout=runkit
+    (job_check(stdout, re_str_success))?(true):(false)
   end
 
   def lib_suite_prep(env)
@@ -210,6 +270,14 @@ module Library
   end
 
   def lib_suite_post(env)
+    # remove force build breadcrumb file
+    forcebuild=File.join("..","src","ddts.forcebuild")
+    if File.exists?(forcebuild)
+      logi "Deleting force build file: #{forcebuild}"
+      FileUtils.rm (forcebuild)
+    end
+ 
+    # send mail
     suite_name=env.suite._suitename
     email_from=env.suite.email_from
     email_to=env.suite.email_to
@@ -225,10 +293,72 @@ module Library
       subject="#{email_subject} -- #{suite_name} (COMPLETED)"
       send_email(email_from,email_to,subject,email_server,msg,false) if email_ready  
     end
+    logi env.inspect()
   end
 
   # *************************************************************
   # CUSTOM METHODS (NOT CALLED BY DRIVER)
+  def pipe_ext(cmd,props={})
+
+    # Execute a system command in a subshell, collecting stdout and stderr. If
+    # property :die is true, die on a nonzero subshell exit status,printing the
+    # message keyed by property :msg, if any. If property :out is true, write
+    # the collected stdout/stderr to the delayed log.
+    # Note: adding 2>&1 to cmd consolidates stderror and stdout
+
+    d=(props.has_key?(:die))?(props[:die]):(true)
+    m=(props.has_key?(:msg))?(props[:msg]):("")
+    o=(props.has_key?(:out))?(props[:out]):(true)
+    output=[]
+    error=[]
+    logi "Pipe ext: #{cmd}"
+    status=nil
+    sin,sout,serr,thr = Open3.popen3(cmd)
+    # {|sin, sout, serr, thr|
+    pid = thr[:pid]
+    puts "HI"
+    sout.read.each_line { |x| output.push(x) }
+    serr.read.each_line { |x| error.push(x) }
+    sin.close
+    sout.close
+    serr.close
+    #}
+    puts "HELLO"
+    if o
+      puts "* Output from #{cmd} (status code=#{status}):"
+      puts "---- out< ----"
+      output.each { |e| puts e }
+      puts "---- >out ----"
+      puts "---- error< ----"
+      error.each { |e| puts e }
+      puts "---- >error ----"
+    end
+    #die(m) if d and status!=0
+    [output,status,error]
+  end
+
+  def my_ext(cmd,props={})
+
+    # Execute a system command in a subshell, collecting stdout and stderr. If
+    # property :die is true, die on a nonzero subshell exit status,printing the
+    # message keyed by property :msg, if any. If property :out is true, write
+    # the collected stdout/stderr to the delayed log.
+
+    d=(props.has_key?(:die))?(props[:die]):(true)
+    m=(props.has_key?(:msg))?(props[:msg]):("")
+    o=(props.has_key?(:out))?(props[:out]):(true)
+    output=[]
+    IO.popen("#{cmd}") { |io| io.read.each_line { |x| output.push(x) } }
+    status=$?.exitstatus
+    if o
+      logd "* Output from #{cmd} (status code=#{status}):"
+      logd "---- 8< ----"
+      output.each { |e| logd e }
+      logd "---- >8 ----"
+    end
+    die(m) if d and status!=0
+    [output,status]
+  end
 
   def createBatchJobScript (env,rundir)
     walltime=env.run.wallTime
