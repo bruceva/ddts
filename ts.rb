@@ -6,6 +6,7 @@ require 'nl'
 require 'ostruct'
 require 'profiles'
 require 'thread'
+require 'set'
 require 'time'
 require 'yaml'
 
@@ -310,7 +311,11 @@ module Common
         unless e.alive?
           live.delete(e)
           failcount+=1 if e.status.nil?
-          e.join if e.status or not continue
+          begin
+            e.join
+          rescue Exception=>x
+            raise x unless x.is_a?(DDTSException) and continue
+          end
         end
       end
       sleep 1
@@ -738,6 +743,17 @@ class TS
         # suite-level settings.
         @env[k]=suitespec.delete(k) unless v.is_a?(Array)
       end
+
+      # Fail if a run appears mor than once in the suite config.
+      uniqueruns=Set.new
+      suitespec.each do |group,runs|
+        runs.each do |run|
+          unless uniqueruns.add?(run)
+            die "'#{run}' must appear only once in suite '#{@suite}'"
+          end
+        end
+      end
+
       @env["_dlog"]=@dlog
       @env["_ilog"]=@ilog
       @env["_totalruns"]=0
@@ -792,7 +808,7 @@ class TS
   end
 
   def env
-    @env_ostruct=OpenStruct.new({:suite=>OpenStruct.new(@env)})
+    OpenStruct.new({:suite=>OpenStruct.new(@env)})
   end
 
   def halt(x)
