@@ -1,3 +1,10 @@
+confdir=(d=ENV['DDTSCONF'])?(d):('conf')
+unless Dir.exist?(confdir)
+  puts "Configuration directory '#{confdir}' not found"
+  exit(1)
+end
+$:.push(File.join(File.dirname($0),confdir))
+
 require 'digest/md5'
 require 'fileutils'
 require 'find'
@@ -11,7 +18,7 @@ require 'yaml'
 
 module Common
 
-  def confdir()   'conf'                      end
+  def confdir()   $:.last                     end
   def buildsdir() File.join(confdir,'builds') end
   def runsdir()   File.join(confdir,'runs')   end
   def suitesdir() File.join(confdir,'suites') end
