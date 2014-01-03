@@ -1,0 +1,3 @@
+extends: smvgear_daily
+badgroup:
+  - fail

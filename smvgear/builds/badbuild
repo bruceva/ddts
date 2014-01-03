@@ -1,0 +1,3 @@
+extends: 'common'
+makefile: 'GNUmakefile'
+modules: ["other/comp/gcc-4.8.1"]

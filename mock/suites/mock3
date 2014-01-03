@@ -1,0 +1,7 @@
+extends: 'email_mock'
+retain_builds: true
+continue: true
+group1:
+  - mock_pass
+group2:
+  - mock_pass

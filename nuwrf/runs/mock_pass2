@@ -1,3 +1,0 @@
-build: 'mock_pass2'
-baseline: 'mock'
-profile: 'Mock'

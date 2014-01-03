@@ -2,10 +2,14 @@ extends: 'email_nuwrf'
 retain_builds: true
 continue: true
 group_12_1:
-  - case12_wrf
+  - case12_wrf_72
+  - case12_wrf_384
 group_12_2:
-  - case12_wrf_gnu48_openmpi
+  - case12_wrf_gnu48_openmpi_72
+  - case12_wrf_gnu48_openmpi_384
 group_12_3:
-  - case12_wrf_debug
+  - case12_wrf_debug_72
+  - case12_wrf_debug_384
 group_12_4:
-  - case12_wrf_debug_gnu48_openmpi
+  - case12_wrf_debug_gnu48_openmpi_72
+  - case12_wrf_debug_gnu48_openmpi_384

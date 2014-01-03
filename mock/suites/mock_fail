@@ -1,0 +1,5 @@
+extends: 'email_mock'
+retain_builds: true
+continue: true
+group:
+  - mock_fail

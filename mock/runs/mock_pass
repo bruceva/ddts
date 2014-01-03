@@ -1,0 +1,5 @@
+build: 'mock_pass'
+baseline: 'mock_pass'
+profile: 'Mock'
+out_file_name: 'mock_run_output.txt'
+out_file_content: 'This is mock pass output'

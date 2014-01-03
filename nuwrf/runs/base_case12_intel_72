@@ -1,0 +1,6 @@
+extends: 'batch72'
+baseline: 'case12_intel'
+profile: 'Weekly'
+testCaseNumber: '12'
+testDataRepository: '/discover/nobackup/projects/nu-wrf/cases'
+expectedOutputFiles: ['wrfout_d01_2006-07-14_00:00:00', 'wrfout_d01_2006-07-14_03:00:00']

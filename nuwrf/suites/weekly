@@ -11,8 +11,8 @@ group_09:
   - case09
 group_11:
   - case11
-group_12:
-  - case12_wrf
+#group_12:
+#  - case12_wrf
 group_13:
   - case13
 group_15:

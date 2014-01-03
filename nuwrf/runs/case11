@@ -1,8 +1,7 @@
-extends: 'batch'
+extends: 'batch72'
 baseline: 'case11'
 build: 'all_discover'
 profile: 'Weekly'
 testCaseNumber: '11'
-testCaseJobFile: 'runWrf_72cpus.job'
 testDataRepository: '/discover/nobackup/projects/nu-wrf/cases'
 expectedOutputFiles: ['wrfout_d01_2007-03-28_00:00:00','wrfout_d01_2007-03-28_03:00:00']

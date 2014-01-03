@@ -149,8 +149,16 @@ module Library
     # Link specific test case input data.
     files=Dir[File.join(env.run.testDataRepository,env.run.testCaseNumber,"regtest","input","*")]
     files.each do |x|
-      logd "sym linking input data file: #{x}"
-      FileUtils.ln_sf(x,rundir)
+      # lis.config is a special file that is subject to modification for this
+      # run and as such must be a copy of the original.
+      if x.include?('lis.config')
+        logd "copying input data file: #{x}"
+        FileUtils.cp(x,rundir)
+        modifyLisConfig(env,rundir)
+      else
+        logd "sym linking input data file: #{x}"
+        FileUtils.ln_sf(x,rundir)
+      end
     end
  
     # Return rundir (i.e. where to perform the run).
@@ -162,7 +170,7 @@ module Library
     # Create the batch system script with information from the 
     # run conf file.
     s = createBatchJobScript(env,rundir)
-    fileName = File.join(rundir,env.run.testCaseJobFile)
+    fileName = File.join(rundir,batch_filename(env))
     File.open(fileName, "w+") do |batchFile|
       batchFile.print(s)
       logd "Created batch file: #{fileName}"
@@ -188,71 +196,14 @@ module Library
     "wrf: SUCCESS COMPLETE WRF"
   end
 
-  # *********************** MOCK build functions **************************
-
-  def lib_build_prep_mock (env)
-     logd "Preping mock build..."
-    # Construct the name of the build directory and store it in the env.build
-    # structure for later reference. The value of env.build._root is supplied
-    # internally by the test suite; the value of env.run.build is supplied by
-    # the run config.
-    env.build.dir=File.join(env.build._root,env.run.build)
-  end
-
-  def lib_build_mock(env)
-    logd "Mock building..."
-    logd "env.build.dir = #{env.build.dir}"
-    mparam = env.build.param
-    cmd=(mparam != "pass")?("fakecommand #{mparam}"):("echo build #{mparam}")
-    ext(cmd,{:msg=>"Mock command failed, see #{logfile}"})
-  end
-
-  def lib_build_post_mock(env,output)
-    # Move the executables into a directory of their own.
-    logd "env.build.dir = #{env.build.dir}"
-    logd "env.build.bindir = #{env.build.bindir}"
-    logd "env.build.executables = #{env.build.executables}"
-    bindir=File.join(env.build.dir,env.build.bindir)
-    FileUtils.mkdir_p(bindir)
-    exeslist=env.build.executables
-    exeslist.each_with_index do |exe, index|
-       logd "#{index} : #{exe}"
-    end 
-    # Return the name of the bin dir to be copied for each run that requires it.
-    bindir
-  end
-
-  def lib_data_mock(env)
-    logd "No data-prep needed for mock run."
-  end
-
-  def lib_run_prep_mock(env,rundir)
-    # Note: The value of env.build.runfiles is provided internally by the test suite.
-    # Simulate some job preping activity
-    logd "Runfiles: #{env.build.runfiles}"
-    logd "Rundir: #{rundir}"
-    logd "Copied #{env.build.runfiles} -> #{rundir}"
-    # Return rundir (i.e. where to perform the run).
-    rundir
-  end
-
-  def lib_run_mock(env,rundir)
-    # Construct the command to execute in a subshell to perform the run.
-    cmd="cd #{rundir} && echo \"Executed mock with success.\" >> stdout"
-    # Execute external command via ext() (defined in ts.rb).
-    ext(cmd,{:msg=>"Run failed, see #{logfile}"})
-    # Return the path to the run's 'stdout' file.
-    File.join(rundir,"stdout")
-  end
-
-  def re_str_success_mock
-    "Executed mock with success."
-  end
-
   # ********************* default functions *********************
   def lib_outfiles(env,path)
     logd "lib_outputfiles->path-> #{path}"
-    []
+    if env.run.out_file_name
+      [[path,env.run.out_file_name]]
+    else
+      []
+    end
   end
 
   def lib_queue_del_cmd(env)
@@ -298,6 +249,31 @@ module Library
 
   # *************************************************************
   # CUSTOM METHODS (NOT CALLED BY DRIVER)
+
+  # Edit the lis.config file found in rundir according to the parameters
+  # stored in the env data structure
+  def modifyLisConfig(env,rundir)
+    lisconfig=File.join(rundir,'lis.config')
+    if File.exists?(lisconfig)
+      logd "Special handling of lis.config file"
+      # Edit processor along x value
+      x=env.run.lis_config.send(env.run.proc_id).x if env.run.lis_config.class == OpenStruct
+      cmd="sed -i -e 's/\\(Number of processors along x:\\)\\([ \\t]*\\)[0-9]*/\\1\\2"+x+"/g' "+lisconfig if x
+      ext(cmd,{:msg=>"Editing x procs lis.config entry failed, see #{logfile}"})
+
+      # Edit processor along y value
+      y=env.run.lis_config.send(env.run.proc_id).y if env.run.lis_config.class == OpenStruct
+      cmd="sed -i -e 's/\\(Number of processors along y:\\)\\([ \\t]*\\)[0-9]*/\\1\\2"+y+"/g' "+lisconfig if y
+      ext(cmd,{:msg=>"Editing y procs lis.config entry failed, see #{logfile}"}) 
+      
+      #log changes
+      cmd="grep processors "+lisconfig
+      ext(cmd,{:msg=>"grep lis.config see #{logfile}"})
+    else
+      logw "Unable to find #{lisconfig} config file"
+    end
+  end 
+
   def pipe_ext(cmd,props={})
 
     # Execute a system command in a subshell, collecting stdout and stderr. If
@@ -361,9 +337,17 @@ module Library
   end
 
   def createBatchJobScript (env,rundir)
+    
     walltime=env.run.wallTime
     name=env.run.batchName
-    procs=env.run.procLine
+    proc_id=env.run.proc_id
+
+    #if proc_line was a hash we could dereference with [].  Since all hashes become OpenStruct, 
+    #to dereference an OpenStruct without converting it to a hash first
+    #use the Object.send() method
+    procs=env.run.proc_line.send(proc_id) 
+    numproc=env.run.procs_to_int.send(proc_id) 
+    
     group=env.run.groupName
     loadModules=env.run.modules
     batchScript=<<-eos
@@ -386,7 +370,7 @@ ulimit -s unlimited
 # assumes job starts from the WRF run directory
 cd #{rundir}
 pwd
-mpirun -np 72 ./wrf.exe
+mpirun -np #{numproc} ./wrf.exe
 exit 0
 eos
     batchScript
@@ -400,11 +384,15 @@ eos
     'qsub'
   end
 
+  def batch_filename(env)
+    "runWrf_#{env.run.proc_id}.job"
+  end
+
   def run_batch_job(env,rundir)
     jobid=nil
     re1=Regexp.new(lib_re_str_job_id)
-    ss=lib_submit_script
-    ss+=" #{env.run.testCaseJobFile}" 
+    ss=lib_submit_script+" "
+    ss+=batch_filename(env) 
     cmd="cd #{rundir} && #{ss}"
     logd "Submitting job with command: #{cmd}"
     output,status=ext(cmd,{:msg=>"Job submission failed"})
