@@ -15,7 +15,7 @@ module Library
       # structure for later reference. The value of env.build.root is supplied
       # internally by the test suite; the value of env.run.build is supplied by
       # the run config.
-      env.build.dir=File.join(env.build._root,env.run.build)
+      env.build.dir=env.build._root
       # Construct the path to the source files. Wrapping in valid_dir() (defined
       # in ts.rb) ensures that it actually already exists.
       srcdir=valid_dir(File.join("..","src"))

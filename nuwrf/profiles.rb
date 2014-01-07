@@ -1,19 +1,5 @@
 require 'library'
 
-module Nightly
-
-   include Library
-
-   alias lib_build_prep lib_build_prep_common
-   alias lib_build lib_build_common
-   alias lib_build_post lib_build_post_common
-   alias lib_data lib_data_common
-   alias lib_run_prep lib_run_prep_common
-   alias lib_run lib_run_mock
-   alias re_str_success re_str_success_mock
-
-end
-
 module Weekly
 
    include Library

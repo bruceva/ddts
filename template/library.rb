@@ -21,8 +21,7 @@ module Library
 
   # Use this method to setup the build environment. Typically the source code  
   # staging location is updated from repository and copied to this build's 
-  # private location.  The variable env.build._root and env.run.build can 
-  # be used to set the location of the build directory.
+  # private location.  The variable env.build._root contains the location of the build directory.
   # Caution: Builds are multithreaded and as such may compete for the same
   # source directory when said directory is shared. Use of Thread.exclusive do end
   # block mitigates this problem
@@ -31,7 +30,7 @@ module Library
     # structure for later reference. The value of env.build._root is supplied
     # internally by the test suite; the value of env.run.build is supplied by
     # the run config.
-    #ex: env.build.dir=File.join(env.build._root,env.run.build)
+    #ex: env.build.dir=env.build._root
     # 2. Construct the path to the source files. Wrapping in valid_dir() (defined
     # in ts.rb) ensures that it actually already exists.
     #ex: srcdir=valid_dir(File.join("..","src"))

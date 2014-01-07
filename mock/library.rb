@@ -13,7 +13,7 @@ module Library
     # structure for later reference. The value of env.build._root is supplied
     # internally by the test suite; the value of env.run.build is supplied by
     # the run config.
-    env.build.dir=File.join(env.build._root,env.run.build)
+    env.build.dir=env.build._root
   end
 
   def lib_build_mock(env)

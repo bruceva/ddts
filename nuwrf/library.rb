@@ -13,7 +13,7 @@ module Library
     # the run config.
     buildscript="build.sh"
     srcdir=File.join("..","src")
-    env.build.dir=File.join(env.build._root,env.run.build)
+    env.build.dir=env.build._root
     sourceexists=File.exists?(File.join(srcdir,buildscript))         
     Thread.exclusive do
        forcebuild=File.join(srcdir,"ddts.forcebuild")
