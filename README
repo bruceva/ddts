@@ -5,40 +5,40 @@ DDTS
 
 Quick Start
 
-  ddts <suite>            : run the suite named <suite>
-  ddts baseline <suite>   : run the suite named <suite> & create baseline image
-  ddts clean              : remove most test-suite created items
-  ddts cleaner            : clean + remove baseline & data archive
-  ddts help               : shows this usage information
-  ddts run <run>          : perform the single run named <run>
-  ddts show run <run>     : show details of the run named <run>
-  ddts show runs          : show valid run names
-  ddts show suite <suite> : show details for the suite named <suite>
-  ddts show suites        : show valid suite names
+  ddts <suite>                    : run the suite named <suite>
+  ddts gen-baseline <dir> <suite> : run <suite> & generate baseline in <dir>
+  ddts use-baseline <dir> <suite> : run <suite> & compare to baseline in <dir>
+  ddts clean                      : remove most test-suite created items
+  ddts help                       : shows this usage information
+  ddts run <run>                  : perform the single run named <run>
+  ddts show run <run>             : show details of the run named <run>
+  ddts show runs                  : show valid run names
+  ddts show suite <suite>         : show details for the suite named <suite>
+  ddts show suites                : show valid suite names
 
-* Note that a 'conf' directory must exist, or the environment variable DDTSCONF
-  defined (with the path to a directory containing the required configuration
-  files as its value) to run ddts. See the 'Configuration' section, below, for
-  details.
+* Note that either an 'app' directory must exist alongside the 'ddts' wrapper
+  script, or the environment variable DDTSAPP must be defined (with the path to
+  a directory containing the required configuration files as its value) to run
+  ddts. See the 'Configuration' section, below, for details.
 
 Baseline Creation / Comparison
 
-  Run 'ddts baseline <suite>' to create a baseline image of the named suite
-  ('ddts show suites' lists valid names). A directory named 'baseline' will be
-  created in the current directory, and one subdirectory will be created under
-  it for each unique 'baseline' value specified in the configs of the suite's
-  various runs. These subdirectories must not already exist.
+  Run 'ddts gen-baseline <dir> <suite>' to create a baseline image of the named
+  suite ('ddts show suites' lists valid names). A set of output from the suite's
+  runs will be written to the directory named by <dir>, which will be created if
+  necessary. One subdirectory will be created under <dir> for each unique
+  'baseline' value specified in the configs of the suite's various runs. These
+  subdirectories must not already exist.
 
-  The test suite will automatically compare its runs' output to the contents of
-  the 'baseline' directory if it exists. You may copy or link a previously
-  generated baseline directory here.
+  Run 'ddts use-baseline <dir> <suite>' to compare a new suite to the existing
+  baseline in <dir>.
 
 A useful workflow might consist of these steps:
 
   1. Check out a fresh working copy.
-  2. Run 'ddts baseline <suite>' to generate a baseline.
+  2. Run 'ddts gen-baseline <dir> <suite>' to generate a baseline.
   3. Make changes to the working copy as needed.
-  4. Run 'ddts <suite>' to verify your changes against the baseline.
+  4. Run 'ddts use-baseline <dir> <suite>' to verify your changes.
 
 Logging
 
@@ -52,8 +52,8 @@ Configuration
 
   A DDTS implementation requires, in addition to the core driver in ts.rb, the
   following, which must appear either in a (possibly symlinked) directory named
-  'conf', alongside ts.rb; or in a directory named by the environment variable
-  'DDTSCONF' (where the latter, if defined, takes precedence):
+  'app', alongside ts.rb; or in a directory named by the environment variable
+  'DDTSAPP' (where the latter, if defined, takes precedence):
 
   - An implementation of library.rb: See below, and the example implementation
     in the directory 'ex', for reference.
@@ -61,8 +61,9 @@ Configuration
   - An implementation of profiles.rb: See below, and the example implementation
     in the directory 'ex', for reference.
 
-  - YAML build, run and suite configuration files, in subdirectories 'builds',
-    'runs', and 'suites', respectively. See below for reference.
+  - YAML build, run and suite configuration files, in the 'builds', 'runs', and
+  'suites' subdirectories, respectively, of the $DDTSAPP/configs directory. See
+  below for reference.
 
   The configuration files in the 'builds', 'run's and 'suites' directories are
   are expressed in YAML. They are parsed by the core driver and instantiated as
@@ -132,8 +133,10 @@ Configuration
     - env.build._result: The final value returned by the run thread that
       performs a build.
 
-    - env.build._root: The path to the top-level directory containing all builds
-      performed for the test suite.
+    - env.build._root: The path to the directory under which the run should
+      perform its build. Composed of the top-level directory containing all
+      builds performed for the test suite, and a subdirectory with the same
+      name as the build config.
 
     - env.run._name: The name of the run, as reported e.g. in log entries.
 
@@ -297,3 +300,114 @@ Model/Platform Methods
     builds, runs and comparisons defined by the test suite. The passed-in env
     object has no .build or .run members, only .suite.
 
+Utility Methods
+
+  The core driver provides a number of utility methods that may be useful in the
+  implementation of library methods:
+
+  app_dir
+
+    Returns the root path of the current application.
+
+  die(msg)
+
+    Attempts to delete any jobs queued to the batch system, and prints/logs the
+    (optional) 'msg' argument's String value. Terminates the test suite (unless
+    'continue' mode is active) by raising an exception, and so does not return.
+
+  ext(cmd,props)
+
+    Executes, in a subshell (/bin/sh under Linux), the command contained in the
+    String 'cmd'. Returns a two-element Array composed of (1) an Array of the
+    command's combined stdout and stderr streams, and (2) the command's integer
+    exit status.
+
+    The (optional) 'props' Hash may contain the following key/value pairs:
+
+      :die
+
+      Terminates the suite if the shell command sets a non-zero exit status.
+      True by default.
+
+      :msg
+
+      If :die is true, :msg's String value will be printed/logged before exit.
+
+      :out
+
+      If :out is true, the shell command's output (combined stdout/stderr)
+      will be logged to the verbose logfile (but not to the screen). True by
+      default.
+
+  hash_matches(file,hash)
+
+    Returns true if the MD5 checksum of the file identified by the 'file' String
+    matches the MD5 checksum contained in String 'hash', and false otherwise.
+
+  job_activate(jobid,run)
+
+    Register's the given 'jobid' as having been submitted to the batch system
+    for the Run objet referenced by the 'run' argument. The list of registered
+    job IDs is used to delete jobs from the batch system when the test suite
+    fails. The supplied job ID should be the appropriate argument to the program
+    identified by the lib_queue_del_cmd library method.
+
+  job_check(stdout,restr)
+
+    Returns true if a regular expression instantiated from the 'restr' String
+    argument matches any line in the file identified by the 'stdout' argument,
+    and false otherwise.
+
+  job_deactivate(jobid)
+
+    De-registers the given 'jobid' from the list of batch-system jobs. See
+    job_activate(), above, for more information.
+
+  logd(msg)
+
+    Log the 'msg' argument's String value to the delayed (file) logger.
+
+  logfile
+
+    Returns the path to the logfile.
+
+  logi(msg)
+
+    Log the 'msg' argument's String value to the immediate (screen) logger, and
+    to the delayed (file) logger.
+    
+  logw(msg)
+
+    Like logi(), but prefixes 'msg' with the text "WARNING!" and, on successful
+    completion of the test suite, prints/logs a reminder about the warning. It
+    may be useful to warn users about issues not deemed serious enough to halt
+    the test suite.
+
+  tmp_dir(dir)
+
+    The path to a temporary directory, which will be removed by the 'clean'
+    command.
+
+  valid_dir(dir)
+
+    A convenience wrapper to ensure that the directory named by argument 'dir'
+    actually exists. Calls die() with an appropriate message if the directory
+    does not exist. For example, 'd=valid_dir(File.join(a,b,c))' would set 'd'
+    if and only if the path constructed from 'a', 'b' and 'c' exists.
+
+  valid_file(file)
+
+    Same as valid_dir(), but for a file argument.
+
+--------------------------------------------------------------------------------
+Environment Variables
+--------------------------------------------------------------------------------
+
+In addition to DDTSAPP, discussed above, the following environment variables are
+used by ddts:
+
+DDTSHOME: Specifies the path to the root directory of the ddts installation. It
+is set automatically by the 'ddts' wrapper script.
+
+DDTSOUT: Specifies the directory into which all automatically-generated test-
+suite output should be written. If DDTSOUT is not set, DDTSAPP's value is used.
