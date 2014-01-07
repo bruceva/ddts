@@ -5,22 +5,21 @@ module Library
   def lib_build(env)
     bindir=env.build.bindir
     binname=env.run.binname
-    builddir=File.join(env.build._root,env.build.builddir)
     compiler=env.build.compiler
+    srcdir=env.build._root
     srcfile=env.build.srcfile
-    cmd="cd #{builddir} && #{compiler} #{srcfile} -o #{bindir}/#{binname}"
+    cmd="cd #{srcdir} && #{compiler} #{srcfile} -o #{bindir}/#{binname}"
     ext(cmd,{:msg=>"Build failed, see #{logfile}"})
   end
 
   def lib_build_post(env,output)
-    File.join(env.build.builddir,env.build.bindir)
+    File.join(env.build._root,env.build.bindir,env.build.binname)
   end
 
   def lib_build_prep(env)
-    dir=File.join(env.build._root,env.build.builddir)
-    FileUtils.mkdir_p(dir)
-    FileUtils.cp(File.join(env.build.srcdir,env.build.srcfile),dir)
-    FileUtils.mkdir_p(File.join(dir,env.build.bindir))
+    FileUtils.mkdir_p(env.build._root)
+    FileUtils.cp(File.join(app_dir,env.build.srcfile),env.build._root)
+    FileUtils.mkdir_p(File.join(env.build._root,env.build.bindir))
   end
 
   def lib_outfiles(env,path)
@@ -28,20 +27,28 @@ module Library
   end
 
   def lib_outfiles_ex(env,path)
-    [[path,'out']]
+    expr=File.join(path,'out[0-9]')
+    Dir.glob(expr).map { |e| [path,File.basename(e)] }
+  end
+
+  def lib_comp_alt(f1,f2)
+    logi "Comparing '#{f1}' to '#{f2}' with alternate comparator..."
+    FileUtils.compare_file(f1,f2)
   end
 
   def lib_data(env)
     f="data.tgz"
-    cmd="cp ex/data.tgz ."
+    src=File.join(app_dir,f)
+    dst=File.join(tmp_dir,f)
+    cmd="cp #{src} #{dst}"
     md5='d49037f1ef796b8a7ca3906e713fc33b'
-    unless File.exists?(f) and hash_matches(f,md5)
+    unless File.exists?(dst) and hash_matches(dst,md5)
       logd "Getting data: #{cmd}"
       output,status=ext(cmd,{:msg=>"Failed to get data, see #{logfile}"})
-      die "Data archive #{f} has incorrect md5 hash" unless hash_matches(f,md5)
+      die "Data archive #{f} has incorrect md5 hash" unless hash_matches(dst,md5)
     end
     logd "Data archive #{f} ready"
-    cmd="tar xvzf #{f}"
+    cmd="cd #{tmp_dir} && tar xvzf #{f}"
     logd "Extracting data: #{cmd}"
     output,status=ext(cmd,{:msg=>"Data extract failed, see #{logfile}"})
     logd "Data extract complete"
@@ -65,7 +72,7 @@ module Library
   def lib_run_prep(env,rundir)
     binname=env.run.binname
     conffile=env.run.conffile
-    FileUtils.cp(File.join('builds',env.build._result,binname),rundir)
+    FileUtils.cp(env.build._result,rundir)
     FileUtils.chmod(0755,File.join(rundir,binname))
     a=env.run.a
     b=env.run.b

@@ -1,110 +1,35 @@
-confdir=(d=ENV['DDTSCONF'])?(d):('conf')
-unless Dir.exist?(confdir)
-  puts "Configuration directory '#{confdir}' not found"
-  exit(1)
+unless $DDTSHOME=ENV["DDTSHOME"]
+  puts "DDTSHOME not found in environment."
+  exit 1
 end
-$:.push(File.join(File.dirname($0),confdir))
+$DDTSHOME=File.expand_path($DDTSHOME)
 
-require 'digest/md5'
-require 'fileutils'
-require 'find'
-require 'logger'
-require 'nl'
-require 'ostruct'
-require 'profiles'
-require 'thread'
-require 'time'
-require 'yaml'
+$DDTSAPP=(d=ENV["DDTSAPP"])?(d):(File.join($DDTSHOME,"app"))
+unless Dir.exist?($DDTSAPP)
+  puts "Configuration directory '#{$DDTSAPP}' not found"
+  exit 1
+end
 
-module Common
+$DDTSOUT=(d=ENV["DDTSOUT"])?(d):(File.join($DDTSAPP))
 
-  def confdir()   $:.last                     end
-  def buildsdir() File.join(confdir,'builds') end
-  def runsdir()   File.join(confdir,'runs')   end
-  def suitesdir() File.join(confdir,'suites') end
+$:.push($DDTSHOME).push($DDTSAPP)
 
-  def ancestry(file,chain=nil)
+require "digest/md5"
+require "fileutils"
+require "find"
+require "logger"
+require "nl"
+require "ostruct"
+require "profiles"
+require "set"
+require "thread"
+require "time"
+require "yaml"
 
-    # Return an array containing the ancestry of the given configuration file
-    # (including the file itself), determined by following the chain of
-    # 'extends' properties.
+module Utility
 
-    dir,base=File.split(file)
-    chain=[] if chain.nil?
-    chain << base
-    me=parse(file)
-    ancestor=me['extends']
-    ancestry(File.join(dir,ancestor),chain) if ancestor
-    chain
-  end
-
-  def comp(runs)
-
-    # Compare the output files for a set of runs (a 'run' may be a baseline
-    # image). Each element in the passed-in array is an OpenStruct object with
-    # .name and .files members. The .name member specifies the name of the
-    # run for display/logging purposes. The .files member contains a filenames
-    # array-of-arrays, each element of which is composed of a prefix path and
-    # a suffix path which, together, form the absolute path of each filename.
-    # (This prefix/suffix split allows for flexibility in the directory
-    # hierarchy of a baseline, as well as specificity in identifying the output
-    # files of a model run.) The first element of the passed-in array is treated
-    # as a master, and each other element in compared to it. Success means that
-    # each set of output files is identical in name, number and content.
-
-    r1=runs.shift
-    r1_name=r1.name
-    r1_files=r1.files
-    r1_bases=r1_files.collect { |a,b| b }.sort
-    runs.each do |r2|
-      r2_name=r2.name
-      r2_files=r2.files
-      r2_bases=r2_files.collect { |a,b| b }.sort
-      logd "Comparing #{r1_name} to #{r2_name}"
-      m="(#{r1_name} vs #{r2_name})"
-      unless r1_bases==r2_bases
-        logd "File list matching failed #{m}, lists are:"
-        logd "#{r1_name} files: #{r1_bases.join(' ')}"
-        logd "#{r2_name} files: #{r2_bases.join(' ')}"
-        die "File list matching failed #{m}"
-      end
-      s1=r1_files.sort { |a,b| a[1]<=>b[1] }.collect { |a,b| File.join(a,b) }
-      s2=r2_files.sort { |a,b| a[1]<=>b[1] }.collect { |a,b| File.join(a,b) }
-      until s1.empty?
-        f1=s1.shift
-        f2=s2.shift
-        fb=File.basename(f1)
-        unless FileUtils.compare_file(f1,f2)
-          logd "Comparing #{fb}: failed #{m}"
-          die "Comparison failed #{m}"
-        end
-        logd "Comparing #{fb}: OK #{m}"
-      end
-      logd "Comparing #{r1_name} to #{r2_name}: OK"
-    end
-    logd_flush
-  end
-
-  def convert_h2o(h)
-
-    # Convert a (possibly nested) hash into an OpenStruct instance.
-
-    o=OpenStruct.new
-    h.each do |k,v|
-      eval("o.#{k}="+((v.is_a?(Hash))?("convert_h2o(v)"):("v")))
-    end
-    o
-  end
-
-  def convert_o2h(o)
-
-    # Convert a (possibly nested) OpenStruct instance into a hash.
-
-    h=Hash.new
-    o.marshal_dump.each do |k,v|
-      h[k.to_s]=((v.is_a?(OpenStruct))?(convert_o2h(v)):(v))
-    end
-    h
+  def app_dir
+    $DDTSAPP
   end
 
   def die(msg=nil)
@@ -147,6 +72,13 @@ module Common
     [output,status]
   end
 
+  def hash_matches(file,hash)
+
+    # Do they match?
+
+    Digest::MD5.file(file)==hash
+  end
+
   def job_activate(jobid,run)
 
     # Add jobid:run to the active-jobs hash, so that the job can be killed if
@@ -162,7 +94,7 @@ module Common
 
     re=Regexp.new(restr)
     die "Run failed: Could not find #{stdout}" unless File.exist?(stdout)
-    File.open(stdout,'r') do |io|
+    File.open(stdout,"r") do |io|
       io.readlines.each { |e| return true if re.match(e) }
     end
     false
@@ -175,26 +107,6 @@ module Common
     @activemaster.synchronize { @activejobs.delete(jobid) }
   end
 
-  def loadenv(file,descendant=nil,specs=nil)
-    convert_h2o(loadspec(file))
-  end
-
-  def loadspec(file,descendant=nil,specs=nil)
-
-    # Parse YAML spec from file, potentially using recursion to merge the
-    # current spec onto a specified ancestor. Keep track of spec files already
-    # processed to avoid graph cycles.
-
-    specs=[] if specs.nil?
-    die "Circular dependency detected for #{file}" if specs.include?(file)
-    specs << file
-    me=parse(file)
-    ancestor=me['extends']
-    me=loadspec(File.join(File.dirname(file),ancestor),me,specs) if ancestor
-    me=mergespec(me,descendant) unless descendant.nil?
-    me
-  end
-
   def logd(msg)
 
     # A convenience wrapper that logs DEBUG-level messages to the 'delayed'
@@ -203,10 +115,6 @@ module Common
 
     s="#{@pre}: #{msg}"
     (@dlog)?(@dlog.debug s):(puts s)
-  end
-
-  def logd_flush
-    @dlog.flush if @dlog
   end
 
   def logfile
@@ -228,6 +136,184 @@ module Common
 
     @ts.ilog.warn "#{@pre}: WARNING! #{msg}"
     @ts.ilog.warned=true
+  end
+
+  def tmp_dir
+
+    # The path to a temporary directory, which will be removed by the 'clean'
+    # command.
+
+    File.join($DDTSOUT,"tmp")
+  end
+
+  def valid_dir(dir)
+
+    # Return the supplied dir if it exists (otherwise die).
+
+    dir=File.expand_path(dir)
+    die "Directory #{dir} not found" unless File.directory?(dir)
+    dir
+  end
+
+  def valid_file(file)
+
+    # Return the supplied file if it exists (otherwise die).
+
+    file=File.expand_path(file)
+    die "File #{file} not found" unless File.exists?(file)
+    file
+  end
+
+end # module Utility
+
+module Common
+
+  include Utility
+
+  # Config directories
+
+  def confdir()     File.join($DDTSAPP,"configs") end
+  def build_confs() File.join(confdir,"builds")   end
+  def run_confs()   File.join(confdir,"runs")     end
+  def suite_confs() File.join(confdir,"suites")   end
+
+  # Runtime directories
+
+  def builds_dir()    File.join($DDTSOUT,"builds")  end
+  def logs_dir()      File.join($DDTSOUT,"logs")    end
+  def runs_dir()      File.join($DDTSOUT,"runs")    end
+
+  # Various methods
+
+  def ancestry(file,chain=nil)
+
+    # Return an array containing the ancestry of the given configuration file
+    # (including the file itself), determined by following the chain of
+    # 'extends' properties.
+
+    dir,base=File.split(file)
+    chain=[] if chain.nil?
+    chain << base
+    me=parse(file)
+    ancestor=me["extends"]
+    ancestry(File.join(dir,ancestor),chain) if ancestor
+    chain
+  end
+
+  def comp(runs,comparator=nil,continue=false)
+
+    # Compare the output files for a set of runs (a 'run' may be a baseline
+    # image). Each element in the passed-in array is an OpenStruct object with
+    # .name and .files members. The .name member specifies the name of the
+    # run for display/logging purposes. The .files member contains a filenames
+    # array-of-arrays, each element of which is composed of a prefix path and
+    # a suffix path which, together, form the absolute path of each filename.
+    # (This prefix/suffix split allows for flexibility in the directory
+    # hierarchy of a baseline, as well as specificity in identifying the output
+    # files of a model run.) The first element of the passed-in array is treated
+    # as a master, and each other element in compared to it. Success means that
+    # each set of output files is identical in name, number and content.
+
+    ok=true # hope for the best
+    r1=runs.shift
+    r1_name=r1.name
+    r1_files=r1.files
+    r1_bases=r1_files.collect { |a,b| b }.sort
+    runs.each do |r2|
+      r2_name=r2.name
+      r2_files=r2.files
+      r2_bases=r2_files.collect { |a,b| b }.sort
+      logd "Comparing #{r1_name} to #{r2_name}"
+      m="(#{r1_name} vs #{r2_name})"
+      unless r1_bases==r2_bases
+        logd "File list matching failed #{m}, lists are:"
+        logd "#{r1_name} files: #{r1_bases.join(' ')}"
+        logd "#{r2_name} files: #{r2_bases.join(' ')}"
+        begin
+          ok=false
+          die "File list matching failed #{m}"
+        rescue Exception=>x
+          unless x.is_a?(DDTSException) and continue
+            logd_flush
+            raise x
+          end
+        end
+      end
+      s1=r1_files.sort { |a,b| a[1]<=>b[1] }.collect { |a,b| File.join(a,b) }
+      s2=r2_files.sort { |a,b| a[1]<=>b[1] }.collect { |a,b| File.join(a,b) }
+      until s1.empty?
+        f1=s1.shift
+        f2=s2.shift
+        fb=File.basename(f1)
+        if (comparator)?(send(comparator,f1,f2)):(FileUtils.compare_file(f1,f2))
+          logd "Comparing #{fb}: OK #{m}"
+        else
+          logd "Comparing #{fb}: failed #{m}"
+          ok=false
+        end
+      end
+      if ok
+        logd "Comparing #{r1_name} to #{r2_name}: OK"
+      else
+        begin
+          die "Comparison failed #{m}"
+        rescue Exception=>x
+          unless x.is_a?(DDTSException) and continue
+            logd_flush
+            raise x
+          end
+        end
+      end
+    end
+    logd_flush
+    ok
+  end
+
+  def convert_h2o(h)
+
+    # Convert a (possibly nested) hash into an OpenStruct instance.
+
+    o=OpenStruct.new
+    h.each do |k,v|
+      eval("o.#{k}="+((v.is_a?(Hash))?("convert_h2o(v)"):("v")))
+    end
+    o
+  end
+
+  def convert_o2h(o)
+
+    # Convert a (possibly nested) OpenStruct instance into a hash.
+
+    h=Hash.new
+    o.marshal_dump.each do |k,v|
+      h[k.to_s]=((v.is_a?(OpenStruct))?(convert_o2h(v)):(v))
+    end
+    h
+  end
+
+  def loadenv(file,descendant=nil,specs=nil)
+    logd "Loading env from #{file}"
+    convert_h2o(loadspec(file))
+  end
+
+  def loadspec(file,descendant=nil,specs=nil)
+
+    # Parse YAML spec from file, potentially using recursion to merge the
+    # current spec onto a specified ancestor. Keep track of spec files already
+    # processed to avoid graph cycles.
+
+    specs=[] if specs.nil?
+    die "Circular dependency detected for #{file}" if specs.include?(file)
+    specs << file
+    me=parse(file)
+    ancestor=me["extends"]
+    me=loadspec(File.join(File.dirname(file),ancestor),me,specs) if ancestor
+    me=mergespec(me,descendant) unless descendant.nil?
+    me
+  end
+
+  def logd_flush
+    @dlog.flush if @dlog
   end
 
   def mergespec(me,descendant)
@@ -261,35 +347,47 @@ module Common
     rescue Exception=>x
       logd x.message
       x.backtrace.each { |e| logd e }
-      die 'Error parsing YAML from '+file
+      die "Error parsing YAML from "+file
     end
-    unless @dlog.nil?
+    if @dlog
       c=File.basename(file)
       logd "Read config '#{c}':"
       die "Config '#{c}' is invalid" unless o
       pp(o).each_line { |e| logd e }
-      logd_flush
     end
     o
   end
 
-  def pp(o,d=0)
+  def pp(o,level=0,indent=true,quote=true)
 
-    # Pretty-print. Sorting provides diff-comparable output. Handles hashes or
-    # arrays. Hashes may contain hashes or arrays, but arrays are expected to
-    # contain scalars. (The latter limitation can be removed, but there's no
-    # need at present.)
+    # Pretty-print. Sorting provides diff-comparable output.
+
+    def a_or_h(o)
+      o.is_a?(Array)||o.is_a?(Hash)
+    end
+
+    def ppsort(o)
+      o.sort_by { |e| ((e.is_a?(Hash))?(e.keys.first):(e)) }
+    end
 
     s=""
-    o.sort.each do |k,v|
-      s+="  "*d+k
-      ha=v.is_a?(Hash)||v.is_a?(Array)
-      s+=(o.is_a?(Hash))?(": "+((ha)?("\n"+pp(v,d+1)):("#{quote(v)}\n"))):("\n")
+    if o.is_a?(Array)
+      ppsort(o).each do |e|
+        s+="  "*level+"- "
+        s+=pp(e,level,(a_or_h(e))?(false):(true),false)
+      end
+    elsif o.is_a?(Hash)
+      ppsort(o).each do |k,v|
+        s+="  "*level if indent
+        s+=k+((a_or_h(v))?(":\n"):(": "))+pp(v,level+1,true)
+      end
+    else
+      s+=(quote)?("#{quote_string(o)}\n"):("#{o}\n")
     end
     s
   end
 
-  def quote(s)
+  def quote_string(s)
 
     # Wrap values instantiated as Ruby Strings in quotes, except for those
     # tagged '!unquoted'.
@@ -329,33 +427,15 @@ module Common
     failcount
   end
 
-  def valid_dir(dir)
-
-    # Return the supplied dir if it exists (otherwise die).
-
-    dir=File.expand_path(dir)
-    die "Directory #{dir} not found" unless File.directory?(dir)
-    dir
-  end
-
-  def valid_file(file)
-
-    # Return the supplied file if it exists (otherwise die).
-
-    file=File.expand_path(file)
-    die "File #{file} not found" unless File.exists?(file)
-    file
-  end
-
 end # module Common
 
 class Comparison
 
   include Common
 
-  attr_reader :failruns,:totalruns
+  attr_reader :comp_ok,:failruns,:totalruns
 
-  def initialize(a,ts)
+  def initialize(a,env,ts)
 
     # Receive an array of runs to be compared together, instantiate each in a
     # thread, then monitor threads for completion. Perform pairwise comparison
@@ -363,24 +443,31 @@ class Comparison
     # variables from passed-in TS object are converted into instance variables
     # of this object.
 
+    @env=env
     @ts=ts
     @dlog=XlogBuffer.new(ts.ilog)
     @pre="Comparison"
     @totalruns=a.size
+    self.extend((p=@env.profile)?(Object.const_get(p)):(Library))
     runs=[]
     threads=[]
-    set=a.join(', ')
+    set=a.join(", ")
     a.each { |e| threads << Thread.new { runs << Run.new(e,@ts).result } }
     @failruns=threadmon(threads,@ts.env.suite.continue)
+    @comp_ok=true # hope for the best
     return if @ts.env.suite.build_only
     if @totalruns-@failruns > 1
       runs.delete_if { |e| e.result==:run_failed }
-      set=runs.reduce([]) { |m,e| m.push(e.name) }.join(', ')
+      set=runs.reduce([]) { |m,e| m.push(e.name) }.sort.join(", ")
       logi "#{set}: Checking..."
-      comp(runs.sort { |r1,r2| r1.name <=> r2.name })
-      logi "#{set}: OK"
+      sorted_runs=runs.sort { |r1,r2| r1.name <=> r2.name }
+      alt_comparator=(c=@env.lib_comp)?(c.to_sym):(nil)
+      @comp_ok=comp(sorted_runs,alt_comparator,@ts.env.suite.continue)
+      logi "#{set}: OK" if @comp_ok
     else
       unless @totalruns==1
+        # Do not set @comp_ok to false here: The failure of this group will be
+        # reflected in threadmon()'s return value.
         logi "Group stats: #{@failruns} of #{@totalruns} runs failed, "+
           "skipping comparison for group #{set}"
       end
@@ -427,7 +514,8 @@ class Run
     end
     @ts.runlocks[@r].synchronize do
       break if @ts.runs.has_key?(@r)
-      @env=OpenStruct.new({:run=>loadenv(File.join(runsdir,@r))})
+      @env=OpenStruct.new({:run=>loadenv(File.join(run_confs,@r))})
+      logd_flush
       @env.suite=@ts.env.suite
       self.extend((p=@env.run.profile)?(Object.const_get(p)):(Library))
       @env.run._name=@r
@@ -447,7 +535,7 @@ class Run
           end
         end
         logi "Started"
-        @rundir=File.join(Dir.pwd,"runs","#{@r}.#{@ts.uniq}")
+        @rundir=File.join(runs_dir,"#{@r}.#{@ts.uniq}")
         FileUtils.mkdir_p(@rundir) unless Dir.exist?(@rundir)
         logd "* Output from run prep:"
         @rundir=lib_run_prep(@env,@rundir)
@@ -457,7 +545,11 @@ class Run
         if (success=lib_run_post(@env,runkit))
           result=OpenStruct.new({:name=>@r,:files=>lib_outfiles(@env,@rundir)})
           @ts.runmaster.synchronize { @ts.runs[@r]=result }
-          (@ts.genbaseline)?(baseline_reg):(baseline_comp)
+          if @ts.use_baseline_dir
+            baseline_comp
+          elsif @ts.gen_baseline_dir
+            baseline_reg
+          end
           logd_flush
           logi "Completed"
         else
@@ -484,11 +576,10 @@ class Run
 
     # Compare this run's output files to its baseline.
 
-    if @bline=='none'
+    if @bline=="none"
       logd "Baseline comparison for #{@r} disabled, skipping"
     else
-      blinetop=File.join(@ts.topdir,'baseline')
-      blinepath=File.join(blinetop,@bline)
+      blinepath=File.join(@ts.use_baseline_dir,@bline)
       if Dir.exist?(blinepath)
         logi "Comparing to baseline #{@bline}"
         blinepair=OpenStruct.new
@@ -497,7 +588,7 @@ class Run
         comp([@ts.runs[@r],blinepair])
         logi "Baseline comparison OK"
       else
-        if Dir.exist?(blinetop)
+        if Dir.exist?(@ts.use_baseline_dir)
           logw "No baseline '#{@bline}' found, continuing..."
         end
       end
@@ -510,7 +601,7 @@ class Run
     # of runs sharing a common baseline name, this run's output files. Only one
     # run of the set performs this operation, due to the mutex.
 
-    if @bline=='none'
+    if @bline=="none"
       logd "Baseline registration for #{@r} disabled, skipping"
     else
       @ts.baselinemaster.synchronize do
@@ -531,8 +622,9 @@ class Run
     # information required by its dependent runs.
 
     b=@env.run.build
-    @env.build=loadenv(File.join(buildsdir,b))
-    @env.build._root=File.join(FileUtils.pwd,"builds")
+    @env.build=loadenv(File.join(build_confs,b))
+    logd_flush
+    @env.build._root=File.join(builds_dir,b)
     @ts.buildmaster.synchronize do
       @ts.buildlocks[b]=Mutex.new unless @ts.buildlocks.has_key?(b)
     end
@@ -552,18 +644,10 @@ class Run
           @ts.builds[b]=lib_build_post(@env,build_result)
         end
         logi "Build #{b} completed"
-        logd_flush
       end
     end
     die "Required build unavailable" if @ts.builds[b]==:build_failed
     @ts.buildmaster.synchronize { @env.build._result=@ts.builds[b] }
-  end
-
-  def hash_matches(file,hash)
-
-    # Do they match?
-
-    Digest::MD5.file(file)==hash
   end
 
   def mod_namelist_file(nlfile,nlenv)
@@ -574,7 +658,7 @@ class Run
     nlh=NamelistHandler.new(nlfile)
     nlspec.each do |nlk,nlv|
       nlv.each do |k,v|
-        v=quote(v)
+        v=quote_string(v)
         nlh.set!(nlk,k,v)
         logd "Set namelist #{nlk}:#{k}=#{v}"
       end
@@ -589,16 +673,16 @@ class TS
   include Common
 
   attr_accessor :activemaster,:activejobs,:baselinemaster,:baselinesrcs,
-  :buildlocks,:buildmaster,:builds,:dlog,:genbaseline,:havedata,:ilog,:pre,
-  :runlocks,:runmaster,:runs,:suite,:topdir,:uniq
+  :buildlocks,:buildmaster,:builds,:dlog,:gen_baseline_dir,:havedata,:ilog,:pre,
+  :runlocks,:runmaster,:runs,:suite,:uniq,:use_baseline_dir
 
   def initialize(tsname,cmd,rest)
 
     # The test-suite class. Provide a number of instance variables used
     # throughout the test suite, then branch to the appropriate method.
 
-    @activemaster=Mutex.new
     @activejobs={}
+    @activemaster=Mutex.new
     @baselinemaster=Mutex.new
     @baselinesrcs={}
     @buildlocks={}
@@ -606,7 +690,7 @@ class TS
     @builds={}
     @dlog=nil
     @env={}
-    @genbaseline=false
+    @gen_baseline_dir=nil
     @havedata=false
     @ilog=nil
     @pre=tsname
@@ -614,27 +698,22 @@ class TS
     @runmaster=Mutex.new
     @runs={}
     @suite=nil
-    @topdir=FileUtils.pwd
     @ts=self
     @uniq=Time.now.to_i
+    @use_baseline_dir=nil
     dispatch(cmd,rest)
   end
 
-  def avoid_baseline_conflicts(suitespec)
+  def avoid_baseline_conflicts(runs)
 
     # Examine each run the suite plans to execute, report any pre-existing
     # baseline-image directories that would potentially be clobbered if we
     # continue, then die.
 
     conflicts=[]
-    suitespec.each do |group,runs|
-      runs.each do |run|
-        if (b=loadspec(File.join(runsdir,run))['baseline'])
-          unless b=='none'
-            d=File.join(@ts.topdir,'baseline',b)
-            conflicts.push(b) if Dir.exist?(d)
-          end
-        end
+    runs.each do |run|
+      unless (b=loadspec(File.join(run_confs,run))["baseline"])=="none"
+        conflicts.push(b) if Dir.exist?(File.join(@gen_baseline_dir,b))
       end
     end
     unless conflicts.empty?
@@ -642,17 +721,6 @@ class TS
       conflicts.sort.uniq.each { |e| logi "  #{e} already exists" }
       die "Aborting..."
     end
-  end
-
-  def baseline(args=nil)
-
-    # If 'baseline' was supplied as the command-line argument, record the fact
-    # that baseline generation has been requested, then call dosuite() with the
-    # supplied suite name.
-
-    help(args,1) if args.empty?
-    @genbaseline=true
-    dosuite(args[0])
   end
 
   def baseline_gen
@@ -664,7 +732,7 @@ class TS
 
     @baselinesrcs.each do |r,src|
       logi "Creating #{r} baseline..."
-      dst=File.join(@topdir,"baseline",r)
+      dst=File.join(@gen_baseline_dir,r)
       src.files.each do |p1,p2|
         fullpath=File.join(p1,p2)
         minipath=p2
@@ -673,8 +741,40 @@ class TS
         FileUtils.mkdir_p(dstdir) unless Dir.exist?(dstdir)
         FileUtils.cp(fullpath,File.join(dst,minipath))
       end
+      logd_flush
       logi "Creating #{r} baseline: OK"
     end
+  end
+
+  def build_init(run_or_runs)
+
+    # If the builds directory does not exist, simply create it. Otherwise,
+    # exctract the set of unique 'build' keys from the supplied run config(s)
+    # and remove any build directories with the same names. NB: This assumes
+    # that build directories are named identically to build config names!
+
+    logd "build_init:"
+    logd "----"
+    if Dir.exist?(builds_dir)
+      if not @env["retain_builds"]
+        runs=(run_or_runs.respond_to?(:each))?(run_or_runs):([run_or_runs])
+        builds=runs.reduce(Set.new) do |m,e|
+          m.add(File.join(builds_dir,loadspec(File.join(run_confs,e))["build"]))
+          logd "----"
+          m
+        end
+        builds.each do |build|
+          if Dir.exist?(build)
+            FileUtils.rm_rf(build)
+            logd "Deleted build '#{build}'"
+          end
+        end
+      end
+    else
+      FileUtils.mkdir_p(builds_dir)
+      logd "Created empty '#{builds_dir}'"
+    end
+    logd_flush
   end
 
   def clean(extras=nil)
@@ -682,23 +782,15 @@ class TS
     # Clean up items created by the test suite. As well as those defined here,
     # remove any items specified by the caller.
 
-    items=['builds','data','runs']
-    Dir.glob("log.*").each { |e| items << e }
+    items=[builds_dir,logs_dir,runs_dir,tmp_dir]
+    Dir.glob(File.join($DDTSOUT,"log.*")).each { |e| items << e }
     extras.each { |e| items << e } unless extras.nil?
     items.sort.each do |e|
       if File.exists?(e)
-        puts "Deleting #{e}"
+        puts "Deleting #{File.basename(e)}"
         FileUtils.rm_rf(e)
       end
     end
-  end
-
-  def cleaner(args=nil)
-
-    # Cleaner than clean: Delete the items defined in 'clean', plus these.
-    # 'args' is ignored.
-
-    clean(['baseline','data.tgz'])
   end
 
   def dispatch(cmd,args)
@@ -707,8 +799,10 @@ class TS
     # the given arguments. If it is a suite name, run the suite. Otherwise, show
     # usage info and exit with error.
 
-    okargs=['baseline','clean','cleaner','help','run','show']
-    suites=Dir.glob(File.join(suitesdir,"*")).map { |e| File.basename(e) }
+    cmd="gen_baseline" if cmd=="gen-baseline"
+    cmd="use_baseline" if cmd=="use-baseline"
+    okargs=["clean","gen_baseline","help","run","show","use_baseline"]
+    suites=Dir.glob(File.join(suite_confs,"*")).map { |e| File.basename(e) }
     if okargs.include?(cmd)
       send(cmd,args)
     elsif suites.include?(cmd)
@@ -735,14 +829,16 @@ class TS
 
     setup
     @suite=suite
-    f=File.join(suitesdir,@suite)
+    f=File.join(suite_confs,@suite)
     unless File.exists?(f)
       die "Suite '#{@suite}' not found"
     end
     logi "Running test suite '#{@suite}'"
     threads=[]
     begin
+      logd "Loading suite spec #{f}"
       suitespec=loadspec(f)
+      logd_flush
       suitespec.each do |k,v|
         # Assume that array values are run groups and move all scalar values
         # into env, assuming that these are either reserved or user-defined
@@ -755,13 +851,22 @@ class TS
       @env["_totalfailures"]=0
       @env["_suitename"]=@suite
       self.extend((p=@env["profile"])?(Object.const_get(p)):(Library))
+      FileUtils.mkdir_p(tmp_dir)
       lib_suite_prep(env)
-      avoid_baseline_conflicts(suitespec) if @genbaseline
-      mkbuilds
+      runset=suitespec.reduce(Set.new) do |m,(k,v)|
+        v.each { |x| m.add(x) if x.is_a?(String) }
+        m
+      end
+      avoid_baseline_conflicts(runset) if @gen_baseline_dir
+      build_init(runset)
       suitespec.each do |group,runs|
+        group_hash=runs.reduce({}) do |m,e|
+          (e.is_a?(Hash))?(m.merge(runs.delete(e))):(m)
+        end
+        group_env=OpenStruct.new(group_hash)
         if runs
           threads << Thread.new do
-            Thread.current[:comparison]=Comparison.new(runs.sort.uniq,self)
+            Thread.current[:comparison]=Comparison.new(runs.sort.uniq,group_env,self)
             raise DDTSException if Thread.current[:comparison].failruns > 0
           end
         else
@@ -773,6 +878,7 @@ class TS
         threads.each do |e|
           @env["_totalruns"]+=e[:comparison].totalruns
           @env["_totalfailures"]+=e[:comparison].failruns
+          failgroups+=1 unless e[:comparison].comp_ok
         end
         logi "Suite stats: Failure in #{failgroups} of #{threads.size} group(s)"
       end
@@ -784,14 +890,13 @@ class TS
       x.backtrace.each { |e| logi e }
       exit 1
     end
-    if @genbaseline
+    if @gen_baseline_dir
       if failgroups>0
         logi "Skipping baseline generation due to #{failgroups} run failure(s)"
       else
         baseline_gen
       end
     end
-    logd_flush
     if failgroups>0
       msg="#{@env["_totalfailures"]} of #{@env["_totalruns"]} TEST(S) FAILED"
     else
@@ -804,6 +909,18 @@ class TS
 
   def env
     OpenStruct.new({:suite=>OpenStruct.new(@env)})
+  end
+
+  def gen_baseline(args=nil)
+
+    # If 'gen-baseline' was supplied as the command-line argument, record the
+    # specified baseline directory, then call dosuite() with the supplied suite
+    # name.
+
+    help(args,1) if args.empty?
+    @gen_baseline_dir=args.shift
+    help(args,1) if args.empty?
+    dosuite(args[0])
   end
 
   def halt(x)
@@ -830,9 +947,9 @@ class TS
   def help(args=nil,status=0)
     puts
     puts "usage: #{@pre} <suite>"
-    puts "       #{@pre} baseline <suite>"
+    puts "       #{@pre} gen-baseline <directory> <suite>"
+    puts "       #{@pre} use-baseline <directory> <suite>"
     puts "       #{@pre} clean"
-    puts "       #{@pre} cleaner"
     puts "       #{@pre} help"
     puts "       #{@pre} run <run>"
     puts "       #{@pre} show run <run>"
@@ -845,31 +962,17 @@ class TS
     exit status
   end
 
-  def mkbuilds
-
-    # Create a 'builds' directory (potentially after removing an existing one)
-    # to contain the objects created by the build-automation system.
-
-    builds='builds'
-    if Dir.exist?(builds) and not @env["retain_builds"]
-      FileUtils.rm_rf(builds)
-      @ilog.debug("Deleted existing '#{builds}'")
-    end
-    unless Dir.exist?(builds)
-      FileUtils.mkdir_p(builds)
-      @ilog.debug("Created empty '#{builds}'")
-    end
-  end
-
   def run(args=nil)
 
     # Handle the command-line "run" argument, to perform a single named run.
 
     die "No run name specified" if args.empty?
     setup
+    FileUtils.mkdir_p(tmp_dir)
     begin
-      mkbuilds
-      Run.new(args[0],self)
+      run=args[0]
+      build_init(run)
+      Run.new(run,self)
     rescue Interrupt,DDTSException=>x
       halt(x)
     rescue Exception=>x
@@ -884,9 +987,9 @@ class TS
     # Perform common tasks needed for either full-suite or single-run
     # invocations.
 
-    @ilog=Xlog.new(@uniq)
+    @ilog=Xlog.new(logs_dir,@uniq)
     @dlog=XlogBuffer.new(@ilog)
-    trap('INT') do
+    trap("INT") do
       logi "Interrupted"
       raise Interrupt
     end
@@ -898,9 +1001,9 @@ class TS
 
     type=args[0]
     name=args[1]
-    if ['run','suite'].include?(type)
+    if ["run","suite"].include?(type)
       die "No #{type} specified" unless name
-      dir=(type=='run')?(runsdir):(suitesdir)
+      dir=(type=="run")?(run_confs):(suite_confs)
       file=File.join(dir,name)
       die "'#{name}' not found in #{dir}" unless File.exist?(file)
       spec=loadspec(file)
@@ -910,8 +1013,8 @@ class TS
       puts
       puts pp(spec)
       puts
-    elsif ['runs','suites'].include?(type)
-      dir=(type=='runs')?(runsdir):(suitesdir)
+    elsif ["runs","suites"].include?(type)
+      dir=(type=="runs")?(run_confs):(suite_confs)
       puts
       puts "Available #{type}:"
       puts
@@ -920,6 +1023,18 @@ class TS
     else
       help(args,1)
     end
+  end
+
+  def use_baseline(args=nil)
+
+    # If 'use-baseline' was supplied as the command-line argument, record the
+    # specified baseline directory, then call dosuite() with the supplied suite
+    # name.
+
+    help(args,1) if args.empty?
+    @use_baseline_dir=args.shift
+    help(args,1) if args.empty?
+    dosuite(args[0])
   end
 
 end # class TS
@@ -934,7 +1049,7 @@ class Unquoted
 
 end # class Unquoted
 
-YAML.add_tag('!unquoted',Unquoted)
+YAML.add_tag("!unquoted",Unquoted)
 
 class Xlog
 
@@ -954,9 +1069,10 @@ class Xlog
   attr_accessor :warned
   attr_reader :file
 
-  def initialize(uniq)
+  def initialize(dir,uniq)
     # File logger
-    @file="log.#{uniq}"
+    FileUtils.mkdir_p(dir)
+    @file=File.join(dir,"log.#{uniq}")
     FileUtils.rm_f(@file)
     @flog=Logger.new(@file)
     @flog.level=Logger::DEBUG
@@ -972,12 +1088,12 @@ class Xlog
   end
 
   def method_missing(m,*a)
-      if m==:flush
-        @flog.debug("\n#{a.first}")
-      else
-        @flog.send(m,"\n\n  #{a.first}\n")
-        @slog.send(m,a.first)
-      end
+    if m==:flush
+      @flog.debug("\n#{a.first}")
+    else
+      @flog.send(m,"\n\n  #{a.first}\n")
+      @slog.send(m,a.first)
+    end
   end
 
 end # class Xlog
