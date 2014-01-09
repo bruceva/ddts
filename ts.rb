@@ -2,14 +2,9 @@ unless $DDTSHOME=ENV["DDTSHOME"]
   puts "DDTSHOME not found in environment."
   exit 1
 end
+
 $DDTSHOME=File.expand_path($DDTSHOME)
-
 $DDTSAPP=(d=ENV["DDTSAPP"])?(d):(File.join($DDTSHOME,"app"))
-unless Dir.exist?($DDTSAPP)
-  puts "Configuration directory '#{$DDTSAPP}' not found"
-  exit 1
-end
-
 $DDTSOUT=(d=ENV["DDTSOUT"])?(d):(File.join($DDTSAPP))
 
 $:.push($DDTSHOME).push($DDTSAPP)
@@ -20,7 +15,6 @@ require "find"
 require "logger"
 require "nl"
 require "ostruct"
-require "profiles"
 require "set"
 require "thread"
 require "time"
@@ -801,8 +795,14 @@ class TS
 
     cmd="gen_baseline" if cmd=="gen-baseline"
     cmd="use_baseline" if cmd=="use-baseline"
-    okargs=["clean","gen_baseline","help","run","show","use_baseline"]
+    okargs=["clean","gen_baseline","help","run","show","use_baseline","version"]
     suites=Dir.glob(File.join(suite_confs,"*")).map { |e| File.basename(e) }
+    unless ["help","version"].include?(cmd)
+      unless Dir.exist?($DDTSAPP)
+        die "Configuration directory '#{$DDTSAPP}' not found"
+      end
+      require "profiles"
+    end
     if okargs.include?(cmd)
       send(cmd,args)
     elsif suites.include?(cmd)
@@ -952,10 +952,13 @@ class TS
     puts "       #{@pre} clean"
     puts "       #{@pre} help"
     puts "       #{@pre} run <run>"
+    puts "       #{@pre} show build <build>"
+    puts "       #{@pre} show builds"
     puts "       #{@pre} show run <run>"
     puts "       #{@pre} show runs"
     puts "       #{@pre} show suite <suite>"
     puts "       #{@pre} show suites"
+    puts "       #{@pre} version"
     puts
     puts "See the README for more information."
     puts
@@ -999,11 +1002,24 @@ class TS
 
     # Pretty-print a fully composed run or suite configuration.
 
+    def get_dir(type)
+      case
+      when type=~/build(s?)/
+        build_confs
+      when type=~/run(s?)/
+        run_confs
+      when type=~/suite(s?)/
+        suite_confs
+      else
+        die "Unrecognized config type '#{type}'"
+      end
+    end
+
     type=args[0]
     name=args[1]
-    if ["run","suite"].include?(type)
+    if ["build","run","suite"].include?(type)
       die "No #{type} specified" unless name
-      dir=(type=="run")?(run_confs):(suite_confs)
+      dir=get_dir(type)
       file=File.join(dir,name)
       die "'#{name}' not found in #{dir}" unless File.exist?(file)
       spec=loadspec(file)
@@ -1013,8 +1029,8 @@ class TS
       puts
       puts pp(spec)
       puts
-    elsif ["runs","suites"].include?(type)
-      dir=(type=="runs")?(run_confs):(suite_confs)
+    elsif ["builds","runs","suites"].include?(type)
+      dir=get_dir(type)
       puts
       puts "Available #{type}:"
       puts
@@ -1035,6 +1051,10 @@ class TS
     @use_baseline_dir=args.shift
     help(args,1) if args.empty?
     dosuite(args[0])
+  end
+
+  def version(args)
+    puts "pre-1.0"
   end
 
 end # class TS
