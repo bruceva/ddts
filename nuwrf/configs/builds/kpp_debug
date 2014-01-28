@@ -1,0 +1,2 @@
+extends: 'kpp'
+debug: true

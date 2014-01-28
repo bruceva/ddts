@@ -1,0 +1,5 @@
+batchname: 'modelE'
+procline: 'select=1:ncpus=12:mpiprocs=12'
+walltime: '01:00:00'
+group: 'k3002'
+modules: 'comp/intel-13.0.0.079 mpi/impi-3.2.2.006'

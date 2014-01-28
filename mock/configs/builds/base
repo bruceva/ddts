@@ -1,0 +1,8 @@
+bindir: 'bin'
+executables: ["a","b","c"]
+log_at: ['prep','build','post']
+pass_log: ['Prep step pass', 'Build step pass', 'Post step pass']
+fail_log: ['Prep step failed', 'Build step failed','Post step failed']
+# add fail_at: <step name> where step name:= prep,build or post
+# add exception_type: 
+

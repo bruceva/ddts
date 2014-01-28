@@ -1,0 +1,3 @@
+extends: 'base'
+fail_at: 'lib_build'
+fail_log_msg: 'Failed at build phase'

@@ -1,0 +1,15 @@
+extends: 'batch72'
+baseline: 'case13'
+build: 'kpp_discover'
+profile: 'Weekly'
+testCaseNumber: '13'
+testDataRepository: '/discover/nobackup/projects/nu-wrf/cases'
+expectedOutputFiles: ['wrfout_d01_2008-01-01_00:00:00',
+'wrfout_d01_2008-01-01_03:00:00',
+'wrfout_d01_2008-01-01_06:00:00',
+'wrfout_d01_2008-01-01_09:00:00',
+'wrfout_d01_2008-01-01_12:00:00',
+'wrfout_d01_2008-01-01_15:00:00',
+'wrfout_d01_2008-01-01_18:00:00',
+'wrfout_d01_2008-01-01_21:00:00',
+'wrfout_d01_2008-01-02_00:00:00']

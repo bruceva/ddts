@@ -1,0 +1,11 @@
+extends: carlosrepo
+git_repo_branch: 'base'
+rundeck: 'nonProduction_E_AR5_C12'
+compiler: 'intel'
+modules: ['comp/intel-13.1.3.192 mpi/impi-3.2.2.006']
+batch_build: false
+walltime: '00:20:00'
+group: 'k3002'
+makefile: 'Makefile'
+modelerc: 'modelErc'
+

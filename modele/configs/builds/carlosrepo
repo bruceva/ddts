@@ -1,0 +1,2 @@
+extends: modelerc_intel
+git_repo_root: '/gpfsm/dnb32/ccruz/devel/modelE.clones'

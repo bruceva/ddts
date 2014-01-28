@@ -1,0 +1,6 @@
+continue: true
+retain_builds: true
+group1:
+ - em20
+group2:
+ - em20_b

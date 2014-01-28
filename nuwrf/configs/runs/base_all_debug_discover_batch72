@@ -1,0 +1,4 @@
+extends: 'batch72'
+build: 'all_debug_discover'
+profile: 'Weekly'
+testDataRepository: '/discover/nobackup/projects/nu-wrf/cases'

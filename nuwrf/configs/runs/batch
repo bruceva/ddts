@@ -1,23 +1,28 @@
 batchName: 'nuwrf'
 # Define number of processors
 procs_to_int:
+  p60: '60'
   p72: '72'
   p384: '384'
 # Define the proc line for each supported processor count
 proc_line: 
+  p60: 'select=5:ncpus=12:mpiprocs=12'
   p72: 'select=6:ncpus=12:mpiprocs=12'
   p384: 'select=32:ncpus=12:mpiprocs=12'
 # lis.config x and y values for each supported processor count
 lis_config: 
+  p60:
+      x: '10'
+      y: '6'
   p72:
-      x: '16'
-      y: '16'
+      x: '9'
+      y: '8'
   p384:
       x: '24'
       y: '16' 
 # default processor count
 #proc_id: 'p384'
 # Other batch parameters not specific to processor count
-wallTime: '06:00:00'
+wallTime: '03:00:00'
 groupName: 's0942'
 modules: 'comp/intel-13.0.1.117 mpi/impi-4.0.3.008'

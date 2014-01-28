@@ -1,0 +1,4 @@
+extends: 'base'
+log_at: ['prep','build','post']
+log_content: ['Prep step pass', 'Build step pass', 'Post step pass']
+fail_at: []

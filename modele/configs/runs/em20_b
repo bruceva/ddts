@@ -1,0 +1,6 @@
+extends: 'batch'
+baseline: 'em20'
+build: 'em20'
+profile: 'Weekly'
+testCaseJobFile: 'runjob.bash'
+expectedOutputFiles: ['a','b']
