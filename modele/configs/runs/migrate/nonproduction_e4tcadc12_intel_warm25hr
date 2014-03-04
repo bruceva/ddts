@@ -1,0 +1,3 @@
+extends: 'nonproduction_e4tcadc12_intel'
+baseline: 'nonproduction_e4tcadc12_inteli_warm25hr'
+warm25hr: true

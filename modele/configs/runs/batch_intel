@@ -1,0 +1,17 @@
+batchname: 'modelE'
+#Define id to int conversion:
+procs_to_int:
+  ser: '1'
+  p1: '1'
+  p4: '4'
+  p12: '12'
+#Define the proc line for each supported identifier
+proc_line:
+  ser: 'select=1:ncpus=1:mpiprocs=1'
+  p1: 'select=1:ncpus=1:mpiprocs=1' 
+  p4: 'select=1:ncpus=4:mpiprocs=4'
+  p12: 'select=1:ncpus=12:mpiprocs=12'
+# Note: must define proc_id entry to match supported identifier
+walltime: '01:00:00'
+group: 'k3002'
+modules: 'comp/intel-13.0.0.079 mpi/impi-3.2.2.006'

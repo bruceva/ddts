@@ -1,0 +1,31 @@
+continue: true
+retain_builds: true
+group1hr_intel:
+ - nonproduction_e_ar5_c12_serial_intel
+ - nonproduction_e_ar5_c12_parallel_1_intel
+ - nonproduction_e_ar5_c12_parallel_4_intel
+ - lib_comp: 'lib_comp'
+
+group1hr_gfortran:
+ - nonproduction_e_ar5_c12_serial_gfortran
+ - nonproduction_e_ar5_c12_parallel_1_gfortran
+ - nonproduction_e_ar5_c12_parallel_4_gfortran
+ - lib_comp: 'lib_comp'
+
+group_25hr_intel:
+ - nonproduction_e_ar5_c12_serial_intel_cold25hr
+ - nonproduction_e_ar5_c12_serial_intel_warm25hr
+ - nonproduction_e_ar5_c12_parallel_1_intel_cold25hr
+ - nonproduction_e_ar5_c12_parallel_1_intel_warm25hr
+ - nonproduction_e_ar5_c12_parallel_4_intel_cold25hr
+ - nonproduction_e_ar5_c12_parallel_4_intel_warm25hr
+ - lib_comp: 'lib_comp'
+
+group_25hr_gfortran:
+ - nonproduction_e_ar5_c12_serial_gfortran_cold25hr
+ - nonproduction_e_ar5_c12_serial_gfortran_warm25hr
+ - nonproduction_e_ar5_c12_parallel_1_gfortran_cold25hr
+ - nonproduction_e_ar5_c12_parallel_1_gfortran_warm25hr
+ - nonproduction_e_ar5_c12_parallel_4_gfortran_cold25hr
+ - nonproduction_e_ar5_c12_parallel_4_gfortran_warm25hr
+ - lib_comp: 'lib_comp'

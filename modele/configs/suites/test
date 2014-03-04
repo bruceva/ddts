@@ -1,0 +1,10 @@
+continue: true
+retain_builds: true
+group13:
+ - nonproduction_e4tcadc12_intel
+group24:
+ - nonproduction_e4tcadc12_intel_cold25hr
+ - nonproduction_e4tcadc12_intel_warm25hr
+ - lib_comp: 'lib_comp_skiplist_nonProduction_E4TcadC12'
+
+

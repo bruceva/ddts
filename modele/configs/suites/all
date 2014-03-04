@@ -1,0 +1,38 @@
+continue: true
+retain_builds: true
+group10:
+ - nonproduction_e_ar5_c12_intel
+group11:
+ - e1om20_intel
+group12:
+ - e4f40_intel
+group13:
+ - nonproduction_e4tcadc12_intel
+group14:
+ - sgp4tests_intel
+group15:
+ - em20_intel
+group20:
+ - nonproduction_e_ar5_c12_intel_cold25hr
+ - nonproduction_e_ar5_c12_intel_warm25hr
+ - lib_comp: 'lib_comp'
+group21:
+ - em20_intel_cold25hr
+ - em20_intel_warm25hr
+ - lib_comp: 'lib_comp'
+group22:
+ - e1om20_intel_cold25hr
+ - e1om20_intel_warm25hr
+ - lib_comp: 'lib_comp'
+group23:
+ - e4f40_intel_cold25hr
+ - e4f40_intel_warm25hr
+ - lib_comp: 'lib_comp'
+group24:
+ - nonproduction_e4tcadc12_intel_cold25hr
+ - nonproduction_e4tcadc12_intel_warm25hr
+ - lib_comp: 'lib_comp'
+group25:
+ - sgp4tests_intel_cold25hr
+
+

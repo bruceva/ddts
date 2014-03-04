@@ -23,7 +23,6 @@ module Library
         logi "clenaupfiles found in suite"
         env.suite.cleanupfiles<<forcebuild
       end
-      env.build.foobar=true
       # Construct the name of the build directory and store it in the env.build
       # structure for later reference. The value of env.build.root is supplied
       # internally by the test suite; the value of env.run.build is supplied by
@@ -104,6 +103,9 @@ module Library
       logd "Skipping build. Required executable exists and repository did not change"
     end
 
+    # Note: Whatever is returned by this function is passed to the post processing via 
+    # the output variable
+
   end
 
   def lib_build_post(env,output)
@@ -111,7 +113,7 @@ module Library
     savediskdir=build_savedisk(env)
     modelerc=File.join(env.build.dir,"..",env.build.modelerc)
     # Return the name of the bin dir to be copied for each run that requires it.
-    [savediskdir,modelerc,env.build.rundeck,env.build.cmrundir,env.build.dir]
+    {:savediskdir=>savediskdir,:modelerc=>modelerc,:rundeck=>env.build.rundeck,:cmrundir=>env.build.cmrundir,:builddir=>env.build.dir}
   end
 
   def lib_data(env)
@@ -122,19 +124,20 @@ module Library
     # Copy executable dir into run directory. The value of env.build._result
     # is provided internally by the test suite.
     logi env.build._result
-    outdir=env.build._result[0]
+    outdir=env.build._result[:savediskdir]
+
     FileUtils.cp_r(outdir,rundir)
     logd "Copied #{outdir} -> #{rundir}"
 
-    modelerc=env.build._result[1]
+    modelerc=env.build._result[:modelerc]
     FileUtils.cp_r(modelerc,rundir)
     logd "Copied #{modelerc} -> #{rundir}"
 
     env.run.modelerc=modelerc
     env.run.savedisk=File.join(rundir,File.basename(outdir))
-    env.run.rundeck=env.build._result[2]
-    env.run.cmrundir=File.join(rundir,env.build._result[3])
-    env.run.modelEexec=File.join(env.build._result[4],'exec')
+    env.run.rundeck=env.build._result[:rundeck]
+    env.run.cmrundir=File.join(rundir,env.build._result[:cmrundir])
+    env.run.modelEexec=File.join(env.build._result[:builddir],'exec')
 
     #Create cmrundir with corresponding symlink to the output rundeck  
     FileUtils.mkdir(env.run.cmrundir)
@@ -147,36 +150,62 @@ module Library
 
     #Modify the modelErc file used during compilation to run under new directory
     appendScript(rundir,File.basename(env.run.modelerc),modifyModelercScript(env)) 
-   
-    # Since the executables are in a subdirectory of the run directory, update
-    # rundir to reflect this.
-    #rundir=File.join(rundir,File.basename(env.build._result))
-    # Link data.
-    #datadir=valid_dir(File.join("..","src"))
-    #[
-    #  "physproc_entry.proc0017",
-    #  "smv2chem1_entry.proc0017",
-    #  "smv2chem2_entry.proc0017"
-    #].each { |x| FileUtils.ln_sf(File.join(datadir,x),rundir) }
-    # Return rundir (i.e. where to perform the run).
+  
+    #edit the I file if needed
+    if env.run.cold25hr and valid_file(File.join(env.run.savedisk,env.run.rundeck,"I"))
+      logd "Editing the I file for a 25hr cold restart"
+      edit_I_file_for_25hr(File.join(env.run.savedisk,env.run.rundeck,"I"),true)
+    elsif
+      env.run.warm25hr and valid_file(File.join(env.run.savedisk,env.run.rundeck,"I"))
+      logd "Editing the I file for a 25hr warm restart"
+      edit_I_file_for_25hr(File.join(env.run.savedisk,env.run.rundeck,"I"),true)
+      edit_I_file_for_25hr(File.join(env.run.savedisk,env.run.rundeck,"I"),false)
+    else
+      logd "I file remains unchanged"
+    end
     rundir
   end
 
   def lib_run(env,rundir)
-    logi "Env.build.foobar: #{env.build.foobar}"
     # Create the batch system script with information from the 
     # run conf file.
-    s = getBatchJobScript(env,rundir)
-    fileName = File.join(rundir,env.run.testCaseJobFile)
+    s = getBatchJobScript_coldrestart(env,rundir)
+    fileName = File.join(rundir,"coldrestart.bash")
     File.open(fileName, "w+") do |batchFile|
       batchFile.print(s)
       logd "Created batch file: #{fileName}"
     end
     # Submit the script to the batch system
-    run_batch_job(env,rundir)
+    output=run_batch_job(env,rundir,"coldrestart.bash")
+
+    if env.run.warm25hr and valid_file(File.join(env.run.savedisk,env.run.rundeck,"I"))
+      s = getBatchJobScript_warmrestart(env,rundir)
+      fileName = File.join(rundir,"warmrestart.bash")
+      File.open(fileName, "w+") do |batchFile|
+        batchFile.print(s)
+        logd "Created batch file: #{fileName}"
+      end
+      output=run_batch_job(env,rundir,"warmrestart.bash")
+    end
+
+    testresult=File.join(env.run.savedisk,env.run.rundeck,"test_result.nc")
+    if env.run.cold25hr
+      logd "Cold 25hr restart: renaming fort.1.nc as test_result.nc"
+      FileUtils.mv(File.join(env.run.savedisk,env.run.rundeck,"fort.1.nc"),testresult) 
+    elsif env.run.warm25hr
+      logd "Warm 25hr restart: renaming fort.2.nc as test_result.nc"
+      FileUtils.mv(File.join(env.run.savedisk,env.run.rundeck,"fort.2.nc"),testresult) 
+    else
+      logd "Unmodified run: renaming fort.2.nc as test_result.nc"
+      FileUtils.mv(File.join(env.run.savedisk,env.run.rundeck,"fort.2.nc"),testresult)
+    end
+  
+    #Sanity check that test_result exists
+    valid_file(File.join(env.run.savedisk,env.run.rundeck,"test_result.nc"))
 
     # The last line of this function must return the file that will be used to gauge
     # execution success.
+    output
   end
 
 
@@ -192,10 +221,54 @@ module Library
     outpath=File.join(env.run.savedisk,env.run.rundeck)
     logd "outpath: #{outpath}"
     [
-      [outpath,"fort.2.nc"]
+      [outpath,"test_result.nc"]
     ]
   end
 
+  def lib_comp(file1, file2, file3="")
+    cmd="which diffreport.x"
+    o,s=ext(cmd,{:die=>false,:msg=>"Unable to locate diffreport.x",:out=>true})
+    if o
+      logd "Located diffreport.x at #{o}"
+    else
+      logd "Unable to located diffreport.x. Please add it to the PATH env var."
+      die("Missing executable")
+    end
+
+    logd "Diffreport.x comparison of #{file1} against #{file2}"
+    if file3 and file3 !=""
+      logd "Diffreport.x comparison of #{file1} against #{file2} with skip file #{file3}"
+      cmd="diffreport.x #{file1} #{file2} #{file3}" 
+    else
+      logd "Diffreport.x comparison of #{file1} against #{file2}" 
+      cmd="diffreport.x #{file1} #{file2}"
+    end
+    o,s=ext(cmd,{:die=>false,:msg=>"Error running diffreport.x",:out=>true})
+    if o and o.size==0
+      true
+    else
+      false
+    end
+  end
+  
+  def method_missing(meth, *args, &block)
+    if meth.to_s =~ /^lib_comp_(.+)$/
+      lib_comp(*args, $1)
+    else
+      super # You *must* call super if you don't handle the
+            # method, otherwise you'll mess up Ruby's method
+            # lookup.
+    end
+  end
+
+  def respond_to?(meth)
+    if meth.to_s =~ /^lib_comp_.*$/
+      true
+    else
+      super
+    end
+  end
+ 
   def lib_queue_del_cmd(env)
     nil
   end

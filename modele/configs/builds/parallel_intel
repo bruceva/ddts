@@ -1,0 +1,6 @@
+extends: 'modelerc_intel'
+git_repo_branch: 'base'
+modules: ['comp/intel-13.1.3.192 mpi/impi-3.2.2.006']
+makefile: 'Makefile'
+modelerc: 'modelErc'
+

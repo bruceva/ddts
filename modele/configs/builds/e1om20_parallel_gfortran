@@ -1,0 +1,2 @@
+extends: 'parallel_gfortran'
+rundeck: 'E1oM20'

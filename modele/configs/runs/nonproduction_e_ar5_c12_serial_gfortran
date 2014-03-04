@@ -1,0 +1,5 @@
+extends: 'batch_gfortran'
+baseline: 'nonproduction_e_ar5_c12_gfortran'
+build: 'nonproduction_e_ar5_c12_serial_gfortran'
+profile: 'Weekly'
+proc_id: 'ser'

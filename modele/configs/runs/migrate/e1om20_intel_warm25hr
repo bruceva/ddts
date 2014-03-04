@@ -1,0 +1,3 @@
+extends: 'e1om20_intel'
+baseline: 'e1om20_intel_warm25hr'
+warm25hr: true

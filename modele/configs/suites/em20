@@ -1,6 +1,8 @@
 continue: true
 retain_builds: true
 group1:
- - em20
+ - em20_intel
 group2:
- - em20_b
+ - em20_intel_cold25hr
+ - em20_intel_warm25hr
+ - lib_comp: 'lib_comp'

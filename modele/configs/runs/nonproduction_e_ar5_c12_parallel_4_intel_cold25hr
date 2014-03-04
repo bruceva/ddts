@@ -1,0 +1,2 @@
+extends: 'nonproduction_e_ar5_c12_parallel_4_intel'
+cold25hr: true

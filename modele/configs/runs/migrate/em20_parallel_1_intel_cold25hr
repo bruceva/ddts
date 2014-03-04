@@ -1,0 +1,2 @@
+extends: 'em20_parallel_1_intel'
+cold25hr: true

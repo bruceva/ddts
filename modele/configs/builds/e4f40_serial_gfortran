@@ -1,0 +1,2 @@
+extends: 'serial_gfortran'
+rundeck: 'E4F40'

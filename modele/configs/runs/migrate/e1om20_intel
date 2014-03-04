@@ -1,0 +1,5 @@
+extends: 'batch'
+baseline: 'e1om20_intel'
+build: 'e1om20_intel'
+profile: 'Weekly'
+proc_id: 'p4'

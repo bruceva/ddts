@@ -14,17 +14,20 @@ verbose_output: 'YES'
 overwrite: 'YES'
 
 # compiler
-compiler: 'intel'
+compiler: 'gfortran'
 
 #netcdf
-netcdfhome: '/usr/local/other/netcdf/3.6.2_intel-12.0.1.107'
-pnetcdfhome: '/usr/local/other/pnetcdf/intel12.0.1.107_impi3.2.2.006'
+netcdfhome: '/usr/local/other/netcdf/3.6.2_gcc4.8.1'
+pnetcdfhome: '/usr/local/other/pnetcdf/gcc-4.8.1_openmpi-1.7.2'
 
 #mpi
-mpidistr: 'intel'
+mpidistr: 'openmpi'
+mpidir: '/gpfsm/dnb32/mbhat/TestSlurm/Installs/openmpi/1.7.2-gcc-4.8.1-shared'
 mpi: 'YES'
 
 # esmf and/or basedir
 esmf: 'NO'
-baselibdir5: '/usr/local/other/esmf400rp1/intel12_impi32'
+
+# other options
+mp: 'NO'
 

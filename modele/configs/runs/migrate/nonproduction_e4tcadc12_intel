@@ -1,0 +1,5 @@
+extends: 'batch'
+baseline: 'nonproduction_e4tcadc12_intel'
+build: 'nonproduction_e4tcadc12_intel'
+profile: 'Weekly'
+proc_id: 'p4'

@@ -1,0 +1,29 @@
+# INTEL MODELERC FILE
+# directories and general options
+# Need to create the following 4 directories
+DECKS_REPOSITORY=/discover/nobackup/ccruz/devel/scratch/modelE/decks
+CMRUNDIR=/discover/nobackup/ccruz/devel/scratch/modelE/cmrun
+EXECDIR=/discover/nobackup/ccruz/devel/scratch/modelE/exec
+SAVEDISK=/discover/nobackup/ccruz/devel/scratch/modelE/out
+# This is where the model data (ICs, BCs) is stored
+GCMSEARCHPATH=/discover/nobackup/projects/giss/prod_input_files
+# leave these alone
+OUTPUT_TO_FILES=YES
+VERBOSE_OUTPUT=YES
+OVERWRITE=YES
+
+# compiler
+COMPILER=intel
+
+# netcdf
+NETCDFHOME=/usr/local/other/netcdf/3.6.2_intel-12.0.1.107
+#NETCDFHOME=/usr/local/other/netcdf/3.6.2_intel-14.0.0.080
+PNETCDFHOME=/usr/local/other/pnetcdf/intel12.0.1.107_impi3.2.2.006
+#PNETCDFHOME=/usr/local/other/pnetcdf/intel-14.0.0.080_impi-4.1.1.036
+
+# mpi
+MPIDISTR=intel
+
+# esmf and/or basedir
+ESMF=NO
+BASELIBDIR5=/usr/local/other/esmf400rp1/intel12_impi32

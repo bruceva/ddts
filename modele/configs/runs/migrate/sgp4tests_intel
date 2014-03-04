@@ -1,0 +1,5 @@
+extends: 'batch'
+baseline: 'sgp4tests_intel'
+build: 'sgp4tests_intel'
+profile: 'Weekly'
+proc_id: 'p4'

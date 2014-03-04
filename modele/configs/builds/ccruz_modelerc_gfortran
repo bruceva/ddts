@@ -1,0 +1,34 @@
+# GFORTRAN MODELERC FILE
+# directories and general option
+DECKS_REPOSITORY=/discover/nobackup/ccruz/devel/scratch/modelE/decks
+CMRUNDIR=/discover/nobackup/ccruz/devel/scratch/modelE/cmrun
+EXECDIR=/discover/nobackup/ccruz/devel/scratch/modelE/exec
+SAVEDISK=/discover/nobackup/ccruz/devel/scratch/modelE/out
+GCMSEARCHPATH=/discover/nobackup/projects/giss/prod_input_files
+OUTPUT_TO_FILES=YES
+VERBOSE_OUTPUT=YES
+OVERWRITE=YES
+
+# netcdf
+NETCDFHOME=/usr/local/other/netcdf/3.6.2_gcc4.8.1
+PNETCDFHOME=/usr/local/other/pnetcdf/gcc-4.8.1_openmpi-1.7.2
+
+# compiler
+COMPILER=gfortran
+
+# mpi
+MPIDISTR=openmpi
+MPIDIR=/gpfsm/dnb32/mbhat/TestSlurm/Installs/openmpi/1.7.2-gcc-4.8.1-shared
+
+# esmf and/or basedir
+ESMF=NO
+BASELIBDIR5=
+
+# other options
+MP=NO
+FVCORE=
+FVCUBED=
+FVCORE_ROOT=
+FVCUBED_ROOT=
+TAU_CONFIG=
+MPPDIR=

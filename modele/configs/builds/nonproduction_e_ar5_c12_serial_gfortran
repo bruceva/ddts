@@ -1,0 +1,2 @@
+extends: 'serial_gfortran'
+rundeck: 'nonProduction_E_AR5_C12'

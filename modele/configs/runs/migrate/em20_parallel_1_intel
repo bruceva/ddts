@@ -1,0 +1,5 @@
+extends: 'batch_intel'
+baseline: 'em20_intel'
+build: 'em20_parallel_intel'
+profile: 'Weekly'
+proc_id: 'p1'

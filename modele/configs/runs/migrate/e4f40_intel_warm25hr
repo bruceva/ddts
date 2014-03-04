@@ -1,0 +1,3 @@
+extends: 'e4f40_intel'
+baseline: 'e4f40_intel_warm25hr'
+warm25hr: true

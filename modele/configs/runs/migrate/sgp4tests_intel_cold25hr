@@ -1,0 +1,3 @@
+extends: 'sgp4tests_intel'
+baseline: 'sgp4tests_intel_cold25hr'
+cold25hr: true
