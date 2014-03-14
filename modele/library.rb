@@ -20,7 +20,7 @@ module Library
         #env.suite.cleanupfiles=Array.new
         #env.suite.cleanupfiles<<forcebuild
       else
-        logi "clenaupfiles found in suite"
+        logi "cleanupfiles found in suite"
         env.suite.cleanupfiles<<forcebuild
       end
       # Construct the name of the build directory and store it in the env.build
@@ -126,8 +126,18 @@ module Library
     logi env.build._result
     outdir=env.build._result[:savediskdir]
 
-    FileUtils.cp_r(outdir,rundir)
-    logd "Copied #{outdir} -> #{rundir}"
+    if env.run._require_results && env.run.warm25hr
+      env.run._require_results.each do |key,val|
+        logi val.name
+        logi val.files
+        logi val.result
+        FileUtils.cp_r(val.result[:savedisk],rundir)
+        logd "Copied required #{val.name}'s #{val.result[:savedisk]} -> #{rundir}"
+      end
+    elsif
+      FileUtils.cp_r(outdir,rundir)
+      logd "Copied #{outdir} -> #{rundir}"
+    end
 
     modelerc=env.build._result[:modelerc]
     FileUtils.cp_r(modelerc,rundir)
@@ -155,10 +165,12 @@ module Library
     if env.run.cold25hr and valid_file(File.join(env.run.savedisk,env.run.rundeck,"I"))
       logd "Editing the I file for a 25hr cold restart"
       edit_I_file_for_25hr(File.join(env.run.savedisk,env.run.rundeck,"I"),true)
-    elsif
-      env.run.warm25hr and valid_file(File.join(env.run.savedisk,env.run.rundeck,"I"))
+    elsif env.run.warm25hr and valid_file(File.join(env.run.savedisk,env.run.rundeck,"I"))
       logd "Editing the I file for a 25hr warm restart"
-      edit_I_file_for_25hr(File.join(env.run.savedisk,env.run.rundeck,"I"),true)
+      #Assume that a warm restart with requirement will take a cold restart run results
+      if not env.run._require_results
+        edit_I_file_for_25hr(File.join(env.run.savedisk,env.run.rundeck,"I"),true)
+      end
       edit_I_file_for_25hr(File.join(env.run.savedisk,env.run.rundeck,"I"),false)
     else
       logd "I file remains unchanged"
@@ -167,16 +179,22 @@ module Library
   end
 
   def lib_run(env,rundir)
-    # Create the batch system script with information from the 
-    # run conf file.
-    s = getBatchJobScript_coldrestart(env,rundir)
-    fileName = File.join(rundir,"coldrestart.bash")
-    File.open(fileName, "w+") do |batchFile|
-      batchFile.print(s)
-      logd "Created batch file: #{fileName}"
+
+    output=nil
+
+    if not env.run.warm25hr or (env.run.warm25hr and not env.run._require_results) 
+      # Create the batch system script with information from the 
+      # run conf file.
+      s = getBatchJobScript_coldrestart(env,rundir)
+      fileName = File.join(rundir,"coldrestart.bash")
+      File.open(fileName, "w+") do |batchFile|
+        batchFile.print(s)
+        logd "Created batch file: #{fileName}"
+      end
+
+      # Submit the script to the batch system
+      output=run_batch_job(env,rundir,"coldrestart.bash")
     end
-    # Submit the script to the batch system
-    output=run_batch_job(env,rundir,"coldrestart.bash")
 
     if env.run.warm25hr and valid_file(File.join(env.run.savedisk,env.run.rundeck,"I"))
       s = getBatchJobScript_warmrestart(env,rundir)
@@ -191,10 +209,12 @@ module Library
     testresult=File.join(env.run.savedisk,env.run.rundeck,"test_result.nc")
     if env.run.cold25hr
       logd "Cold 25hr restart: renaming fort.1.nc as test_result.nc"
-      FileUtils.mv(File.join(env.run.savedisk,env.run.rundeck,"fort.1.nc"),testresult) 
+      FileUtils.rm_f(testresult)
+      FileUtils.cp(File.join(env.run.savedisk,env.run.rundeck,"fort.1.nc"),testresult) 
     elsif env.run.warm25hr
       logd "Warm 25hr restart: renaming fort.2.nc as test_result.nc"
-      FileUtils.mv(File.join(env.run.savedisk,env.run.rundeck,"fort.2.nc"),testresult) 
+      FileUtils.rm_f(testresult)
+      FileUtils.cp(File.join(env.run.savedisk,env.run.rundeck,"fort.2.nc"),testresult) 
     else
       logd "Unmodified run: renaming fort.2.nc as test_result.nc"
       FileUtils.mv(File.join(env.run.savedisk,env.run.rundeck,"fort.2.nc"),testresult)
@@ -214,7 +234,11 @@ module Library
     stdout=runkit
     result=job_check(stdout, re_str_success)
     logd "Result of searching #{stdout} for pattern #{re_str_success}: #{result}"
-    result
+    {:result=>result,:savedisk=>env.run.savedisk}
+  end
+
+  def lib_run_check(env,postkit)
+    postkit[:result]
   end
 
   def lib_outfiles(env,path)
@@ -225,7 +249,7 @@ module Library
     ]
   end
 
-  def lib_comp(file1, file2, file3="")
+  def lib_comp(env,file1, file2, file3="")
     cmd="which diffreport.x"
     o,s=ext(cmd,{:die=>false,:msg=>"Unable to locate diffreport.x",:out=>true})
     if o

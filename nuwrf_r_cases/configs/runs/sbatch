@@ -1,0 +1,101 @@
+#SBATCH parameters for each preprocessor
+
+# SBATCH -J
+batch_name: 
+  geogrid: 'geogrid'
+  ungrib: 'ungrib'
+  metgrid: 'metgrid'
+  real: 'real'
+  wrf: 'wrf'
+  rip: 'rip'
+
+# SBATCH -t
+batch_time:
+  geogrid: '0:01:00' 
+  ungrib: '0:10:00'
+  metgrid: '0:15:00'
+  real: '1:00:00'
+  wrf: '1:00:00'
+  rip: '0:30:00'
+
+#SBATCH -A
+batch_group:
+  geogrid: 's0942'
+  ungrib: 's0942'
+  metgrid: 's0942'
+  real: 's0942'
+  wrf: 's0942'
+  rip: 's0942'
+
+#SBATCH -o
+batch_slurmout:
+  geogrid: 'geogrid.slurm.out'
+  ungrib: 'ungrib.slurm.out'
+  metgrid: 'metgrid.slurm.out'
+  real: 'real.slurm.out'
+  wrf: 'wrf.slurm.out'
+  rip: 'rip.slurm.out'
+
+#SBATCH -p 
+batch_queue:
+  geogrid: 'general'
+  ungrib: 'general'
+  metgrid: 'general'
+  real: 'general'
+  wrf: 'general'
+  rip: 'general'
+
+#SBATCH -N
+batch_procline:
+  geogrid: 'p288' 
+  ungrib: 'p1'
+  metgrid: 'p288' 
+  real: 'p288'
+  wrf: 'p288'  
+  rip: 'p1'
+
+# Define number of processors
+procs_to_int:
+  p1: '1'
+  p288: '288'
+
+# Define the proc line for each supported processor count
+proc_line: 
+  p1: '1 -n 1 --ntasks-per-node=1'
+  p288: '24 -n 288 --ntasks-per-node=12'
+
+# lis.config x and y values for each supported processor count
+lis_config: 
+  p60:
+      x: '10'
+      y: '6'
+  p72:
+      x: '9'
+      y: '8'
+  p384:
+      x: '24'
+      y: '16'
+ 
+# default workflow 
+#proc_id: 'p384'
+
+# Other batch parameters not specific to processor count
+
+# modules to load
+modules: 
+  intel: 'comp/intel-13.0.1.117 mpi/impi-4.0.3.008'
+  gfortran: 'other/comp/gcc-4.8.1 other/mpi/openmpi/1.7.2-gcc-4.8.1-shared'
+
+# script exports required 
+batch_exports:
+  intel: ["NCARG_ROOT=/usr/local/other/SLES11.1/ncarg/6.0.0/intel-13.0.1.117"] 
+  gfortran: ["NCARG_ROOT=/usr/local/other/SLES11.1/ncarg/6.0.0/gnu-4.8.1"]     
+
+lis_dir: '/discover/nobackup/projects/lis'
+
+#Note: must define compiler and processing chain to complete run definition
+#ex: 
+#compiler: intel
+#preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
+ 
+

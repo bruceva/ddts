@@ -1,2 +1,3 @@
 extends: 'em20_parallel_1_intel'
+require: em20_parallel_1_intel_cold25hr 
 warm25hr: true

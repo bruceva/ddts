@@ -6,8 +6,7 @@ module Library
 
   # REQUIRED METHODS (CALLED BY DRIVER)
 
-  # ************************** Common build functions *********************
-  def lib_build_prep_common(env)
+  def lib_build_prep(env)
     # Construct the name of the build directory and store it in the env.build
     # structure for later reference. The value of env.build._root is supplied
     # internally by the test suite; the value of env.run.build is supplied by
@@ -61,11 +60,17 @@ module Library
                 FileUtils.cp_r(srcdir,env.build.dir,{:remove_destination=>true})
              else
                 logi "SVN update revealed no change of repository working copy"
-                if not Dir.exist?(env.build.dir)
-                  logi "Build directory does not exist"
+                if not File.exist?(File.join(env.build.dir,buildscript))
+                  logi "Build.sh file does not exist"
+
+                  if Dir.exist?(env.build.dir)
+                    logd "Removing build directory to avoid copy misplacement"
+                    FileUtils.rm_rf(env.build.dir)
+                  end
+
                   # Copy the source files, recursively, into the build directory.
                   logi "Copying #{srcdir} -> #{env.build.dir}"
-                  FileUtils.cp_r(srcdir,env.build.dir)
+                  FileUtils.cp_r(srcdir,env.build.dir,{:remove_destination=>true})
                 end
              end
           end
@@ -74,7 +79,7 @@ module Library
     env.build.dir
   end
 
-  def lib_build_common(env)
+  def lib_build(env)
     # Construct the command to execute in a subshell to perform the build.
     buildscript="build.sh"
     mparam = env.build.param
@@ -117,7 +122,7 @@ module Library
     end
   end
 
-  def lib_build_post_common(env,output)
+  def lib_build_post(env,output)
     # Copying these files effectively checks for their existance. 
     logd "env.build.dir = #{env.build.dir}"
     logd "env.build.bindir = #{env.build.bindir}"
@@ -132,89 +137,121 @@ module Library
     env.build.dir
   end
 
-  def lib_data_common(env)
-    logd "No data-prep needed for common run."
-    # s=env.inspect()
-    # logd "#{s}"
+  def lib_data(env)
+    logd "No data-prep needed."
   end
 
-  def lib_run_prep_common(env,rundir)
+  def lib_run_prep(env,rundir)
     logd "Rundir: #{rundir}"
-    # Link run (executables, support data) files.
-    files=Dir[File.join(env.build._result,"WRFV3","run","*")]
-    files.each do |x| 
-      logd "sym linking run file: #{x}"
-      FileUtils.ln_sf(x,rundir) 
-    end  
 
-    # Link specific test case input data.
-    files=Dir[File.join(env.run.testDataRepository,env.run.testCaseNumber,"regtest","input","*")]
-    files.each do |x|
-      # lis.config is a special file that is subject to modification for this
-      # run and as such must be a copy of the original.
-      if x.include?('lis.config')
-        logd "copying input data file: #{x}"
-        FileUtils.cp(x,rundir)
-        modifyLisConfig(env,rundir)
-      else
-        logd "sym linking input data file: #{x}"
-        FileUtils.ln_sf(x,rundir)
-      end
-    end
- 
-    # Return rundir (i.e. where to perform the run).
-    rundir
-  end
-
-  # *********************** WEEKLY build functions **************************
-  def lib_run_batch(env,rundir)
-    # Create the batch system script with information from the 
-    # run conf file.
-    s = createBatchJobScript(env,rundir)
-    fileName = File.join(rundir,batch_filename(env))
+    # Create the batch system scripts with information from the run conf file.
+    s = createCommonPreprocessorScript(env,rundir)
+    fileName = File.join(rundir,'common.bash')
     File.open(fileName, "w+") do |batchFile|
       batchFile.print(s)
       logd "Created batch file: #{fileName}"
     end
-    # Submit the script to the batch system
-    run_batch_job(env,rundir)
 
-    # The last line of this function must return the file that will be used to gauge
-    # execution success.
-  end
-
-  def lib_outfiles_batch(env,path)
-    logd "lib_outputfiles->path-> #{path}"
-    env.run.expectedOutputFiles.map { |x| [path,x] }
-    #Note must return list with [path,file] pairs or empty one 
-  end
-
-  def lib_queue_del_cmd_batch(env)
-    'qdel'
-  end
-
-  def re_str_success_batch
-    "wrf: SUCCESS COMPLETE WRF"
-  end
-
-  # ********************* default functions *********************
-  def lib_outfiles(env,path)
-    logd "lib_outputfiles->path-> #{path}"
-    if env.run.out_file_name
-      [[path,env.run.out_file_name]]
-    else
-      []
+    env.run.preprocessors.each do |prep|
+      s=""
+      f=nil
+      if prep == 'geogrid'
+        s=createGeogridPreprocessorScript(env)
+        f='geogrid.bash'
+      elsif prep == 'ungrib'
+        s=createUngribPreprocessorScript(env)
+        f='ungrib.bash'
+      elsif prep == 'metgrid'
+        s=createMetgridPreprocessorScript(env)
+        f='metgrid.bash'
+      elsif prep == 'real'
+        s=createRealPreprocessorScript(env)
+        f='real.bash'
+      elsif prep == 'wrf'
+        s=createWrfPreprocessorScript(env)
+        f='wrf.bash'
+      elsif prep == 'rip'
+        s=createRipPreprocessorScript(env)
+        f='rip.bash'
+      end
+      if f
+        fileName = File.join(rundir,f)
+        File.open(fileName, "w+") do |batchFile|
+          batchFile.print(s)
+          logd "Created batch file: #{fileName}"
+        end
+      end
     end
+
+    if env.run.namelist_link 
+      env.run.namelist_link.each do |link|
+        if link.size == 2
+          logd "sym linking namelist file: #{link[0]} -> #{link[1]}"
+          FileUtils.ln_sf(link[0],File.join(rundir,link[1]))
+        end
+      end
+    end
+
+    if env.run.grib_input 
+      files=Dir[File.join(env.run.grib_input,getUngribInputPattern(env))]
+      files.each do |x|
+        logd "sym linking ungrib input file: #{x}"
+        FileUtils.ln_sf(x,rundir) 
+      end
+    end
+
+    # Return rundir (i.e. where to perform the run).
+    rundir
+  end
+
+  def lib_run(env,rundir)
+    
+    env.run.preprocessors.each do |prep|
+      # Submit the script to the batch system
+      logi "About to submit #{prep} preprocessor job"
+      output=run_batch_job(env,rundir,prep)
+      logi "Verifying preprocessor result..."
+      match=re_str_success(env,prep)
+      result=job_check(output, match)
+      die ("Preprocessor #{prep} failed, unable to find #{match} in #{result}") if not result
+      logi "Pass"
+    end
+
+    #Information passed to the run post processing
+    rundir
+  end
+
+  def lib_outfiles(env,path)
+    #Note must return list with [path,file] pairs or empty one 
+    logd "lib_outputfiles->path-> #{path}"
+    arr=Array.new
+    env.run.preprocessors.each do |prep|
+      arr+=env.run.expectedOutputFiles.send(prep).map { |x| [path,x] }
+    end
+    arr
   end
 
   def lib_queue_del_cmd(env)
-    'echo'
+    'qdel'
+  end
+
+  def re_str_success (env,processor)
+    if env.run.expectedStatusFiles
+      env.run.expectedStatusFiles.send(processor)[1]
+    else
+      nil
+    end
   end
 
   def lib_run_post(env,runkit)
-    logd "Verifying run success..."
-    stdout=runkit
-    (job_check(stdout, re_str_success))?(true):(false)
+    #By the time we get here the run is already deemed a success.
+    #Assemble the data structure of information that may be needed by other runs
+    #that depend on this.
+    {:result=>true,:preprocessors=>env.run.preprocessors,:rundir=>runkit}
+  end
+
+  def lib_run_check(env,postkit)
+    postkit[:result]
   end
 
   def lib_suite_prep(env)

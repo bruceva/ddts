@@ -1,0 +1,4 @@
+email_to: 'eduardo.g.valente@nasa.gov'
+email_from: 'nuwrf@discover.nccs.nasa.gov'
+email_server: 'mail.nccs.nasa.gov'
+email_subject: 'NU-WRF use case regression test summary'
