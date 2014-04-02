@@ -173,7 +173,20 @@ module Library
       elsif prep == 'rip'
         s=createRipPreprocessorScript(env)
         f='rip.bash'
+      elsif prep == 'casa2wrf'
+        s=createCasa2wrfPreprocessorScript(env)
+        f='casa2wrf.bash'
+      elsif prep == 'gocart2wrf'
+        s=createGocart2wrfPreprocessorScript(env)
+        f='gocart2wrf.bash'
+      elsif prep == 'prep_chem_sources'
+        s=createPrepchemsourcesPreprocessorScript(env)
+        f='prep_chem_sources.bash'
+      elsif prep == 'convert_emiss'
+        s=createConvertemissPreprocessorScript(env)
+        f='convert_emiss.bash'
       end
+
       if f
         fileName = File.join(rundir,f)
         File.open(fileName, "w+") do |batchFile|
@@ -192,21 +205,97 @@ module Library
       end
     end
 
-    if env.run.grib_input 
-      files=Dir[File.join(env.run.grib_input,getUngribInputPattern(env))]
-      files.each do |x|
-        logd "sym linking ungrib input file: #{x}"
-        FileUtils.ln_sf(x,rundir) 
-      end
-    end
-
     # Return rundir (i.e. where to perform the run).
     rundir
   end
 
   def lib_run(env,rundir)
-    
+    baselinedir=env.run.baselinedir if env.run.baselinedir
+    abortprocessing=false
     env.run.preprocessors.each do |prep|
+
+      if 'geogrid ungrib metgrid real casa2wrf wrf rip gocart2wrf prep_chem_sources convert_emiss'.include?(prep)
+        arr=expectedInput(env.run,prep)
+        if arr and arr.size >  0
+          arr.each do |a|
+            #logi "#{a.class} #{prep}"
+            # Some preprocessors contain files and entire directories as input
+            # Files are listed in an array format while directories are single strings
+            if a.class == String and 'ungrib gocart2wrf'.include?(prep)
+              if Dir.exist?(a)
+                logi "Found #{prep} #{a} input directory"
+                linkdir=getInputLinkDir(env,prep)
+                if linkdir == '.'
+                  linkdir=rundir
+                else 
+                  linkdir=File.join(rundir,linkdir)
+                  if not Dir.exist?(linkdir)
+                    logi "#{prep} processing: Creating #{linkdir} input directory" 
+                    FileUtils.mkdir_p(linkdir)
+                  else
+                    die ("#{prep} processing: Unable to create link directory #{linkdir}") 
+                  end
+                end
+                files=Dir[File.join(a,getInputPattern(env,prep))]
+                files.each do |f|
+                  logd "sym linking #{prep} input file: #{f}"
+                  FileUtils.ln_sf(f,linkdir)
+                end
+              else
+                logi ("#{prep} input directory #{a} not found")
+                abortprocessing=true
+              end              
+            end
+            if a.class == Array
+              a.each do |f|
+                if File.exist?(File.join(rundir,f))
+                  logi "#{prep} processing: required input file #{f} exists"
+                elsif Dir.exist?(baselinedir) and File.exist?(File.join(baselinedir,f))
+                  linkdir=rundir
+                  #it is possible that the filename contain a directory structure
+                  #if so it must be recreated
+                  if File.dirname(f) != "."
+                    linkdir=File.join(rundir,File.dirname(f))
+                    FileUtils.mkdir_p(linkdir)
+                  end
+                  #Copy those required inputs that are known to change during processor execution
+                  # or risk tainting the source. To save space the read only ones are linked.
+                  if f.include?('wrfbdy') or f.include?('wrfinput') or f.include?('namelist.output')
+                    logi "#{prep} processing: required input file #{f} not found, copying from baseline in #{baselinedir}"
+                    FileUtils.cp(File.join(baselinedir,f),linkdir)
+                    #Create special link to the specific file (.real,.casa2wrf,.gocart2wrf,.convert_emiss)
+                    lnk=f
+                    if f.include?('.real')
+                      lnk=f.split('.real')[0]
+                    elsif f.include?('.casa2wrf')
+                      lnk=f.split('.casa2wrf')[0]
+                    elsif f.include?('.gocart2wrf')
+                      lnk=f.split('.gocart2wrf')[0]
+                    elsif f.include?('.convert_emiss')
+                      lnk=f.split('.convert_emiss')[0]
+                    end
+                    #Create link only if one is not already present.
+                    if lnk != f and not File.exist?(File.join(linkdir,lnk))
+                      logi "#{prep} processing: linking #{lnk} to #{f}"
+                      FileUtils.ln_sf(File.join(linkdir,f),File.join(linkdir,lnk))
+                    end
+                  else
+                    logi "#{prep} processing: required input file #{f} not found, linking to baseline in #{baselinedir}"
+                    FileUtils.ln_sf(File.join(baselinedir,f),linkdir)
+                  end
+                else
+                  logi "#{prep} processing: missing required input #{f}"
+                  abortprocessing=true
+                end
+              end
+            end
+          end
+        end
+      end 
+
+      die ("#{prep} processing aborted due to missing data") if abortprocessing
+
+      #die("test abort")
       # Submit the script to the batch system
       logi "About to submit #{prep} preprocessor job"
       output=run_batch_job(env,rundir,prep)
@@ -263,7 +352,7 @@ module Library
     forcebuild=File.join("..","src","ddts.forcebuild")
     if File.exists?(forcebuild)
       logi "Deleting force build file: #{forcebuild}"
-      FileUtils.rm (forcebuild)
+      FileUtils.rm(forcebuild)
     end
  
     # send mail

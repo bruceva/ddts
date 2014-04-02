@@ -17,8 +17,8 @@ batch_name:
 batch_time:
   geogrid: '0:15:00' 
   ungrib: '1:00:00'
-  metgrid: '0:10:00'
-  real: '0:30:00'
+  metgrid: '8:00:00'
+  real: '2:00:00'
   wrf: '2:00:00'
   rip: '1:00:00'
   casa2wrf: '1:00:00'

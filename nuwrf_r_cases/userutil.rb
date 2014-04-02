@@ -92,6 +92,39 @@ module UserUtil
     [output,status]
   end
 
+  #send only allows single variable dereferencing
+  #This function allow multiple level dereferencing 
+  #with a dot separated string of variables
+  #ex: ref='input.ungrib'
+  def deref(run,ref)
+    result=run
+    ref.split('.').each do |r|
+      result=result.send(r) if result
+    end
+    result 
+  end
+
+  #Given an opestruct run,create the list of expected input files
+  #for the given processor.
+  def expectedInput(run,processor)
+    #logi "Getting input for #{processor}"
+    result=[]
+    refs=run.expectedInputFiles.send(processor)
+    #logi "Found #{refs}"
+    if refs
+      if refs.class == String
+        result<<deref(run,refs)  
+      elsif refs.class == Array
+        refs.each do |ref|
+          r=deref(run,ref)
+          result<<r if r 
+        end
+      end
+    end
+    #logi "input results: #{result}"
+    result
+  end
+
   def createBatchJobScript (env,rundir)
     
     walltime=env.run.wallTime
@@ -146,7 +179,11 @@ source /usr/share/modules/init/sh
 module purge
 
 unset LD_LIBRARY_PATH
+
 module load #{loadModules}
+
+# Make sure stacksize is unlimited
+ulimit -s unlimited
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64
 
@@ -155,12 +192,10 @@ LISDIR=#{env.run.lis_dir}
 NUWRFDIR=#{env.build.dir}
 WORKDIR=#{rundir}
 
-# Make sure stacksize is unlimited
-ulimit -s unlimited
-
 # Set environment variables needed by RIP
 export RIP_ROOT=$NUWRFDIR/RIP4
 eos
+
     batchExports.each { |expo| script << "export #{expo}\n"}
 
     script
@@ -171,7 +206,7 @@ eos
   end
 
   def lib_submit_script
-    'qsub'
+    'sbatch'
   end
 
   def batch_filename(env)
@@ -243,7 +278,7 @@ eos
 if [ -e geogrid ] ; then
     rm -rf geogrid || exit 1
 fi
-mkdir geogrid || exit 1
+mkdir -p geogrid || exit 1
 
 eos
     links=env.run.preprocessor_links.send(env.run.geogrid_select)
@@ -259,6 +294,7 @@ fi
 eos
     script+check
   end
+
 
   def createGeogridPreprocessorScript(env)
 
@@ -278,7 +314,7 @@ fi
 mpirun -np $SLURM_NTASKS ./geogrid.exe || exit 1
 
 # Tidy up logs
-mkdir geogrid_logs || exit 1
+mkdir -p geogrid_logs || exit 1
 
 mv geogrid.log.* geogrid_logs
 
@@ -301,7 +337,43 @@ eos
 
   def getUngribInputPattern(env)
     links=env.run.preprocessor_links.send(env.run.ungrib_select)
+    links[3]
+  end
+
+  def getUngribInputLinkDir(env)
+    links=env.run.preprocessor_links.send(env.run.ungrib_select)
     links[2]
+  end
+
+
+  def getGocart2wrfInputPattern(env)
+    links=env.run.preprocessor_links.send(env.run.gocart2wrf_select)[0]
+    links[1]
+  end
+
+  def getGocart2wrfInputLinkDir(env)
+    links=env.run.preprocessor_links.send(env.run.gocart2wrf_select)[0]
+    links[0]
+  end
+
+  def getInputPattern (env,prep)
+    if prep == 'ungrib'
+      getUngribInputPattern(env)
+    elsif prep == 'gocart2wrf'
+      getGocart2wrfInputPattern(env)
+    else
+      die ("#{prep} does not have a corresponding input pattern")
+    end
+  end
+
+  def getInputLinkDir(env,prep)
+    if prep == 'ungrib'
+      getUngribInputLinkDir(env)
+    elsif prep == 'gocart2wrf'
+      getGocart2wrfInputLinkDir(env)
+    else
+      die ("#{prep} does not have an associated input link directory")
+    end
   end
 
   def createUngribLinks(env)
@@ -364,7 +436,7 @@ fi
 ./ungrib.exe >& ungrib_out.log || exit 1
 
 # Tidy up logs
-mkdir ungrib_logs || exit 1
+mkdir -p ungrib_logs || exit 1
 
 mv ungrib_out.log ungrib_logs
 mv ungrib.log ungrib_logs
@@ -384,7 +456,7 @@ eos
 if [ -e metgrid ] ; then
     rm -rf metgrid || exit 1
 fi
-mkdir metgrid || exit 1
+mkdir -p metgrid || exit 1
 
 eos
     links=env.run.preprocessor_links.send(env.run.metgrid_select)
@@ -419,7 +491,7 @@ fi
 mpirun -np $SLURM_NTASKS ./metgrid.exe || exit 1
 
 # Tidy up logs
-mkdir metgrid_logs || exit 1
+mkdir -p metgrid_logs || exit 1
 
 mv metgrid.log.* metgrid_logs
 
@@ -454,11 +526,15 @@ eos
 
     header=createPreprocessorHeader(env,'real')
 
-    body=createCommonPreprocessorBody(env,'namelist.input')
+    body=createCommonPreprocessorBody(env,'namelist.input.real')
 
     body<<createRealLinks(env)
 
     footer=<<-eos
+
+# Make real's namelist current
+rm namelist.input
+ln -s namelist.input.real namelist.input
 
 # Run real.exe
 ln -fs $NUWRFDIR/WRFV3/main/real.exe $WORKDIR/real.exe || exit 1
@@ -469,6 +545,19 @@ fi
 
 mpirun -np $SLURM_NTASKS ./real.exe || exit 1
 
+#Backup Real's output files
+cp namelist.output namelist.output.real
+
+bdy_files=`ls wrfbdy_d??`
+for file in $bdy_files ; do
+    cp $file ${file}.real
+done
+
+input_files=`ls wrfinput_d??`
+for file in $input_files ; do
+    cp $file ${file}.real
+done
+
 # Rename the various 'rsl' files to 'real.rsl'; this prevents wrf.exe from
 # overwriting.
 rsl_files=`ls rsl.*`
@@ -477,7 +566,7 @@ for file in $rsl_files ; do
 done
 
 # Tidy up logs
-mkdir real_logs || exit 1
+mkdir -p real_logs || exit 1
 
 mv real.rsl.* real_logs
 
@@ -488,9 +577,377 @@ eos
     header+body+footer
   end
 
+  def createGocart2wrfPreprocessorScript(env)
+
+    header=createPreprocessorHeader(env,'gocart2wrf')
+
+    body=createCommonPreprocessorBody(env,'namelist.gocart2wrf')
+
+    footer=<<-eos
+# Run gocart2wrf.  No MPI is used since the program is serial.
+ln -fs $NUWRFDIR/utils/gocart2wrf_2/bin/gocart2wrf gocart2wrf || exit 1
+if [ ! -e gocart2wrf ] ; then
+    echo "ERROR, gocart2wrf not found!"
+    exit 1
+fi
+./gocart2wrf || exit 1
+
+#Backup Gocart2wrf's output files
+cp namelist.output namelist.output.gocart2wrf
+
+bdy_files=`ls wrfbdy_d??`
+for file in $bdy_files ; do
+    cp $file ${file}.gocart2wrf
+done
+
+input_files=`ls wrfinput_d??`
+for file in $input_files ; do
+    cp $file ${file}.gocart2wrf
+done
+
+# The end
+exit 0
+eos
+    header+body+footer
+  end
+
+  def createCasa2wrfLinks(env)
+
+    script=<<-eos
+
+if [ -e chem_flux ] ; then
+    rm -rf chem_flux || exit 1
+fi
+mkdir -p chem_flux || exit 1
+
+eos
+    links=env.run.preprocessor_links.send(env.run.casa2wrf_select)
+    links.each do |link|
+      f=link[0]
+      l=link[1]
+
+      check=<<-eos
+if [ ! -e #{f} ] ; then 
+    echo "ERROR, #{f} does not exist!"
+    exit 1
+fi
+eos
+      script<<check
+      script<<"ln -fs #{f} #{l} || exit 1\n"
+    end
+
+    script
+  end
+
+  def createCasa2wrfPreprocessorScript(env)
+
+    header=createPreprocessorHeader(env,'casa2wrf')
+
+    body=createCommonPreprocessorBody(env,'namelist.casa2wrf')
+
+    body<<createCasa2wrfLinks(env)
+
+    footer=<<-eos
+# Run casa2wrf.  No MPI is used since the program is serial.
+ln -fs $NUWRFDIR/utils/casa2wrf/bin/casa2wrf casa2wrf || exit 1
+if [ ! -e casa2wrf ] ; then
+    echo "ERROR, casa2wrf not found!"
+    exit 1
+fi
+./casa2wrf || exit 1
+
+#Backup casa2wrf's output files
+
+bdy_files=`ls wrfbdy_d??`
+for file in $bdy_files ; do
+    cp $file ${file}.casa2wrf
+done
+
+input_files=`ls wrfinput_d??`
+for file in $input_files ; do
+    cp $file ${file}.casa2wrf
+done
+
+
+# Tidy up logs
+#mkdir -p casa2wrf_logs || exit 1
+
+#mv casa2wrf.out casa2wrf_logs
+
+# The end
+exit 0
+eos
+
+    header+body+footer
+  end
+
+  def createPrepchemsourcesLinks(env)
+
+    script=""
+    links=env.run.preprocessor_links.send(env.run.prep_chem_sources_select)
+    links.each do |link|
+      f=link[0]
+      l=link[1]
+
+      check=<<-eos
+if [ ! -e #{f} ] ; then 
+    echo "ERROR, #{f} does not exist!"
+    exit 1
+fi
+eos
+      script<<check
+      script<<"ln -fs #{f} #{l} || exit 1\n"
+    end
+
+    script
+  end
+
+
+  def createPrepchemsourcesPreprocessorScript(env)
+
+    header=createPreprocessorHeader(env,'prep_chem_sources')
+
+    body=createCommonPreprocessorBody(env)
+
+    body<<createPrepchemsourcesLinks(env)
+
+    footer=<<-eos
+# Run prep_chem_sources_RADM_WRF_FIM.exe.  No MPI is used since the program is serial.
+ln -fs $NUWRFDIR/utils/prep_chem_sources/bin/prep_chem_sources_RADM_WRF_FIM.exe || exit 1
+if [ ! -e prep_chem_sources_RADM_WRF_FIM.exe ] ; then
+    echo "ERROR, prep_chem_sources_RADM_WRF_FIM.exe not found!"
+    exit 1
+fi
+./prep_chem_sources_RADM_WRF_FIM.exe || exit 1
+
+# The end
+exit 0
+eos
+
+    header+body+footer
+  end
+
+
   def getPreprocessorScriptName(p)
     p+'.bash' 
   end
+
+
+  def createConvertemissLinks(env)
+
+    script=""
+    links=env.run.preprocessor_links.send(env.run.convert_emiss_select)
+    links.each do |l|
+      fw=File.join('$WORKDIR',l)
+      f=File.join('$NUWRFDIR','WRFV3','run',l)
+      check=<<-eos
+if [ ! -e #{f} ] ; then 
+    echo "ERROR, #{f} does not exist!"
+    exit 1
+fi
+eos
+      script<<check
+      script<<"ln -fs #{f} #{fw} || exit 1\n"
+
+    end
+    script
+  end
+
+  def createConvertemissPreprocessorScript(env)
+
+    header=createPreprocessorHeader(env,'convert_emiss')
+
+    body=createCommonPreprocessorBody(env,'namelist.input.convert_emiss.d01')
+
+    body<<createConvertemissLinks(env)
+
+    testphrase="EMISSIONS CONVERSION : end of program"
+
+    footer=<<-eos
+
+# Link convert_emiss
+ln -fs $NUWRFDIR/WRFV3/chem/convert_emiss.exe $WORKDIR/convert_emiss.exe || exit 1
+if [ ! -e $WORKDIR/convert_emiss.exe ] ; then
+    echo "ERROR, $WORKDIR/convert_emiss.exe does not exist!"
+    exit 1
+fi
+
+# logs directory
+mkdir -p convert_emiss_logs || exit 1
+
+numDomains=3
+
+# Loop through each domain. convert_emiss only processes a single domain, so
+# creative renaming is necessary to process multiple domains.
+domain_total=0
+domain_pass=0
+for domain in `seq 1 $numDomains` ; do
+        
+    g=g${domain}
+
+    if [ $domain -lt 10 ] ; then
+        d=d0${domain}
+    else
+        d=d${domain}
+    fi
+
+    echo "Processing domain ${d}"
+
+    # Count files, and exit for loop if no files are found for current domain.
+    count=`ls -x -1 | grep -e "^wrfinput_${d}$" | wc -l`
+    if [ $count -eq 0 ] ; then
+        echo "No input files found for domain ${d}; skipping..."
+        break
+    fi
+
+    echo "Found ${count} input files"
+
+    if [ ! -e namelist.input.convert_emiss.${d} ] ; then
+        echo "ERROR, namelist.input.convert_emiss.${d} not found!"
+        exit 1
+    fi
+
+    # Make convert_emiss's namelist current
+    rm namelist.input
+    ln -fs namelist.input.convert_emiss.${d} namelist.input || exit 1
+
+    if [ ! -e wrfinput_${d} ] ; then
+        echo "ERROR, wrfinput_${d} does not exist!"
+        exit 1
+    fi
+
+    mv wrfinput_${d} wrfinput_${d}.actual || exit 1
+    ln -s wrfinput_${d}.actual wrfinput_d01 || exit 1
+
+    # Symbolically link emissions files.
+    for link in emissopt3_d01 emissfire_d01 wrf_gocart_backg ; do
+
+        if [ $link = "emissopt3_d01" ] ; then
+            abbrev="ab"
+        elif [ $link = "emissfire_d01" ] ; then
+            abbrev="bb"
+        elif [ $link = "wrf_gocart_backg" ] ; then
+            abbrev="gocartBG"
+        else
+            echo "Internal logic error, unknown symlink $link"
+            exit 1
+        fi
+
+        # Create the symbolic link.
+        # FIXME: Need better way of doing this.
+        numfiles=`ls -l *${g}-${abbrev}.bin | wc -l`
+        if [ $numfiles -ne 1 ] ; then
+            echo $numfiles
+            echo "ERROR, found multiple -${g}-${abbrev}.bin files!"
+            echo "Do you really need a $link file?"
+            exit 1
+        fi
+        targets=`ls *${g}-${abbrev}.bin`
+        for target in $targets ; do
+            ln -fs $target $link || exit 1
+            if [ ! -e $link ] ; then
+                echo "ERROR, $link does not exist!"
+                exit 1
+            fi
+        done
+    done
+
+    # Run convert_emiss
+    # WARNING: This program only supports a single process even when compiled
+    # with MPI.
+
+    mpirun -np 1 ./convert_emiss.exe || exit 1
+
+    # Remove symbolic link
+    rm wrfinput_d01 || exit 1
+
+    # Rename the output files to prevent overwriting from different grid
+    if [ -e wrfbiochemi_d01 ] ; then
+        mv wrfbiochemi_d01 wrfbiochemi_${d}.actual || exit 1
+    fi
+    if [ -e wrfchemi_d01 ] ; then
+        mv wrfchemi_d01 wrfchemi_${d}.actual || exit 1
+    fi
+    if [ -e wrfchemi_gocart_bg_d01 ] ; then
+        mv wrfchemi_gocart_bg_d01 wrfchemi_gocart_bg_${d}.actual || exit 1
+    fi
+    if [ -e wrffirechemi_d01 ] ; then
+        mv wrffirechemi_d01 wrffirechemi_${d}.actual || exit 1
+    fi
+
+    let "domain_total = domain_total + 1"
+    test=`grep "#{testphrase}" rsl.out.0000 | wc -l`
+    if [ $test -eq 1 ] ; then 
+      let "domain_pass = domain_pass + 1"
+    fi
+
+    # Tidy up logs...
+    # Rename the various 'rsl' files to 'convert_emiss.rsl'; this prevents 
+    # other processing from overwriting.
+    rsl_files=`ls rsl.*`
+    for file in $rsl_files ; do
+        mv $file convert_emiss.${file}.${d} || exit 1
+    done
+    mv convert_emiss.rsl.* convert_emiss_logs
+
+done
+
+#Harvest date time information from the namelist.input file
+iyr=`grep start_year namelist.input | awk -F "=" '{print $2}'| awk -F "," '{print $1}' | sed 's/^[ \t]*//'`
+imon=`grep start_month namelist.input | awk -F "=" '{print $2}'| awk -F "," '{print $1}' | sed 's/^[ \t]*//'`
+iday=`grep start_day namelist.input | awk -F "=" '{print $2}'| awk -F "," '{print $1}' | sed 's/^[ \t]*//'`
+ihr=`grep start_hour namelist.input | awk -F "=" '{print $2}'| awk -F "," '{print $1}' | sed 's/^[ \t]*//'`
+imin=`grep start_minute namelist.input | awk -F "=" '{print $2}'| awk -F "," '{print $1}' | sed 's/^[ \t]*//'`
+isec=`grep start_second namelist.input | awk -F "=" '{print $2}'| awk -F "," '{print $1}' | sed 's/^[ \t]*//'`
+
+idate="${iyr}-${imon}-${iday}"
+itime="${ihr}:${imin}:${isec}"
+
+echo "namelist.input contains the following start date and time: ${idate} ${itime}"
+
+# Restore the original file names
+for domain in `seq 1 $numDomains` ; do
+    if [ $domain -lt 10 ] ; then
+        d=d0${domain}
+    else
+        d=d${domain}
+    fi
+    if [ -e wrfinput_${d}.actual ] ; then
+        mv wrfinput_${d}.actual wrfinput_${d} || exit 1
+    fi
+    if [ -e wrfbiochemi_${d}.actual ] ; then
+        mv wrfbiochemi_${d}.actual wrfbiochemi_${d} || exit 1
+    fi
+    if [ -e wrfchemi_${d}.actual ] ; then
+        mv wrfchemi_${d}.actual wrfchemi_${d}_${idate}_${itime} || exit 1
+    fi
+    if [ -e wrfchemi_gocart_bg_${d}.actual ] ; then
+        mv wrfchemi_gocart_bg_${d}.actual wrfchemi_gocart_bg_${d}_${idate} || exit 1
+    fi
+    if [ -e wrffirechemi_${d}.actual ] ; then
+        mv wrffirechemi_${d}.actual wrffirechemi_${d} || exit 1
+    fi
+done
+
+#Final processing check
+echo "${domain_pass} out of ${domain_total} domains succeeded" > convert_emiss_results.out
+if [ $domain_total -eq $domain_pass ] ; then
+  echo "Success" >> convert_emiss_results.out
+fi
+
+#Tidy up log
+mv convert_emiss_results.out convert_emiss_logs
+
+# The end
+echo "Done"
+exit 0
+eos
+
+    header+body+footer
+  end
+
+
+
 
   def createWrfLinks(env)
     script=""
@@ -544,11 +1001,15 @@ eos
 
     header=createPreprocessorHeader(env,'wrf')
 
-    body=createCommonPreprocessorBody(env,'namelist.input')
+    body=createCommonPreprocessorBody(env,'namelist.input.wrf')
 
     body<<createWrfLinks(env)
 
     footer=<<-eos
+
+# Make wrf's namelist current
+rm namelist.input
+ln -s namelist.input.wrf namelist.input
 
 # Run wrf.exe
 ln -fs $NUWRFDIR/WRFV3/main/wrf.exe $WORKDIR/wrf.exe || exit 1
@@ -567,7 +1028,7 @@ for file in $rsl_files ; do
 done
 
 # Tidy up logs
-mkdir wrf_logs || exit 1
+mkdir -p wrf_logs || exit 1
 
 mv wrf.rsl.* wrf_logs
 
@@ -686,7 +1147,7 @@ if [ $domain_total -eq $domain_pass ] ; then
 fi
 
 # Tidy up logs
-mkdir rip_logs || exit 1
+mkdir -p rip_logs || exit 1
 
 mv rip_result* rip_logs
 
@@ -830,7 +1291,7 @@ EOF
 
     to_array=nil
     if to.class == String
-      to_array= to.split (",")
+      to_array= to.split(",")
     else
       to_array= to.map { |x| x} if to.respond_to?('map')
     end
@@ -844,5 +1305,5 @@ EOF
       end
     end
   end
-  
-end
+ 
+end 
