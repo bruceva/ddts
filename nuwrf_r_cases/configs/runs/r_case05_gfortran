@@ -1,0 +1,5 @@
+extends: 'r_case05'
+baseline: 'r_case05_gfortran'
+compiler: 'gfortran'
+build: 'allchem_discover_gnu48_openmpi'
+

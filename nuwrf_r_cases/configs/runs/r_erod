@@ -10,7 +10,7 @@ namelist_link: [['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_E
 ungrib_input: '/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD/ungrib_input'
 
 #baselinedir supplies missing data in cases when we just want to run a smaller pipeline
-baselinedir: '/discover/nobackup/evalente/regression_testing/nuwrf_suite/nuwrf_r_cases/baseline/r_erod' 
+baselinedir: '/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD' 
 
 preprocessor_links:
   geogrid_nochem: ['GEOGRID.TBL.ARW','GEOGRID.TBL']

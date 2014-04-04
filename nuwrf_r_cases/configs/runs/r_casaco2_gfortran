@@ -1,0 +1,4 @@
+extends: 'r_casaco2'
+build: 'allchem_discover_gnu48_openmpi'
+baseline: 'r_casaco2_gfortran'
+compiler: 'gfortran'
