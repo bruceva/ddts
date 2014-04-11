@@ -74,9 +74,7 @@ prep_chem_sources_select: 'prep_chem_sources'
 convert_emiss_select: 'convert_emiss'
 gocart2wrf_select: 'gocart2wrf'
 
-#preprocessors: ['geogrid','ungrib','metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip']
-
-preprocessors: ['geogrid','ungrib','metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip']
+#This definition supports preprocessors: ['geogrid','ungrib','metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip']
 
 expectedStatusFiles:
   geogrid: ['geogrid_logs/geogrid.log.0000','Successful completion of program']

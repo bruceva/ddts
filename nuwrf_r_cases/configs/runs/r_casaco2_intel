@@ -1,0 +1,3 @@
+extends: 'r_casaco2'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','casa2wrf','wrf','rip']

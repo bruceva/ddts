@@ -125,46 +125,6 @@ module UserUtil
     result
   end
 
-  def createBatchJobScript (env,rundir)
-    
-    walltime=env.run.wallTime
-    name=env.run.batchName
-    proc_id=env.run.proc_id
-
-    #if proc_line was a hash we could dereference with [].  Since all hashes become OpenStruct, 
-    #to dereference an OpenStruct without converting it to a hash first
-    #use the Object.send() method
-    procs=env.run.proc_line.send(proc_id) 
-    numproc=env.run.procs_to_int.send(proc_id) 
-    
-    group=env.run.groupName
-    loadModules=env.run.modules
-    batchScript=<<-eos
-#!/bin/bash
-#PBS -S /bin/bash
-#PBS -N #{name}
-#PBS -l #{procs}
-#PBS -l walltime=#{walltime}
-## does not work:PBS -W group_list= use instead:
-#SBATCH -A #{group}
-#PBS -j eo
-
-# environment setup
-. /usr/share/modules/init/bash
-module purge
-module load #{loadModules} 
-
-ulimit -s unlimited
-
-# assumes job starts from the WRF run directory
-cd #{rundir}
-pwd
-mpirun -np #{numproc} ./wrf.exe
-exit 0
-eos
-    batchScript
-  end
-
   def createCommonPreprocessorScript(env,rundir)
 
     loadModules=env.run.modules.send(env.run.compiler)
@@ -189,7 +149,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64
 
 # Define locations of LIS, NUWRF, and the experiment work directory
 LISDIR=#{env.run.lis_dir}
-NUWRFDIR=#{env.build.dir}
+NUWRFDIR=#{env.build._root}
 WORKDIR=#{rundir}
 
 # Set environment variables needed by RIP

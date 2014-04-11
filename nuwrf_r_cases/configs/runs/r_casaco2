@@ -1,4 +1,4 @@
-extends: 'sbatch_long'
+extends: 'sbatch_xtralong'
 build: 'allchem_discover'
 baseline: 'r_casaco2'
 compiler: 'intel'
@@ -58,10 +58,7 @@ wrf_select: ['wrf','lis']
 rip_select: 'rip'
 casa2wrf_select: 'casa2wrf'
 
-#preprocessors: ['geogrid','ungrib','metgrid','real','casa2wrf','wrf','rip']
-
-preprocessors: ['geogrid','ungrib','metgrid','real','casa2wrf','wrf','rip']
-
+#This definitions supports preprocessors: ['geogrid','ungrib','metgrid','real','casa2wrf','wrf','rip']
 
 expectedStatusFiles:
   geogrid: ['geogrid_logs/geogrid.log.0000','Successful completion of program']

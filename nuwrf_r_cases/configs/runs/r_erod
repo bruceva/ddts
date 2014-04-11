@@ -4,8 +4,8 @@ baseline: 'r_erod'
 compiler: 'intel'
 
 namelist_link: [['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD/namelist.wps','namelist.wps'],
-                ['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD/namelist.input','namelist.input.real'],
-                ['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD/namelist.input','namelist.input.wrf']]
+                ['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD/namelist.input.real','namelist.input.real'],
+                ['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD/namelist.input.wrf','namelist.input.wrf']]
 
 ungrib_input: '/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD/ungrib_input'
 
@@ -53,8 +53,7 @@ wrf_select: ['wrf','lis']
 
 rip_select: 'rip'
 
-#preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
-preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
+#This definition supports preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
 
 expectedStatusFiles:
   geogrid: ['geogrid_logs/geogrid.log.0000','Successful completion of program']

@@ -1,5 +1,6 @@
 extends: 'r_case11'
 baseline: 'r_case11_gfortran'
 compiler: 'gfortran'
-build: 'allchem_discover_gnu48_openmpi'
+build: 'all_discover_gnu48_openmpi'
 
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']

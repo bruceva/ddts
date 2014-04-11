@@ -2,4 +2,4 @@ extends: 'email_nuwrf'
 retain_builds: true
 #build_only: true
 group:
-  - r_case11
+  - r_case11_intel

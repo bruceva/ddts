@@ -71,21 +71,17 @@ batch_procline:
   ungrib: 'p1'
   metgrid: 'p288' 
   real: 'p288'
-  wrf: 'p288'  
+  wrf: 'p72'  
   rip: 'p1'
   casa2wrf: 'p1'
   prep_chem_sources: 'p1'
   convert_emiss: 'p1'
   gocart2wrf: 'p1' 
 
-# Define number of processors
-procs_to_int:
-  p1: '1'
-  p288: '288'
-
 # Define the proc line for each supported processor count
 proc_line: 
   p1: '1 -n 1 --ntasks-per-node=1'
+  p72: '6 -n 72 --ntasks-per-node=12'
   p288: '24 -n 288 --ntasks-per-node=12'
 
 # lis.config x and y values for each supported processor count

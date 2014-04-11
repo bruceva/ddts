@@ -1,0 +1,4 @@
+extends: 'r_case09'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
+

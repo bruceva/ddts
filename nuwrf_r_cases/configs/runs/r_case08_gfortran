@@ -1,5 +1,12 @@
 extends: 'r_case08'
 baseline: 'r_case08_gfortran'
 compiler: 'gfortran'
-build: 'allchem_discover_gnu48_openmpi'
+build: 'all_discover_gnu48_openmpi'
+
+#preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
+preprocessors: ['wrf','rip']
+
+#Special time override
+batch_time:
+  wrf: '8:00:00'
 

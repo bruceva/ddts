@@ -1,5 +1,8 @@
 extends: 'email_nuwrf'
 retain_builds: true
 #build_only: true
-group:
-  - r_erod
+continue: true
+group1:
+  - r_erod_intel
+group2:
+  - r_erod_gfortran

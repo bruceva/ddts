@@ -53,10 +53,7 @@ wrf_select: ['wrf','lis']
 
 rip_select: 'rip'
 
-#preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
-
-preprocessors: ['wrf']
-
+#This definition supports preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
 
 expectedStatusFiles:
   geogrid: ['geogrid_logs/geogrid.log.0000','Successful completion of program']

@@ -3,3 +3,4 @@ baseline: 'r_case09_gfortran'
 compiler: 'gfortran'
 build: 'all_discover_gnu48_openmpi'
 
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']

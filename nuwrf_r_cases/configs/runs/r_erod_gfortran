@@ -1,4 +1,6 @@
 extends: 'r_erod'
-build: 'wrf-wps-rip_discover_gnu48_openmpi'
+build: 'allchem_discover_gnu48_openmpi'
 baseline: 'r_erod_gfortran'
 compiler: 'gfortran'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
