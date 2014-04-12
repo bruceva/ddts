@@ -1,6 +1,6 @@
 extends: 'sbatch'
 build: 'allchem_discover'
-baseline: 'r_erod'
+baseline: 'r_erod_intel'
 compiler: 'intel'
 
 namelist_link: [['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD/namelist.wps','namelist.wps'],

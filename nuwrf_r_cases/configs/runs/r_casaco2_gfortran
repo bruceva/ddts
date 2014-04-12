@@ -4,4 +4,4 @@ baseline: 'r_casaco2_gfortran'
 compiler: 'gfortran'
 
 #preprocessors: ['geogrid','ungrib','metgrid','real','casa2wrf','wrf','rip']
-preprocessors: ['wrf','rip']
+preprocessors: ['geogrid','ungrib','metgrid','real','casa2wrf','wrf','rip']

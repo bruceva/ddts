@@ -1,5 +1,5 @@
 extends: 'r_case05'
 
 #preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
-preprocessors: ['wrf','rip']
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
 

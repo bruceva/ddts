@@ -1,6 +1,6 @@
 extends: 'sbatch_xtralong'
 build: 'allchem_discover'
-baseline: 'r_casaco2'
+baseline: 'r_casaco2_intel'
 compiler: 'intel'
 
 namelist_link: [['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASACO2/namelist.wps','namelist.wps'],

@@ -1,6 +1,6 @@
 extends: 'sbatch_xtralong'
 build: 'all_discover'
-baseline: 'r_case08'
+baseline: 'r_case08_intel'
 compiler: 'intel'
 
 namelist_link: [['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASE08/namelist.wps','namelist.wps'],

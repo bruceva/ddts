@@ -1,6 +1,6 @@
 extends: 'sbatch'
 build: 'all_discover'
-baseline: 'r_case11'
+baseline: 'r_case11_intel'
 compiler: 'intel'
 
 namelist_link: [['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASE11/namelist.wps','namelist.wps'],

@@ -4,7 +4,7 @@ compiler: 'gfortran'
 build: 'all_discover_gnu48_openmpi'
 
 #preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
-preprocessors: ['wrf','rip']
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
 
 #Special time override
 batch_time:
