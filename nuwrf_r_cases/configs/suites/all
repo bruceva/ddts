@@ -1,0 +1,48 @@
+email_to: 'eduardo.g.valente@nasa.gov'
+email_from: 'nuwrf@discover.nccs.nasa.gov'
+email_server: 'mail.nccs.nasa.gov'
+email_subject: 'NU-WRF use case regression test summary'
+extends: 'email_nuwrf'
+retain_builds: true
+continue: true
+#build_only: true
+group1:
+  - r_casaco2_gfortran
+group2:
+  - r_case05_gfortran
+group3:
+  - r_case06_gfortran
+group4:
+  - r_case08_gfortran
+group5:
+  - r_case09_gfortran
+group6:
+  - r_case11_gfortran
+group7:
+  - r_case13_gfortran
+group8:
+  - r_case15_gfortran
+group9:
+  - r_case16_gfortran
+#group10:
+#  - r_erod_gfortran
+group11:
+  - r_casaco2_intel
+group12:
+  - r_case05_intel
+group13:
+  - r_case06_intel
+group14:
+  - r_case08_intel
+group15:
+  - r_case09_intel
+group16:
+  - r_case11_intel
+group17:
+  - r_case13_intel
+group18:
+  - r_case15_intel
+group19:
+  - r_case16_intel
+#group20:
+#  - r_erod_intel
