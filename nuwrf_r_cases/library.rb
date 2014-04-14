@@ -198,9 +198,11 @@ module Library
 
     if env.run.namelist_link 
       env.run.namelist_link.each do |link|
-        if link.size == 2
+        if link.size == 2 and File.exist?(link[0])
           logd "sym linking namelist file: #{link[0]} -> #{link[1]}"
           FileUtils.ln_sf(link[0],File.join(rundir,link[1]))
+        else
+          die("Required namelist link not found")
         end
       end
     end
