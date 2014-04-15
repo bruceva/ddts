@@ -1,0 +1,4 @@
+extends: 'r_case05_gfortran'
+baseline: 'r_case05_gfortran_debug'
+build: 'all_debug_discover_gnu48_openmpi'
+

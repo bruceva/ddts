@@ -6,3 +6,8 @@ group1:
   - r_case05_intel
 group2:
   - r_case05_gfortran
+group3:
+  - r_case05_intel_debug
+group4:
+  - r_case05_gfortran_debug
+

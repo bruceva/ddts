@@ -3,7 +3,6 @@ baseline: 'r_case06_gfortran'
 compiler: 'gfortran'
 build: 'all_discover_gnu48_openmpi'
 
-#preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
 preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
 
 #Special time override

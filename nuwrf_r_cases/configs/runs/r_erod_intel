@@ -1,9 +1,4 @@
 extends: 'r_erod'
 
-#preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
-preprocessors: ['real']
-
-#Override
-batch_procline:
-  real: 'p72'
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
 

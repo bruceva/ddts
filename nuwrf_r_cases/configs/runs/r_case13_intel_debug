@@ -1,0 +1,4 @@
+extends: 'r_case13_intel'
+baseline: 'r_case13_intel_debug'
+build: 'allchem_debug_discover'
+

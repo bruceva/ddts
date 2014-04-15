@@ -1,0 +1,4 @@
+extends: 'r_casaco2_intel'
+baseline: 'r_casaco2_intel_debug'
+build: 'allchem_debug_discover'
+

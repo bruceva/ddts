@@ -1,0 +1,4 @@
+extends: 'r_case08_intel'
+baseline: 'r_case08_intel_debug'
+build: 'all_debug_discover'
+

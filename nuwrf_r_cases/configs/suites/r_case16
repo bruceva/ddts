@@ -1,5 +1,13 @@
 extends: 'email_nuwrf'
 retain_builds: true
 #build_only: true
+continue: true
 group:
   - r_case16_intel
+group:
+  - r_case16_gfortran
+group:
+  - r_case16_intel_debug
+group:
+  - r_case16_gfortran_debug
+

@@ -6,3 +6,8 @@ group1:
   - r_erod_intel
 group2:
   - r_erod_gfortran
+group3:
+  - r_erod_intel_debug
+group4:
+  - r_erod_gfortran_debug
+

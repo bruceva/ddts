@@ -3,5 +3,4 @@ build: 'allchem_discover_gnu48_openmpi'
 baseline: 'r_casaco2_gfortran'
 compiler: 'gfortran'
 
-#preprocessors: ['geogrid','ungrib','metgrid','real','casa2wrf','wrf','rip']
 preprocessors: ['geogrid','ungrib','metgrid','real','casa2wrf','wrf','rip']
