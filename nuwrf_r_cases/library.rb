@@ -133,6 +133,7 @@ module Library
        FileUtils.cp(File.join(env.build.dir,exe),bindir)
        logd "Copied #{index} #{exe} -> #{bindir}"
     end
+    die("FAKE BUILD ERROR") if env.build.config=='discover.cfg'
     # Return the name of the dir to be copied for each run that requires it.
     env.build.dir
   end
@@ -214,7 +215,15 @@ module Library
   def lib_run(env,rundir)
     baselinedir=env.run.baselinedir if env.run.baselinedir
     abortprocessing=false
+    run_success=true
+    message=""
+    laststep=""
     env.run.preprocessors.each do |prep|
+      if not run_success
+        break;
+      end 
+   
+      laststep=prep
 
       if 'geogrid ungrib metgrid real casa2wrf wrf rip gocart2wrf prep_chem_sources convert_emiss'.include?(prep)
         arr=expectedInput(env.run,prep)
@@ -244,7 +253,8 @@ module Library
                   FileUtils.ln_sf(f,linkdir)
                 end
               else
-                logi ("#{prep} input directory #{a} not found")
+                message="#{prep} input directory #{a} not found"
+                logi "#{message}"
                 abortprocessing=true
               end              
             end
@@ -286,7 +296,8 @@ module Library
                     FileUtils.ln_sf(File.join(baselinedir,f),linkdir)
                   end
                 else
-                  logi "#{prep} processing: missing required input #{f}"
+                  message= "#{prep} processing: missing required input #{f}"
+                  logi "#{message}"
                   abortprocessing=true
                 end
               end
@@ -295,21 +306,30 @@ module Library
         end
       end 
 
-      die ("#{prep} processing aborted due to missing data") if abortprocessing
-
-      #die("test abort")
-      # Submit the script to the batch system
-      logi "About to submit #{prep} preprocessor job"
-      output=run_batch_job(env,rundir,prep)
-      logi "Verifying preprocessor result..."
-      match=re_str_success(env,prep)
-      result=job_check(output, match)
-      die ("Preprocessor #{prep} failed, unable to find #{match} in #{result}") if not result
-      logi "Pass"
+      if abortprocessing
+        logd "ERROR: #{prep} processing aborted due to missing data"
+        run_success=false
+      else
+        # Submit the script to the batch system
+        logi "About to submit #{prep} preprocessor job"
+        #output=run_batch_job(env,rundir,prep)
+        output=File.join(rundir,"fake.txt")
+        logi "Verifying preprocessor result..."
+        match=re_str_success(env,prep)
+        if File.exist?(output)
+          message="Preprocessor #{prep} success"          
+          run_success=job_check(output, match)
+          message="Preprocessor #{prep} failed, unable to find #{match} in #{result}" if not run_success
+        else
+          message="Preprocessor #{prep} failed, unable to locate #{output}"
+          run_success=false
+        end
+        logi "#{message}"
+      end
     end
 
     #Information passed to the run post processing
-    rundir
+    {:result=>run_success,:rundir=>rundir,:pipeline=>env.run.preprocessors,:message=>message,:laststep=>laststep,:build=>env.build._result}
   end
 
   def lib_outfiles(env,path)
@@ -335,10 +355,8 @@ module Library
   end
 
   def lib_run_post(env,runkit)
-    #By the time we get here the run is already deemed a success.
-    #Assemble the data structure of information that may be needed by other runs
-    #that depend on this.
-    {:result=>true,:preprocessors=>env.run.preprocessors,:rundir=>runkit}
+    #By the time we get here the run output already contains the desired data structure
+    runkit
   end
 
   def lib_run_check(env,postkit)
@@ -364,16 +382,57 @@ module Library
     email_subject=env.suite.email_subject
     email_server=env.suite.email_server
     email_ready=true if email_server and email_from and email_to and email_subject
+    logi env.inspect()
     if env.suite._totalfailures > 0 
-      msg="#{env.suite._totalfailures} TEST(S) OUT OF #{env.suite._totalruns} FAILED" 
+      msg="#{env.suite._totalfailures} TEST(S) OUT OF #{env.suite._totalruns} FAILED\n"
+      msg<<"\n--------------------- Builds -------------------------------\n"
+      if env.suite._builds and env.suite._builds.length > 0
+        env.suite._builds.each do |k,v|
+          if v.is_a?(OpenStruct) and v.result
+            msg<<"\n#{k}: BUILDINFO(#{v.result})"
+          else
+            msg<<"\n#{k}: ALLINFO(#{v})"
+          end
+        end
+      end
+      msg<<"\n--------------------- Runs -------------------------------\n"
+      if env.suite._runs and env.suite._runs.length > 0
+        env.suite._runs.each do |k,v|
+          if v.is_a?(OpenStruct) and v.result
+            msg<<"\n#{k}: RUNINFO(#{v.result[:result]} | #{v.result[:laststep]} | #{v.result[:pipeline]} | \"#{v.result[:message]}\") | BUILDINFO(#{v.result[:build]})"
+          else
+            msg<<"\n#{k}: ALLINFO(#{v})"
+          end
+        end
+      end 
       subject="#{email_subject} -- #{suite_name} (FAILED)"
       send_email(email_from,email_to,subject,email_server,msg,true) if email_ready
     else
-      msg="ALL TESTS PASSED"
+      msg="ALL TESTS PASSED\n"
+      msg<<"\n--------------------- Builds -------------------------------\n"
+      if env.suite._builds and env.suite._builds.length > 0
+        env.suite._builds.each do |k,v|
+          if v.is_a?(OpenStruct) and v.result
+            msg<<"\n#{k}: BUILDINFO(#{v.result})"
+          else
+            msg<<"\n#{k}: ALLINFO(#{v})"
+          end
+        end
+      end
+      msg<<"\n--------------------- Runs -------------------------------\n"
+      if env.suite._runs and env.suite._runs.length > 0
+        env.suite._runs.each do |k,v|
+          if v.is_a?(OpenStruct) and v.result
+            msg<<"\n#{k}: RUNINFO(#{v.result[:pipeline]} | \"#{v.result[:message]}\") | BUILDINFO(#{v.result[:build]})"
+          else
+            msg<<"\n#{k}: ALLINFO(#{v})"
+          end
+        end
+      end 
       subject="#{email_subject} -- #{suite_name} (COMPLETED)"
       send_email(email_from,email_to,subject,email_server,msg,false) if email_ready  
     end
-    logi env.inspect()
+    #logi env.inspect()
   end
 
 end

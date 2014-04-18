@@ -1146,7 +1146,7 @@ eos
     if File.exists?(outfile)
       logd "#{outfile} found"
     else
-      die("#{outfile} not found")
+      logd "ERROR: #{outfile} not found"
     end
     outfile
   end
