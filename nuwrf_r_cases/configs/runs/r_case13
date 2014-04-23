@@ -3,17 +3,17 @@ build: 'allchem_discover'
 baseline: 'r_case13_intel'
 compiler: 'intel'
 
-namelist_link: [['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASE13/namelist.wps','namelist.wps'],
-                ['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASE13/namelist.input.wrf','namelist.input.wrf'],
-                ['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASE13/namelist.input.real','namelist.input.real'],
-                ['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASE13/namelist.input.convert_emiss.d01','namelist.input.convert_emiss.d01'],
-                ['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASE13/namelist.gocart2wrf','namelist.gocart2wrf']]
+namelist_link: [['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASE13/namelist.wps','namelist.wps'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASE13/namelist.input.wrf','namelist.input.wrf'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASE13/namelist.input.real','namelist.input.real'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASE13/namelist.input.convert_emiss.d01','namelist.input.convert_emiss.d01'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASE13/namelist.gocart2wrf','namelist.gocart2wrf']]
 
-ungrib_input: '/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASE13/ungrib_input'
-gocart2wrf_input: '/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASE13/gocart_input'
+ungrib_input: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASE13/ungrib_input'
+gocart2wrf_input: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASE13/gocart_input'
 
 #baselinedir supplies missing data in cases when we just want to run a smaller pipeline
-baselinedir: '/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASE13'
+baselinedir: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASE13'
 
 
 preprocessor_links:
@@ -46,7 +46,7 @@ preprocessor_links:
   rip: ['200','250','300','500Vort','700RH','850','sfcThk','sfcTUV','COMDBZ','sfcDBZUV']
   casa2wrf: [['/discover/nobackup/jjacob//NUWRF/CO2_data/CASA/conc','conc'],
              ['/discover/nobackup/jjacob//NUWRF/CO2_data/CASA/flux','flux']]
-  prep_chem_sources: [['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASE13/prep_chem_sources.inp','prep_chem_sources.inp']]
+  prep_chem_sources: [['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASE13/prep_chem_sources.inp','prep_chem_sources.inp']]
   convert_emiss: ['CAM_ABS_DATA','CAM_AEROPT_DATA','co2_trans','ETAMPNEW_DATA',
          'ETAMPNEW_DATA_DBL', 'ETAMPNEW_DATA.expanded_rain',
          'ETAMPNEW_DATA.expanded_rain_DBL', 'GENPARM.TBL', 'grib2map.tbl',

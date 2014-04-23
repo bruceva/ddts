@@ -24,8 +24,8 @@ group8:
   - r_case15_gfortran
 group9:
   - r_case16_gfortran
-#group10:
-#  - r_erod_gfortran
+group10:
+  - r_erod_gfortran
 group11:
   - r_casaco2_intel
 group12:
@@ -44,5 +44,5 @@ group18:
   - r_case15_intel
 group19:
   - r_case16_intel
-#group20:
-#  - r_erod_intel
+group20:
+  - r_erod_intel

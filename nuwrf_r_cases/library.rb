@@ -133,7 +133,7 @@ module Library
        FileUtils.cp(File.join(env.build.dir,exe),bindir)
        logd "Copied #{index} #{exe} -> #{bindir}"
     end
-    die("FAKE BUILD ERROR") if env.build.config=='discover.cfg'
+    #die("FAKE BUILD ERROR") if env.build.config=='discover.cfg'
     # Return the name of the dir to be copied for each run that requires it.
     env.build.dir
   end
@@ -312,8 +312,8 @@ module Library
       else
         # Submit the script to the batch system
         logi "About to submit #{prep} preprocessor job"
-        #output=run_batch_job(env,rundir,prep)
-        output=File.join(rundir,"fake.txt")
+        output=run_batch_job(env,rundir,prep)
+        #output=File.join(rundir,"fake.txt")
         logi "Verifying preprocessor result..."
         match=re_str_success(env,prep)
         if File.exist?(output)

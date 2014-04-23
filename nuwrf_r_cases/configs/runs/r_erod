@@ -3,14 +3,14 @@ build: 'allchem_discover'
 baseline: 'r_erod_intel'
 compiler: 'intel'
 
-namelist_link: [['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD/namelist.wps','namelist.wps'],
-                ['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD/namelist.input.real','namelist.input.real'],
-                ['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD/namelist.input.wrf','namelist.input.wrf']]
+namelist_link: [['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_EROD/namelist.wps','namelist.wps'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_EROD/namelist.input.real','namelist.input.real'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_EROD/namelist.input.wrf','namelist.input.wrf']]
 
-ungrib_input: '/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD/ungrib_input'
+ungrib_input: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_EROD/ungrib_input'
 
 #baselinedir supplies missing data in cases when we just want to run a smaller pipeline
-baselinedir: '/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_EROD' 
+baselinedir: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_EROD' 
 
 preprocessor_links:
   geogrid_nochem: ['GEOGRID.TBL.ARW','GEOGRID.TBL']

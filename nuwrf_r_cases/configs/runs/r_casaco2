@@ -3,15 +3,15 @@ build: 'allchem_discover'
 baseline: 'r_casaco2_intel'
 compiler: 'intel'
 
-namelist_link: [['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASACO2/namelist.wps','namelist.wps'],
-                ['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASACO2/namelist.input.wrf','namelist.input.wrf'],
-                ['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASACO2/namelist.input.real','namelist.input.real'],
-                ['/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASACO2/namelist.casa2wrf','namelist.casa2wrf']]
+namelist_link: [['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASACO2/namelist.wps','namelist.wps'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASACO2/namelist.input.wrf','namelist.input.wrf'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASACO2/namelist.input.real','namelist.input.real'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASACO2/namelist.casa2wrf','namelist.casa2wrf']]
 
-ungrib_input: '/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASACO2/ungrib_input'
+ungrib_input: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASACO2/ungrib_input'
 
 #baselinedir supplies missing data in cases when we just want to run a smaller pipeline
-baselinedir: '/discover/nobackup/evalente/regression_testing/nuwrf_suite/R_CASACO2'
+baselinedir: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASACO2'
 
 preprocessor_links:
   geogrid_nochem: ['GEOGRID.TBL.ARW','GEOGRID.TBL']
