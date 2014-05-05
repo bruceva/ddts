@@ -75,8 +75,49 @@ module Library
              end
           end
        end
+
+       #Sanity check revision information of local repo copy and build copy
+       #It is possible that the local source repo is current but a local
+       #build missed an update.
+       logd "Retrieving local source repository info"
+       cmd="svn info #{srcdir}"
+       o,s=my_ext(cmd,{:msg=>"SVN info failed",:out=>true,:die=>false})
+       env.build.local_src_rev="????"
+       if o.length > 0 and o.grep(/^Revision/).length > 0
+         env.build.local_src_rev= o.grep(/^Revision/)[0].split(":")[1].strip
+       end
+       logd "Revision: #{env.build.local_src_rev}"
+
+
+       logd "Retrieving build target repository info"
+       cmd="svn info #{env.build.dir}"
+       o,s=my_ext(cmd,{:msg=>"SVN info failed",:out=>true,:die=>false})
+       env.build.build_src_rev="????"
+       if o.length > 0 and o.grep(/^Revision/).length > 0
+         env.build.build_src_rev= o.grep(/^Revision/)[0].split(":")[1].strip
+       end
+       logd "Revision: #{env.build.build_src_rev}"
+
+       if env.build.local_src_rev == "????" or env.build.build_src_rev == "????"
+         die ("Unable to verify repo revision!")
+       end
+
+       if env.build.local_src_rev != env.build.build_src_rev 
+         logi "Build source repo and local copies are not in sync!!!"
+         logi "Invalidating build copy"
+         if Dir.exist?(env.build.dir)
+           logd "Removing build directory to avoid copy misplacement"
+           FileUtils.rm_rf(env.build.dir)
+         end
+
+         # Copy the source files, recursively, into the build directory.
+         logi "Copying #{srcdir} -> #{env.build.dir}"
+         FileUtils.cp_r(srcdir,env.build.dir,{:remove_destination=>true})
+         logi "Build source repo and local one are now in sync"
+         env.build.build_src_rev = env.build.local_src_rev
+       end
+
     end
-    env.build.dir
   end
 
   def lib_build(env)
@@ -104,6 +145,7 @@ module Library
        if !env.build.debug || env.build.debug.nil? == true
          logd "Debug not specified or false." 
          # no change to buildcommand
+         env.build.debug=false
        else
          logd "Debug build selected" 
          buildcommand="#{buildcommand} debug "
@@ -122,7 +164,7 @@ module Library
     end
   end
 
-  def lib_build_post(env,output)
+  def lib_build_post(env,buildkit)
     # Copying these files effectively checks for their existance. 
     logd "env.build.dir = #{env.build.dir}"
     logd "env.build.bindir = #{env.build.bindir}"
@@ -135,7 +177,10 @@ module Library
     end
     #die("FAKE BUILD ERROR") if env.build.config=='discover.cfg'
     # Return the name of the dir to be copied for each run that requires it.
-    env.build.dir
+
+    {:dir=>env.build.dir,:name=>File.basename(env.build.dir),:result=>true,
+     :src_rev=>env.build.local_src_rev,:build_rev=>env.build.build_src_rev,
+     :debug=>env.build.debug, :build_param=>env.build.param}
   end
 
   def lib_data(env)
@@ -382,57 +427,91 @@ module Library
     email_subject=env.suite.email_subject
     email_server=env.suite.email_server
     email_ready=true if email_server and email_from and email_to and email_subject
-    logi env.inspect()
+    #logi env.inspect()
     if env.suite._totalfailures > 0 
+      
       msg="#{env.suite._totalfailures} TEST(S) OUT OF #{env.suite._totalruns} FAILED\n"
+      logmsg="#{env.suite._totalfailures} TEST(S) OUT OF #{env.suite._totalruns} FAILED\n"
       msg<<"\n--------------------- Builds -------------------------------\n"
+      logmsg<<"\n--------------------- Builds -------------------------------\n"
       if env.suite._builds and env.suite._builds.length > 0
         env.suite._builds.each do |k,v|
           if v.is_a?(OpenStruct) and v.result
-            msg<<"\n#{k}: BUILDINFO(#{v.result})"
+            msg<<"\n#{k}: PASS"
+            logmsg<<"\n#{k}: BUILDINFO(#{v.result})"
           else
-            msg<<"\n#{k}: ALLINFO(#{v})"
+            msg<<"\n#{k}: FAIL"
+            logmsg<<"\n#{k}: ALLINFO(#{v})"
           end
         end
       end
-      msg<<"\n--------------------- Runs -------------------------------\n"
-      if env.suite._runs and env.suite._runs.length > 0
-        env.suite._runs.each do |k,v|
-          if v.is_a?(OpenStruct) and v.result
-            msg<<"\n#{k}: RUNINFO(#{v.result[:result]} | #{v.result[:laststep]} | #{v.result[:pipeline]} | \"#{v.result[:message]}\") | BUILDINFO(#{v.result[:build]})"
-          else
-            msg<<"\n#{k}: ALLINFO(#{v})"
+
+      if not env.suite.build_only
+        msg<<"\n--------------------- Runs -------------------------------\n"
+        logmsg<<"\n--------------------- Runs -------------------------------\n"
+        if env.suite._runs and env.suite._runs.length > 0
+          env.suite._runs.each do |k,v|
+            if v.is_a?(OpenStruct) and v.result
+              if v.result[:result]
+                msg<<"\n#{k}: PASS"
+              else 
+                msg<<"\n#{k}: FAIL"
+              end
+              logmsg<<"\n#{k}: RUNINFO(#{v.result[:result]} | #{v.result[:laststep]} | #{v.result[:pipeline]} | \"#{v.result[:message]}\") | BUILDINFO(#{v.result[:build]})"
+            else
+              msg<<"\n#{k}: FAIL"
+              logmsg<<"\n#{k}: ALLINFO(#{v})"
+            end
           end
         end
       end 
+      msg<<"\n----------------------------------------------------\n"
+      msg<<"See log: #{logfile()}\n"
+      logi logmsg
       subject="#{email_subject} -- #{suite_name} (FAILED)"
-      send_email(email_from,email_to,subject,email_server,msg,true) if email_ready
+      send_email(email_from,email_to,subject,email_server,msg,false) if email_ready
     else
       msg="ALL TESTS PASSED\n"
+      logmsg="ALL TESTS PASSED\n"
       msg<<"\n--------------------- Builds -------------------------------\n"
+      logmsg<<"\n--------------------- Builds -------------------------------\n"
       if env.suite._builds and env.suite._builds.length > 0
         env.suite._builds.each do |k,v|
           if v.is_a?(OpenStruct) and v.result
-            msg<<"\n#{k}: BUILDINFO(#{v.result})"
+            msg<<"\n#{k}: PASS"
+            logmsg<<"\n#{k}: BUILDINFO(#{v.result})"
           else
-            msg<<"\n#{k}: ALLINFO(#{v})"
+            msg<<"\n#{k}: FAIL"
+            logmsg<<"\n#{k}: ALLINFO(#{v})"
           end
         end
       end
-      msg<<"\n--------------------- Runs -------------------------------\n"
-      if env.suite._runs and env.suite._runs.length > 0
-        env.suite._runs.each do |k,v|
-          if v.is_a?(OpenStruct) and v.result
-            msg<<"\n#{k}: RUNINFO(#{v.result[:pipeline]} | \"#{v.result[:message]}\") | BUILDINFO(#{v.result[:build]})"
-          else
-            msg<<"\n#{k}: ALLINFO(#{v})"
+
+      if not env.suite.build_only
+        msg<<"\n--------------------- Runs -------------------------------\n"
+        logmsg<<"\n--------------------- Runs -------------------------------\n"
+        if env.suite._runs and env.suite._runs.length > 0
+          env.suite._runs.each do |k,v|
+            if v.is_a?(OpenStruct) and v.result
+              if v.result[:result]
+                msg<<"\n#{k}: PASS"
+              else
+                msg<<"\n#{k}: FAIL"
+              end
+              logmsg<<"\n#{k}: RUNINFO(#{v.result[:pipeline]} | \"#{v.result[:message]}\") | BUILDINFO(#{v.result[:build]})"
+            else
+              msg<<"\n#{k}: FAIL"
+              logmsg<<"\n#{k}: ALLINFO(#{v})"
+            end
           end
-        end
-      end 
+        end 
+      end
+      msg<<"\n----------------------------------------------------\n"
+      msg<<"See log: #{logfile()}\n"
+      logi logmsg
       subject="#{email_subject} -- #{suite_name} (COMPLETED)"
       send_email(email_from,email_to,subject,email_server,msg,false) if email_ready  
     end
-    #logi env.inspect()
   end
 
 end
