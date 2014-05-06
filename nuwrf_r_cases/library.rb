@@ -364,7 +364,7 @@ module Library
         if File.exist?(output)
           message="Preprocessor #{prep} success"          
           run_success=job_check(output, match)
-          message="Preprocessor #{prep} failed, unable to find #{match} in #{result}" if not run_success
+          message="Preprocessor #{prep} failed, unable to find #{match} in #{output}" if not run_success
         else
           message="Preprocessor #{prep} failed, unable to locate #{output}"
           run_success=false
