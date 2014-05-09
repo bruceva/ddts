@@ -4,8 +4,8 @@ baseline: 'control'
 
 preprocessors: ['ldt']
 
-namelist_link: [['/discover/nobackup/evalente/regression_testing/ldt_suite/CONTROL/ldt.config.control','ldt.config'],
-                ['/discover/nobackup/evalente/regression_testing/ldt_suite/CONTROL/param_attribs_usgs.txt','param_attribs_usgs.txt'],
+namelist_link: [['/discover/nobackup/projects/nu-wrf/regression_testing/data_ldt/CONTROL/ldt.config.control','ldt.config'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data_ldt/CONTROL/param_attribs_usgs.txt','param_attribs_usgs.txt'],
                 ['/discover/nobackup/projects/lis/LS_PARAMETERS','LS_PARAMETERS'],
                 ['/discover/nobackup/projects/lis/LS_PARAMETERS/noah33_parms','noah33_params']]
 
