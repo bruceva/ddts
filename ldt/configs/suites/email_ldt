@@ -1,4 +1,4 @@
-email_to: 'eduardo.g.valente@nasa.gov'
+email_to: 'nu-wrf-testing@lists.nasa.gov'
 email_from: 'ldt@discover.nccs.nasa.gov'
 email_server: 'mail.nccs.nasa.gov'
-email_subject: 'LDT use case regression test summary'
+email_subject: 'LDT regression test summary'
