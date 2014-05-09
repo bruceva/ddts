@@ -1,0 +1,4 @@
+extends: 'umd_lc_mode'
+baseline: 'umd_lc_mode_strict'
+build: 'all_strict'
+

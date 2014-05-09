@@ -1,0 +1,53 @@
+extends: 'email_ldt'
+retain_builds: true
+continue: true
+#build_only: true
+group1:
+  - control
+group2:
+  - usgs_lc_mode
+group3:
+  - modis_lc_neighbor
+group4:
+  - modis_lc_mode
+group5:
+  - umd_lc_neighbor
+group6:
+  - umd_lc_mode
+group7:
+  - gtopo_budget_bilinear
+group8:
+  - gtopo_bilinear
+group9:
+  - tbot_bilinear
+group10:
+  - ncep_albedo_bilinear
+group11:
+  - ncep_snoalb_bilinear
+group12:
+  - ncep_green_bilinear
+group21:
+  - control_strict
+group22:
+  - usgs_lc_mode_strict
+group23:
+  - modis_lc_neighbor_strict
+group24:
+  - modis_lc_mode_strict
+group25:
+  - umd_lc_neighbor_strict
+group26:
+  - umd_lc_mode_strict
+group27:
+  - gtopo_budget_bilinear_strict
+group28:
+  - gtopo_bilinear_strict
+group29:
+  - tbot_bilinear_strict
+group30:
+  - ncep_albedo_bilinear_strict
+group31:
+  - ncep_snoalb_bilinear_strict
+group32:
+  - ncep_green_bilinear_strict
+

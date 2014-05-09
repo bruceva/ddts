@@ -1,0 +1,22 @@
+extends: 'sbatch'
+build: 'all'
+baseline: 'gtopo_bilinear'
+
+preprocessors: ['ldt']
+
+namelist_link: [['/discover/nobackup/evalente/regression_testing/ldt_suite/GTOPO/ldt.config.gtopo.bilinear','ldt.config'],
+                ['/discover/nobackup/evalente/regression_testing/ldt_suite/GTOPO/param_attribs_usgs.txt','param_attribs_usgs.txt'],
+                ['/discover/nobackup/projects/lis/LS_PARAMETERS','LS_PARAMETERS'],
+                ['/discover/nobackup/projects/lis/LS_PARAMETERS/noah33_parms','noah33_params']]
+
+ldt_config: 'ldt.config'
+
+expectedStatusFiles:
+  ldt: ['ldtlog_usgs.0000','Finished LDT run']
+
+expectedInputFiles:
+  ldt: ''
+
+expectedOutputFiles:
+  ldt: ['lis_input.usgs.nc']
+

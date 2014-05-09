@@ -1,0 +1,4 @@
+extends: 'usgs_lc_mode'
+baseline: 'usgs_lc_mode_strict'
+build: 'all_strict'
+

@@ -1,0 +1,1 @@
+ls -lsrt |grep -v "\->" | grep -v "nuwrf_d01" | grep -v "rsl.out" | grep -v "rsl.error" | grep -v "metgrid.log" |grep -v "geogrid.log" | grep -v ".sh"

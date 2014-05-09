@@ -1,0 +1,4 @@
+extends: 'ncep_snoalb_bilinear'
+baseline: 'ncep_snoalb_bilinear_strict'
+build: 'all_strict'
+

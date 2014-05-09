@@ -1,0 +1,25 @@
+extends: 'libconfig'
+bindir: 'bin'
+param: 'default'
+executables: ['LDT']
+
+ldt_script_vars_select: 'intel13'
+ldt_exports_select: 'intel'
+ldt_modules_select: 'intel'
+
+#Define the questions and answers that configure will require
+configure_qa:
+  optimization: ['Optimization level (-2=strict checks, -1=g, 0,1,2,3, default=2):','\r']
+  endian: ['Assume little/big_endian data format (1-little, 2-big, default=2):','\r']
+  use_openmp: ['Use openMP parallelism (1-yes, 0-no, default=0):','\r']
+  netcdf_ver: ['NETCDF version (3 or 4, default=4)?:','\r']
+  use_netcdf_shuffle: ['NETCDF use shuffle filter? (default = 1):','\r']
+  use_netcdf_deflate: ['NETCDF use deflate filter? (default = 1):','\r']
+  netcdf_deflate_level: ['NETCDF use deflate level? (default = 9):','\r']
+  use_hdf4: ['Use HDF4? (1-yes, 0-no, default=1):','\r']
+  use_hdf5: ['Use HDF5? (1-yes, 0-no, default=1):','\r']
+  use_hdfeos: ['Use HDFEOS? (1-yes, 0-no, default=1):','\r']
+
+#Define the order in which the configure questions come up
+#Missing required "configure_qa_list" array of qa's 
+

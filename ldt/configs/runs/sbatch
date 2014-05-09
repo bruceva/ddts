@@ -1,0 +1,42 @@
+#SBATCH parameters for each preprocessor
+
+# SBATCH -J
+batch_name: 
+  ldt: 'ldt'
+
+# SBATCH -t
+batch_time:
+  ldt: '2:00:00'
+
+#SBATCH -A
+batch_group:
+  ldt: 's0942'
+
+#SBATCH -o
+batch_slurmout:
+  ldt: 'ldt.slurm.out'
+
+#SBATCH -p 
+batch_queue:
+  ldt: 'general'
+
+#SBATCH -N
+batch_procline:
+  ldt: 'p1'
+
+# Define the proc line for each supported processor count
+proc_line: 
+  p1: '1 -n 1 --ntasks-per-node=1'
+
+# Other batch parameters not specific to processor count
+
+# modules to load
+modules: 
+  intel: 'comp/intel-13.0.1.117 mpi/impi-4.0.3.008'
+  gfortran: 'other/comp/gcc-4.8.1 other/mpi/openmpi/1.7.2-gcc-4.8.1-shared'
+
+# script exports required 
+batch_exports:
+  intel: ["NCARG_ROOT=/usr/local/other/SLES11.1/ncarg/6.0.0/intel-13.0.1.117"] 
+  gfortran: ["NCARG_ROOT=/usr/local/other/SLES11.1/ncarg/6.0.0/gnu-4.8.1"]     
+
