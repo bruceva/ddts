@@ -1,0 +1,4 @@
+extends: 'modis_postlis'
+baseline: 'modis_postlis_strict'
+build: 'all_strict'
+

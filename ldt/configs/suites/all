@@ -50,4 +50,16 @@ group31:
   - ncep_snoalb_bilinear_strict
 group32:
   - ncep_green_bilinear_strict
+group41:
+ - usgs_postlis
+group42:
+ - usgs_postlis_strict
+group43:
+ - modis_postlis
+group44:
+ - modis_postlis_strict
+group45:
+ - umd_postlis
+group46:
+ - umd_postlis_strict
 

@@ -1,0 +1,4 @@
+extends: 'usgs_postlis'
+baseline: 'usgs_postlis_strict'
+build: 'all_strict'
+

@@ -1,0 +1,15 @@
+retain_builds: true
+continue: true
+group1:
+ - usgs_postlis
+group2:
+ - usgs_postlis_strict
+group3:
+ - modis_postlis
+group4:
+ - modis_postlis_strict
+group5:
+ - umd_postlis
+group6:
+ - umd_postlis_strict
+
