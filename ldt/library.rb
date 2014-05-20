@@ -427,6 +427,53 @@ module Library
     {:result=>run_success,:rundir=>rundir,:pipeline=>env.run.preprocessors,:message=>message,:laststep=>laststep,:build=>env.build._result}
   end
 
+  def lib_comp(env,file1, file2, exec_id="")
+    logi exec_id
+    logi env.inspect()
+    die ("comp test")
+    #define exec_name=env.?.send(exec_id)
+    #define exec_params=env.?.send(exec_id)
+    cmd="which #{exec_name}"
+    o,s=ext(cmd,{:die=>false,:msg=>"Unable to locate #{exec_name}",:out=>true})
+    if o
+      logd "Located #{exec_name} at #{o}"
+    else
+      die ("Unable to located #{exec_name}. Please add it to the PATH env var, or establish alias.")
+    end
+    if exec_params
+      logd "#{exec_name} #{exec_params} comparison of #{file1} against #{file2}"
+      cmd="#{exec_name} #{exec_params} #{file1} #{file2}"
+    else
+      logd "#{exec_name} comparison of #{file1} against #{file2}"
+      cmd="#{exec_name} #{file1} #{file2}"
+    end
+    o,s=ext(cmd,{:die=>false,:msg=>"Error running #{exec_name}",:out=>true})
+    if o and o.size==0
+      true
+    else
+      false
+    end
+  end
+
+  def method_missing(meth, *args, &block)
+    logi meth.to_s
+    if meth.to_s =~ /^lib_comp_(.+)$/
+      lib_comp(*args, $1)
+    else
+      super # You *must* call super if you don't handle the
+            # method, otherwise you'll mess up Ruby's method
+            # lookup.
+    end
+  end
+
+  def respond_to?(meth)
+    if meth.to_s =~ /^lib_comp_.*$/
+      true
+    else
+      super
+    end
+  end
+
   def lib_outfiles(env,path)
     #Note must return list with [path,file] pairs or empty one 
     logd "lib_outputfiles->path-> #{path}"
