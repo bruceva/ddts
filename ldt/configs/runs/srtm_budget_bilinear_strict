@@ -1,0 +1,4 @@
+extends: 'srtm_budget_bilinear'
+baseline: 'srtm_budget_bilinear_strict'
+build: 'all_strict'
+

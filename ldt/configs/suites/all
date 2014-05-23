@@ -62,4 +62,16 @@ group45:
  - umd_postlis
 #group46:
 # - umd_postlis_strict
+group51:
+ - srtm_bilinear
+group52:
+ - srtm_bilinear_strict
+group53:
+ - srtm_budget_bilinear
+group54:
+ - srtm_budget_bilinear_strict
+group55:
+ - srtm_average
+group56:
+ - srtm_average_strict
 

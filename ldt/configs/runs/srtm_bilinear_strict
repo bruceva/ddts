@@ -1,0 +1,4 @@
+extends: 'srtm_bilinear'
+baseline: 'srtm_bilinear_strict'
+build: 'all_strict'
+
