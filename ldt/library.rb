@@ -19,7 +19,7 @@ module Library
        forcebuild=File.join(srcdir,"ddts.forcebuild")
        if not sourceexists 
           logi "First time code checkout"
-          cmd="svn checkout https://progress.nccs.nasa.gov/svn/lis/tools/ldt #{srcdir}"
+          cmd="svn checkout https://progress.nccs.nasa.gov/svn/lis/tools/ldt/7/development #{srcdir}"
           ext(cmd,{:msg=>"SVN checkout failed",:out=>true})
           # Copy the source files, recursively, into the build directory.
           FileUtils.touch(forcebuild)

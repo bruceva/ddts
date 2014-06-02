@@ -1,0 +1,15 @@
+retain_builds: true
+continue: true
+group1:
+ - srtm_bilinear
+group2:
+ - srtm_bilinear_strict
+group3:
+ - srtm_budget_bilinear
+group4:
+ - srtm_budget_bilinear_strict
+group5:
+ - srtm_average
+group6:
+ - srtm_average_strict
+
