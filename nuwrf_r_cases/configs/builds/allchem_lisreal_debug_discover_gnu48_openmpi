@@ -1,0 +1,2 @@
+extends: 'allchem_lisreal_debug'
+config: 'discover_gnu48_openmpi.cfg'

@@ -42,3 +42,8 @@ group19:
   - r_case16_intel_debug
 group20:
   - r_erod_intel_debug
+group30:
+  - r_gsfcrad14_intel_debug
+group31:
+  - r_gsfcrad14_gfortran_debug
+

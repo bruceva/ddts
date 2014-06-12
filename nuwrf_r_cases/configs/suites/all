@@ -42,3 +42,8 @@ group19:
   - r_case16_intel
 group20:
   - r_erod_intel
+group30:
+  - r_gsfcrad14_intel
+group31:
+  - r_gsfcrad14_gfortran
+

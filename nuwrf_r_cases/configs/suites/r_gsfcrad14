@@ -1,0 +1,10 @@
+continue: true
+retain_builds: true
+group1:
+  - r_gsfcrad14_gfortran
+group2:
+  - r_gsfcrad14_gfortran_debug
+group3:
+  - r_gsfcrad14_intel
+group4:
+  - r_gsfcrad14_intel_debug

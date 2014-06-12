@@ -953,7 +953,23 @@ eos
         script<<check
         script<<"ln -fs #{f} #{fw} || exit 1\n"
       end
+    elsif type.include?('root')
+      links=env.run.preprocessor_links.send(type)
+      links.each do |l|
+        fw=File.join('$WORKDIR',l)
+        script<<"rm #{fw}\n"
+        f=File.join('$NUWRFDIR','WRFV3',l)
+        check=<<-eos
+if [ ! -e #{f} ] ; then 
+    echo "ERROR, #{f} does not exist!"
+    exit 1
+fi  
+eos
+        script<<check
+        script<<"ln -fs #{f} #{fw} || exit 1\n"
+      end
     end
+
     script
   end
 
