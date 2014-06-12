@@ -7,5 +7,5 @@ configure_qa:
 #Define the order in which the configure questions come up
 configure_qa_list: ['optimization2','endian','use_openmp','netcdf_ver',
                     'use_netcdf_shuffle','use_netcdf_deflate','netcdf_deflate_level',
-                    'use_hdf4','use_hdf5','use_hdfeos']
+                    'use_hdf4','use_hdf5','use_hdfeos','use_history']
 

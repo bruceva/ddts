@@ -19,6 +19,7 @@ configure_qa:
   use_hdf4: ['Use HDF4? (1-yes, 0-no, default=1):','\r']
   use_hdf5: ['Use HDF5? (1-yes, 0-no, default=1):','\r']
   use_hdfeos: ['Use HDFEOS? (1-yes, 0-no, default=1):','\r']
+  use_history: ['Include date/time stamp history? (1-yes, 0-no, default=1):','0\r']
 
 #Define the order in which the configure questions come up
 #Missing required "configure_qa_list" array of qa's 
