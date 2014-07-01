@@ -16,4 +16,4 @@ export DDTSHOME=$d
 export DDTSAPP=`pwd`/app
 export DDTSOUT=`pwd`
 
-ulimit -Su 512 && java -jar $jruby --1.9 -I. $d/ts.rb $b $*
+ulimit -St unlimited && java -Xms512m -Xmx2048m -jar $jruby --1.9 -I. $d/ts.rb $b $*

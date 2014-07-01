@@ -2,9 +2,9 @@ extends: 'email_ldt'
 retain_builds: true
 continue: true
 #build_only: true
-group1:
-  - control
-  - lib_comp: test
-#group2:
-#  - usgs_lc_mode
+#group1:
+#  - control
+#  - lib_comp: test
+group2:
+  - usgs_lc_mode
 #  - lib_comp: 'lib_comp_nccmp'
