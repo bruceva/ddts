@@ -410,6 +410,13 @@ module Library
 
   def lib_suite_prep(env)
     logd "Preping suite"
+    # remove force build breadcrumb file
+    forcebuild=File.join("..","src","ddts.forcebuild")
+    if File.exists?(forcebuild)
+      logw "Deleting force build file: #{forcebuild}"
+      logw "Previous suite execution didn't complete"
+      FileUtils.rm(forcebuild)
+    end
   end
 
   def lib_suite_post(env)

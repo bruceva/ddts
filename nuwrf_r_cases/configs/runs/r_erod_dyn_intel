@@ -1,0 +1,4 @@
+extends: 'r_erod_dyn'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
+

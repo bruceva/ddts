@@ -17,7 +17,7 @@ baselinedir: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GSFCR
 
 preprocessor_links:
   geogrid_nochem: ['GEOGRID.TBL.ARW','GEOGRID.TBL']
-  geogrid_chemerod: ['GEOGRID.TBL.ARW_CHEM_GINOUX','GEOGRID.TBL']
+  geogrid_chemerod: ['GEOGRID.TBL.ARW_CHEM_NUWRF','GEOGRID.TBL']
   geogrid_chem: ['GEOGRID.TBL.ARW_CHEM','GEOGRID.TBL']
   ungrib_gfs: ['Vtable.GFS','Vtable','.','fnl_*']
   ungrib_nam: ['Vtable.NAM','Vtable','.','nam.*']

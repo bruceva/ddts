@@ -1,0 +1,4 @@
+extends: 'r_4ice_gocart_gfortran'
+baseline: 'r_4ice_gocart_gfortran_debug'
+build: 'allchem_debug_discover_gnu48_openmpi'
+

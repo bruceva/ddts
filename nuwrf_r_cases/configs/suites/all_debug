@@ -21,7 +21,7 @@ group8:
 group9:
   - r_case16_gfortran_debug
 group10:
-  - r_erod_gfortran_debug
+  - r_erod_mdb_gfortran_debug
 group11:
   - r_casaco2_intel_debug
 group12:
@@ -41,7 +41,7 @@ group18:
 group19:
   - r_case16_intel_debug
 group20:
-  - r_erod_intel_debug
+  - r_erod_mdb_intel_debug
 group30:
   - r_gsfcrad14_intel_debug
 group31:

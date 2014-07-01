@@ -1,0 +1,4 @@
+extends: 'r_4ice_2014rad_intel'
+baseline: 'r_4ice_2014rad_intel_debug'
+build: 'all_debug_discover'
+

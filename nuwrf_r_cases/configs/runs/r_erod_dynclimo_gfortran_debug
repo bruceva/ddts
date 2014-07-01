@@ -1,0 +1,4 @@
+extends: 'r_erod_dynclimo_gfortran'
+baseline: 'r_erod_dynclimo_gfortran_debug'
+build: 'allchem_debug_discover_gnu48_openmpi'
+

@@ -1,8 +1,8 @@
 bindir: 'bin'
 param: 'all'
 executables: ["ARWpost/src/ARWpost.exe",
-  "GSDSU/QRUN_NCCS/GSDSU.x",
-  "GSDSU/QRUN_NCCS/HOW_MANY_CPU_GSDSU",
+  "GSDSU/QRUN/GSDSU.x",
+  "GSDSU/QRUN/HOW_MANY_CPU_GSDSU",
   "LVT/make/LVT","MET/bin/ascii2nc",
   "MET/bin/ensemble_stat",
   "MET/bin/gen_poly_mask",

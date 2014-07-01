@@ -1,0 +1,6 @@
+extends: 'r_erod_mdb'
+build: 'allchem_discover_gnu48_openmpi'
+baseline: 'r_erod_mdb_gfortran'
+compiler: 'gfortran'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']

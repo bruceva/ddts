@@ -20,5 +20,5 @@ group8:
   - r_case15_gfortran
 group9:
   - r_case16_gfortran
-#group10:
-#  - r_erod_gfortran
+group10:
+  - r_erod_mdb_gfortran

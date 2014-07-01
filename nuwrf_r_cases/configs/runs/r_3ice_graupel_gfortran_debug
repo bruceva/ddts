@@ -1,0 +1,4 @@
+extends: 'r_3ice_graupel_gfortran'
+baseline: 'r_3ice_graupel_gfortran_debug'
+build: 'all_debug_discover_gnu48_openmpi'
+

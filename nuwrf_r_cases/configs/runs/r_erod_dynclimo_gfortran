@@ -1,0 +1,11 @@
+extends: 'r_erod_dynclimo'
+build: 'allchem_discover_gnu48_openmpi'
+baseline: 'r_erod_dynclimo_gfortran'
+compiler: 'gfortran'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
+
+#Special time override
+batch_time:
+  wrf: '4:00:00'
+

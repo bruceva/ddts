@@ -18,7 +18,7 @@ baselinedir: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASE1
 
 preprocessor_links:
   geogrid_nochem: ['GEOGRID.TBL.ARW','GEOGRID.TBL']
-  geogrid_chemerod: ['GEOGRID.TBL.ARW_CHEM_GINOUX','GEOGRID.TBL']
+  geogrid_chemerod: ['GEOGRID.TBL.ARW_CHEM_NUWRF','GEOGRID.TBL']
   geogrid_chem: ['GEOGRID.TBL.ARW_CHEM','GEOGRID.TBL']
   ungrib_gfs: ['Vtable.GFS','Vtable','.','gfs_*']
   ungrib_nam: ['Vtable.NAM','Vtable','.','nam.*']
@@ -44,8 +44,6 @@ preprocessor_links:
         'VEGPARM.TBL']
   lis: ['LS_PARAMETERS','MET_FORCING']
   rip: ['200','250','300','500Vort','700RH','850','sfcThk','sfcTUV','COMDBZ','sfcDBZUV']
-  casa2wrf: [['/discover/nobackup/jjacob//NUWRF/CO2_data/CASA/conc','conc'],
-             ['/discover/nobackup/jjacob//NUWRF/CO2_data/CASA/flux','flux']]
   prep_chem_sources: [['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_CASE13/prep_chem_sources.inp','prep_chem_sources.inp']]
   convert_emiss: ['CAM_ABS_DATA','CAM_AEROPT_DATA','co2_trans','ETAMPNEW_DATA',
          'ETAMPNEW_DATA_DBL', 'ETAMPNEW_DATA.expanded_rain',
@@ -69,7 +67,6 @@ real_select: 'real'
 wrf_select: ['wrf','lis']
 
 rip_select: 'rip'
-casa2wrf_select: 'casa2wrf'
 prep_chem_sources_select: 'prep_chem_sources'
 convert_emiss_select: 'convert_emiss'
 gocart2wrf_select: 'gocart2wrf'

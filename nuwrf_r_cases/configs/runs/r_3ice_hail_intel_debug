@@ -1,0 +1,4 @@
+extends: 'r_3ice_hail_intel'
+baseline: 'r_3ice_hail_intel_debug'
+build: 'all_debug_discover'
+

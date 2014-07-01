@@ -1,0 +1,4 @@
+extends: 'r_4ice'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
+

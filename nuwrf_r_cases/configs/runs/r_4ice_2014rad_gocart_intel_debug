@@ -1,0 +1,4 @@
+extends: 'r_4ice_2014rad_gocart_intel'
+baseline: 'r_4ice_2014rad_gocart_intel_debug'
+build: 'allchem_debug_discover'
+

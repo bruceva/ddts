@@ -21,4 +21,4 @@ group8:
 group9:
   - r_case16_gfortran_debug
 group10:
-  - r_erod_gfortran_debug
+  - r_erod_mdb_gfortran_debug

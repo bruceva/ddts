@@ -1,0 +1,4 @@
+extends: 'r_erod_dynclimo'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
+

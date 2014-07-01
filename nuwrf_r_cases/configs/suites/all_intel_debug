@@ -21,4 +21,4 @@ group8:
 group9:
   - r_case16_intel_debug
 group10:
-  - r_erod_intel_debug
+  - r_erod_mdb_intel_debug

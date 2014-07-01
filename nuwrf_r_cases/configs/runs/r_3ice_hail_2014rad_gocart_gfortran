@@ -1,0 +1,11 @@
+extends: 'r_3ice_hail_2014rad_gocart'
+baseline: 'r_3ice_hail_2014rad_gocart_gfortran'
+compiler: 'gfortran'
+build: 'allchem_discover_gnu48_openmpi'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip']
+
+#Special time override
+batch_time:
+  wrf: '4:00:00'
+

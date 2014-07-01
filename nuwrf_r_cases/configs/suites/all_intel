@@ -20,5 +20,5 @@ group8:
   - r_case15_intel
 group9:
   - r_case16_intel
-#group10:
-#  - r_erod_intel
+group10:
+  - r_erod_mdb_intel

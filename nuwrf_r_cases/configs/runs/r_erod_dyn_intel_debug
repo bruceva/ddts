@@ -1,0 +1,8 @@
+extends: 'r_erod_dyn_intel'
+baseline: 'r_erod_dyn_intel_debug'
+build: 'allchem_debug_discover'
+
+#WRF needs more time 
+batch_time:
+  wrf: '3:00:00'
+
