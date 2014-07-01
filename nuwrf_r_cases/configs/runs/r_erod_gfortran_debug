@@ -1,4 +1,0 @@
-extends: 'r_erod_gfortran'
-baseline: 'r_erod_gfortran_debug'
-build: 'allchem_debug_discover_gnu48_openmpi'
-

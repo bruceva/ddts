@@ -1,4 +1,0 @@
-extends: 'r_erod_intel'
-baseline: 'r_erod_intel_debug'
-build: 'allchem_debug_discover'
-
