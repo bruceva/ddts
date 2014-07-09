@@ -102,6 +102,10 @@ group170:
   - r_4ice_2014rad_gocart_intel
 group171:
   - r_4ice_2014rad_gocart_gfortran
+group180:
+  - r_gsdsu_intel
+group181:
+  - r_gsdsu_gfortran
 
 
 

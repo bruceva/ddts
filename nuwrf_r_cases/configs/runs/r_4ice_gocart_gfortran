@@ -7,5 +7,5 @@ preprocessors: ['geogrid','ungrib','metgrid','real','prep_chem_sources','gocart2
 
 #Special time override
 batch_time:
-  wrf: '4:00:00'
+  wrf: '6:00:00'
 

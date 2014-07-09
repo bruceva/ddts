@@ -231,6 +231,9 @@ module Library
       elsif prep == 'convert_emiss'
         s=createConvertemissPreprocessorScript(env)
         f='convert_emiss.bash'
+      elsif prep == 'gsdsu'
+        s=createGsdsuPreprocessorScript(env)
+        f='gsdsu.bash'
       end
 
       if f
@@ -270,7 +273,7 @@ module Library
    
       laststep=prep
 
-      if 'geogrid ungrib metgrid real casa2wrf wrf rip gocart2wrf prep_chem_sources convert_emiss'.include?(prep)
+      if 'geogrid ungrib metgrid real casa2wrf wrf rip gocart2wrf prep_chem_sources convert_emiss gsdsu'.include?(prep)
         arr=expectedInput(env.run,prep)
         if arr and arr.size >  0
           arr.each do |a|

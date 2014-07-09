@@ -305,7 +305,6 @@ eos
     links[2]
   end
 
-
   def getGocart2wrfInputPattern(env)
     links=env.run.preprocessor_links.send(env.run.gocart2wrf_select)[0]
     links[1]
@@ -906,9 +905,6 @@ eos
     header+body+footer
   end
 
-
-
-
   def createWrfLinks(env)
     script=""
     if env.run.wrf_select and env.run.wrf_select.class == Array
@@ -1134,6 +1130,53 @@ eos
     header+body+footer
   end
 
+  def createGsdsuLinks(env)
+
+    script=""
+    links=env.run.preprocessor_links.send(env.run.gsdsu_select)
+    links.each do |l|
+      fname=l
+      fw=File.join('$WORKDIR',fname)
+      f=File.join('$NUWRFDIR','GSDSU',fname)
+      check=<<-eos
+if [ ! -e #{f} ] ; then 
+    echo "ERROR, #{f} does not exist!"
+    exit 1
+fi
+eos
+      script<<check
+      script<<"ln -fs #{f} #{fw} || exit 1\n"
+
+    end
+    script
+  end
+
+  def createGsdsuPreprocessorScript(env)
+  
+    header=createPreprocessorHeader(env,'gsdsu')
+    
+    body=createCommonPreprocessorBody(env,'Configure_SDSU.F')
+
+    body<<createGsdsuLinks(env)
+
+    footer=<<-eos
+#create the output directory
+mkdir -p $WORKDIR/OUTPUTS || exit 1
+
+# Run GSDSU.x
+ln -fs $NUWRFDIR/GSDSU/QRUN/GSDSU.x $WORKDIR/GSDSU.x || exit 1
+if [ ! -e $WORKDIR/GSDSU.x ] ; then 
+    echo "ERROR, GSDSU.x does not exist!"
+    exit 1
+fi
+mpirun -np $SLURM_NTASKS ./GSDSU.x || exit 1
+
+# The end
+exit 0
+eos
+
+    header+body+footer
+  end
 
 
   def run_batch_job(env,rundir,preprocessor)

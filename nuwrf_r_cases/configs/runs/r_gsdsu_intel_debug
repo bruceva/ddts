@@ -1,0 +1,4 @@
+extends: 'r_gsdsu_intel'
+baseline: 'r_gsdsu_intel_debug'
+build: 'all_debug_discover'
+

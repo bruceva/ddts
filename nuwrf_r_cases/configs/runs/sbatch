@@ -12,6 +12,7 @@ batch_name:
   prep_chem_sources: 'pcs'
   convert_emiss: 'ce'
   gocart2wrf: 'gc2wrf'
+  gsdsu: 'gsdsu'
 
 # SBATCH -t
 batch_time:
@@ -25,6 +26,7 @@ batch_time:
   prep_chem_sources: '0:30:00'
   convert_emiss: '0:30:00'
   gocart2wrf: '2:00:00'  
+  gsdsu: '1:00:00'
 
 #SBATCH -A
 batch_group:
@@ -38,6 +40,7 @@ batch_group:
   prep_chem_sources: 's0942'
   convert_emiss: 's0942'
   gocart2wrf: 's0942'
+  gsdsu: 's0942'
 
 #SBATCH -o
 batch_slurmout:
@@ -51,6 +54,7 @@ batch_slurmout:
   prep_chem_sources: 'pcs.slurm.out'
   convert_emiss: 'ce.slurm.out'
   gocart2wrf: 'gc2wrf.slurm.out'
+  gsdsu: 'gsdsu.slurm.out'
 
 #SBATCH -p 
 batch_queue:
@@ -64,6 +68,7 @@ batch_queue:
   prep_chem_sources: 'general'
   convert_emiss: 'general'
   gocart2wrf: 'general'
+  gsdsu: 'general'
 
 #SBATCH -N
 batch_procline:
@@ -77,10 +82,12 @@ batch_procline:
   prep_chem_sources: 'p1'
   convert_emiss: 'p1'
   gocart2wrf: 'p1' 
+  gsdsu: 'p64'
 
 # Define the proc line for each supported processor count
 proc_line: 
   p1: '1 -n 1 --ntasks-per-node=1'
+  p64: '8 -n 64 --ntasks-per-node=8'
   p72: '6 -n 72 --ntasks-per-node=12'
   p288: '24 -n 288 --ntasks-per-node=12'
 

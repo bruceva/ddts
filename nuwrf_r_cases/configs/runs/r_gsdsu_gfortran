@@ -1,0 +1,6 @@
+extends: 'r_gsdsu'
+baseline: 'r_gsdsu_gfortran'
+compiler: 'gfortran'
+build: 'all_discover_gnu48_openmpi'
+
+preprocessors: ['gsdsu']
