@@ -1,4 +1,0 @@
-extends: 'umd_postlis'
-baseline: 'umd_postlis_strict'
-build: 'all_strict'
-

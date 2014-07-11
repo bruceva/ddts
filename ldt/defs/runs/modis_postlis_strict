@@ -1,0 +1,4 @@
+ddts_extends: 'modis_postlis'
+ddts_baseline: 'modis_postlis_strict'
+ddts_build: 'all_strict'
+

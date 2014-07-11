@@ -1,4 +1,0 @@
-extends: 'ncep_albedo_bilinear'
-baseline: 'ncep_albedo_bilinear_strict'
-build: 'all_strict'
-

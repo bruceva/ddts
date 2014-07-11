@@ -1,4 +1,0 @@
-extends: 'gtopo_bilinear'
-baseline: 'gtopo_bilinear_strict'
-build: 'all_strict'
-

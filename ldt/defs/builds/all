@@ -1,0 +1,7 @@
+ddts_extends: 'base_all'
+
+#Define the order in which the configure questions come up
+configure_qa_list: ['optimization','endian','use_openmp','netcdf_ver',
+                    'use_netcdf_shuffle','use_netcdf_deflate','netcdf_deflate_level',
+                    'use_hdf4','use_hdf5','use_hdfeos','use_history']
+

@@ -8,12 +8,12 @@ module Library
 
   def lib_build_prep(env)
     # Construct the name of the build directory and store it in the env.build
-    # structure for later reference. The value of env.build._root is supplied
+    # structure for later reference. The value of env.build.ddts_root is supplied
     # internally by the test suite; the value of env.run.build is supplied by
     # the run config.
     buildscript="compile"
     srcdir=File.join("..","src")
-    env.build.dir=env.build._root
+    env.build.dir=env.build.ddts_root
     sourceexists=File.exists?(File.join(srcdir,buildscript))         
     Thread.exclusive do
        forcebuild=File.join(srcdir,"ddts.forcebuild")
@@ -120,7 +120,7 @@ module Library
     end
   end
 
-  def lib_build(env)
+  def lib_build(env,prepkit)
     mparam = env.build.param
     logd "Make file param: #{mparam}"
     logd "env.build.dir = #{env.build.dir}"
@@ -246,7 +246,7 @@ module Library
     end
   end
 
-  def lib_build_post(env,output)
+  def lib_build_post(env,buildkit)
     # Copying these files effectively checks for their existance. 
     logd "env.build.dir = #{env.build.dir}"
     logd "env.build.bindir = #{env.build.bindir}"
@@ -267,18 +267,19 @@ module Library
     logd "No data-prep needed."
   end
 
-  def lib_run_prep(env,rundir)
+  def lib_run_prep(env)
+    rundir=env.run.ddts_root
     logi "Rundir: #{rundir}"
 
     #copy the shared environment script from the build directory
-    FileUtils.cp(File.join(env.build._result[:dir],env.build._result[:env_script]),rundir)
+    FileUtils.cp(File.join(env.build.ddts_result[:dir],env.build.ddts_result[:env_script]),rundir)
 
     env.run.preprocessors.each do |prep|
       s=""
       f=nil
       if prep == 'ldt'
         f='ldt.bash'
-        s=createLDTScript(env,env.build._result[:env_script],f+".out")
+        s=createLDTScript(env,env.build.ddts_result[:env_script],f+".out")
       end
 
       if f
@@ -301,11 +302,11 @@ module Library
       end
     end
 
-    # Return rundir (i.e. where to perform the run).
-    rundir
+    # Return whatever will be passed to lib_run as prepkit
   end
 
-  def lib_run(env,rundir)
+  def lib_run(env,prepkit)
+    rundir=env.run.ddts_root
     baselinedir=env.run.baselinedir if env.run.baselinedir
     abortprocessing=false
     run_success=true
@@ -424,7 +425,7 @@ module Library
     end
 
     #Information passed to the run post processing
-    {:result=>run_success,:rundir=>rundir,:pipeline=>env.run.preprocessors,:message=>message,:laststep=>laststep,:build=>env.build._result}
+    {:result=>run_success,:rundir=>rundir,:pipeline=>env.run.preprocessors,:message=>message,:laststep=>laststep,:build=>env.build.ddts_result}
   end
 
   def lib_comp(env,file1, file2, exec_id="")
@@ -525,21 +526,21 @@ module Library
     end
 
     # send mail
-    suite_name=env.suite._suitename
+    suite_name=env.suite.ddts_suitename
     email_from=env.suite.email_from
     email_to=env.suite.email_to
     email_subject=env.suite.email_subject
     email_server=env.suite.email_server
     email_ready=true if email_server and email_from and email_to and email_subject
     #logi env.inspect()
-    if env.suite._totalfailures > 0
+    if env.suite.ddts_totalfailures > 0
 
-      msg="#{env.suite._totalfailures} TEST(S) OUT OF #{env.suite._totalruns} FAILED\n"
-      logmsg="#{env.suite._totalfailures} TEST(S) OUT OF #{env.suite._totalruns} FAILED\n"
+      msg="#{env.suite.ddts_totalfailures} TEST(S) OUT OF #{env.suite.ddts_totalruns} FAILED\n"
+      logmsg="#{env.suite.ddts_totalfailures} TEST(S) OUT OF #{env.suite.ddts_totalruns} FAILED\n"
       msg<<"\n--------------------- Builds -------------------------------\n"
       logmsg<<"\n--------------------- Builds -------------------------------\n"
-      if env.suite._builds and env.suite._builds.length > 0
-        env.suite._builds.each do |k,v|
+      if env.suite.ddts_builds and env.suite.ddts_builds.length > 0
+        env.suite.ddts_builds.each do |k,v|
           if v.is_a?(OpenStruct) and v.result
             msg<<"\n#{k}: PASS"
             logmsg<<"\n#{k}: BUILDINFO(#{v.result})"
@@ -550,11 +551,11 @@ module Library
         end
       end
 
-      if not env.suite.build_only
+      if not env.suite.ddts_build_only
         msg<<"\n--------------------- Runs -------------------------------\n"
         logmsg<<"\n--------------------- Runs -------------------------------\n"
-        if env.suite._runs and env.suite._runs.length > 0
-          env.suite._runs.each do |k,v|
+        if env.suite.ddts_runs and env.suite.ddts_runs.length > 0
+          env.suite.ddts_runs.each do |k,v|
             if v.is_a?(OpenStruct) and v.result
               if v.result[:result]
                 msg<<"\n#{k}: PASS"
@@ -579,8 +580,8 @@ module Library
       logmsg="ALL TESTS PASSED\n"
       msg<<"\n--------------------- Builds -------------------------------\n"
       logmsg<<"\n--------------------- Builds -------------------------------\n"
-      if env.suite._builds and env.suite._builds.length > 0
-        env.suite._builds.each do |k,v|
+      if env.suite.ddts_builds and env.suite.ddts_builds.length > 0
+        env.suite.ddts_builds.each do |k,v|
           if v.is_a?(OpenStruct) and v.result
             msg<<"\n#{k}: PASS"
             logmsg<<"\n#{k}: BUILDINFO(#{v.result})"
@@ -591,11 +592,11 @@ module Library
         end
       end
 
-      if not env.suite.build_only
+      if not env.suite.ddts_build_only
         msg<<"\n--------------------- Runs -------------------------------\n"
         logmsg<<"\n--------------------- Runs -------------------------------\n"
-        if env.suite._runs and env.suite._runs.length > 0
-          env.suite._runs.each do |k,v|
+        if env.suite.ddts_runs and env.suite.ddts_runs.length > 0
+          env.suite.ddts_runs.each do |k,v|
             if v.is_a?(OpenStruct) and v.result
               if v.result[:result]
                 msg<<"\n#{k}: PASS"

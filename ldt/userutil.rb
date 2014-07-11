@@ -143,7 +143,7 @@ unset LD_LIBRARY_PATH
 # Make sure stacksize is unlimited
 ulimit -s unlimited
 
-LDTDIR=#{env.build._root}
+LDTDIR=#{env.build.ddts_root}
 
 eos
 

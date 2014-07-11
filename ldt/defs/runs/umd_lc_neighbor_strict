@@ -1,0 +1,4 @@
+ddts_extends: 'umd_lc_neighbor'
+ddts_baseline: 'umd_lc_neighbor_strict'
+ddts_build: 'all_strict'
+

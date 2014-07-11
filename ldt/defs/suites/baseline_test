@@ -1,0 +1,10 @@
+ddts_extends: 'email_ldt'
+ddts_retain_builds: true
+ddts_continue: true
+#ddts_build_only: true
+#group1:
+#  - control
+#  - lib_comp: test
+group2:
+  - usgs_lc_mode
+#  - lib_comp: 'lib_comp_nccmp'

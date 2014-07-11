@@ -1,0 +1,4 @@
+ddts_extends: 'usgs_lc_mode'
+ddts_baseline: 'usgs_lc_mode_strict'
+ddts_build: 'all_strict'
+

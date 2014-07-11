@@ -1,4 +1,0 @@
-extends: 'gtopo_budget_bilinear'
-baseline: 'gtopo_budget_bilinear_strict'
-build: 'all_strict'
-

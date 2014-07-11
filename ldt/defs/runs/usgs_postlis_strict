@@ -1,0 +1,4 @@
+ddts_extends: 'usgs_postlis'
+ddts_baseline: 'usgs_postlis_strict'
+ddts_build: 'all_strict'
+

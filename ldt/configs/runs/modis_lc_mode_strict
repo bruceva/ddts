@@ -1,3 +1,0 @@
-extends: 'modis_lc_mode'
-baseline: 'modis_lc_mode_strict'
-build: 'all_strict'

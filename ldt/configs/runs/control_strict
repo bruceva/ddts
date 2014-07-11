@@ -1,4 +1,0 @@
-extends: 'control'
-baseline: 'control_strict'
-build: 'all_strict'
-

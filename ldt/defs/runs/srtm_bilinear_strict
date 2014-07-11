@@ -1,0 +1,4 @@
+ddts_extends: 'srtm_bilinear'
+ddts_baseline: 'srtm_bilinear_strict'
+ddts_build: 'all_strict'
+

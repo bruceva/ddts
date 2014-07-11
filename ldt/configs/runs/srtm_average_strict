@@ -1,4 +1,0 @@
-extends: 'srtm_average'
-baseline: 'srtm_average_strict'
-build: 'all_strict'
-

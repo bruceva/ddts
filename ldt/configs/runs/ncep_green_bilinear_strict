@@ -1,4 +1,0 @@
-extends: 'ncep_green_bilinear'
-baseline: 'ncep_green_bilinear_strict'
-build: 'all_strict'
-

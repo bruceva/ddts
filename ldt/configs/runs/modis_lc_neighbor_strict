@@ -1,3 +1,0 @@
-extends: 'modis_lc_neighbor'
-baseline: 'modis_lc_neighbor_strict'
-build: 'all_strict'

@@ -1,4 +1,0 @@
-extends: 'tbot_bilinear'
-baseline: 'tbot_bilinear_strict'
-build: 'all_strict'
-

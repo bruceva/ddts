@@ -1,0 +1,23 @@
+ddts_extends: 'sbatch'
+ddts_build: 'all'
+ddts_baseline: 'umd_postlis'
+
+preprocessors: ['ldt']
+
+namelist_link: [['/discover/nobackup/projects/nu-wrf/regression_testing/data_ldt/UMD_POSTLIS/ldt.config.umd.for_real','ldt.config'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data_ldt/UMD_POSTLIS/param_attribs_umd.txt','param_attribs_umd.txt'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data_ldt/UMD_POSTLIS/lis_input.umd.nc','lis_input.umd.nc'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data_ldt/UMD_POSTLIS/LIS_HIST_200605020000.d01.nc','LIS_HIST_200605020000.d01.nc']
+                ]
+
+ldt_config: 'ldt.config'
+
+expectedStatusFiles:
+  ldt: ['ldtlog_umd_for_real.0000','Finished LDT run']
+
+expectedInputFiles:
+  ldt: ['list_input.umd.nc','LIS_HIST_200605020000.d01.nc']
+
+expectedOutputFiles:
+  ldt: ['lis_output.umd.nc']
+

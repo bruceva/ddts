@@ -1,0 +1,3 @@
+ddts_extends: 'modis_lc_neighbor'
+ddts_baseline: 'modis_lc_neighbor_strict'
+ddts_build: 'all_strict'

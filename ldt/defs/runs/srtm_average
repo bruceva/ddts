@@ -1,0 +1,22 @@
+ddts_extends: 'sbatch'
+ddts_build: 'all'
+ddts_baseline: 'srtm_average'
+
+preprocessors: ['ldt']
+
+namelist_link: [['/discover/nobackup/projects/nu-wrf/regression_testing/data_ldt/SRTM/ldt.config.srtm.average','ldt.config'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data_ldt/SRTM/param_attribs_usgs.txt','param_attribs_usgs.txt'],
+                ['/discover/nobackup/projects/lis/LS_PARAMETERS','LS_PARAMETERS'],
+                ['/discover/nobackup/projects/lis/LS_PARAMETERS/noah33_parms','noah33_params']]
+
+ldt_config: 'ldt.config'
+
+expectedStatusFiles:
+  ldt: ['ldtlog_usgs.0000','Finished LDT run']
+
+expectedInputFiles:
+  ldt: ''
+
+expectedOutputFiles:
+  ldt: ['lis_input.usgs.nc']
+
