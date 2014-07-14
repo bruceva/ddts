@@ -1,0 +1,16 @@
+#SBATCH parameters for each preprocessor
+ddts_extends: sbatch
+
+# SBATCH -t
+batch_time:
+  geogrid: '0:15:00' 
+  ungrib: '1:00:00'
+  metgrid: '8:00:00'
+  real: '3:00:00'
+  wrf: '6:00:00'
+  rip: '1:00:00'
+  casa2wrf: '1:00:00'
+  prep_chem_sources: '0:30:00'
+  convert_emiss: '0:30:00'
+  gocart2wrf: '3:00:00'  
+

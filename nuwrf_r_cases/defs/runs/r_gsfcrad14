@@ -1,0 +1,154 @@
+ddts_extends: 'sbatch_xtralong'
+ddts_build: 'allchem_lisreal_discover'
+ddts_baseline: 'r_gsfcrad14_intel'
+compiler: 'intel'
+
+batch_procline:
+  wrf: 'p288'
+
+namelist_link: [['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GSFCRAD14/namelist.input','namelist.input.wrf'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GSFCRAD14/namelist.input','namelist.input.real'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GSFCRAD14/lis.config','lis.config']]
+
+#ungrib_input: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GSFCRAD14/ungrib_input'
+
+#baselinedir supplies missing data in cases when we just want to run a smaller pipeline
+baselinedir: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GSFCRAD14'
+
+preprocessor_links:
+  geogrid_nochem: ['GEOGRID.TBL.ARW','GEOGRID.TBL']
+  geogrid_chemerod: ['GEOGRID.TBL.ARW_CHEM_NUWRF','GEOGRID.TBL']
+  geogrid_chem: ['GEOGRID.TBL.ARW_CHEM','GEOGRID.TBL']
+  ungrib_gfs: ['Vtable.GFS','Vtable','.','fnl_*']
+  ungrib_nam: ['Vtable.NAM','Vtable','.','nam.*']
+  ungrib_narr: ['Vtable.NARR','Vtable','.','narr-a*']
+  metgrid_arw: ['METGRID.TBL.ARW','METGRID.TBL']
+  metgrid_nmm: ['METGRID.TBL.NMM','METGRID.TBL']
+  metgrid_afwa: ['METGRID.TBL.AFWA','METGRID.TBL']
+  real: ['CAM_ABS_DATA','CAM_AEROPT_DATA','co2_trans','ETAMPNEW_DATA',
+         'ETAMPNEW_DATA_DBL', 'ETAMPNEW_DATA.expanded_rain',
+         'ETAMPNEW_DATA.expanded_rain_DBL', 'GENPARM.TBL', 'grib2map.tbl', 
+         'gribmap.txt', 'LANDUSE.TBL','MPTABLE.TBL', 'ozone.formatted',
+         'ozone_lat.formatted', 'ozone_plev.formatted', 'RRTM_DATA', 'RRTM_DATA_DBL', 
+         'RRTMG_LW_DATA', 'RRTMG_LW_DATA_DBL', 'RRTMG_SW_DATA', 'RRTMG_SW_DATA_DBL', 
+         'SOILPARM.TBL', 'tr49t67', 'tr49t85', 'tr67t85', 'URBPARM.TBL', 'URBPARM_UZE.TBL', 
+         'VEGPARM.TBL']
+  wrf: ['CAM_ABS_DATA','CAM_AEROPT_DATA','co2_trans','ETAMPNEW_DATA',
+        'ETAMPNEW_DATA_DBL', 'ETAMPNEW_DATA.expanded_rain',
+        'ETAMPNEW_DATA.expanded_rain_DBL', 'GENPARM.TBL', 'grib2map.tbl',
+        'gribmap.txt', 'LANDUSE.TBL','MPTABLE.TBL', 'ozone.formatted',
+        'ozone_lat.formatted', 'ozone_plev.formatted', 'RRTM_DATA', 'RRTM_DATA_DBL',
+        'RRTMG_LW_DATA', 'RRTMG_LW_DATA_DBL', 'RRTMG_SW_DATA', 'RRTMG_SW_DATA_DBL',
+        'SOILPARM.TBL', 'tr49t67', 'tr49t85', 'tr67t85', 'URBPARM.TBL', 'URBPARM_UZE.TBL',
+        'VEGPARM.TBL']
+  lis: ['LS_PARAMETERS','MET_FORCING']
+  root: ['GODDARDRAD_SSLUT']
+  rip: ['200','250','300','500Vort','700RH','850','sfcThk','sfcTUV','COMDBZ','sfcDBZUV']
+
+geogrid_select: 'geogrid_chemerod'
+ungrib_select: 'ungrib_gfs'
+metgrid_select: 'metgrid_arw'
+real_select: 'real'
+
+#note: processing wrf and lis properly requires 'wrf' and 'lis' to be part of the name respectively
+#ex: 'wrf' and 'wrf_other' will process the links according to wrf rules.
+#Must not have both 'wrf' and 'lis' in the same name!
+wrf_select: ['wrf','lis','root']
+
+rip_select: 'rip'
+
+#This definitions supports preprocessors: ['real','wrf','rip']
+
+expectedStatusFiles:
+  geogrid: ['geogrid_logs/geogrid.log.0000','Successful completion of program']
+  ungrib: ['ungrib_logs/ungrib.log','Successful completion of program']
+  metgrid: ['metgrid_logs/metgrid.log.0000','Successful completion of program']
+  real: ['real_logs/real.rsl.out.0000','SUCCESS COMPLETE REAL_EM']
+  wrf:  ['wrf_logs/wrf.rsl.out.0000','SUCCESS COMPLETE WRF']
+  rip:  ['rip_logs/rip_results.out','Success']
+  casa2wrf: ['casa2wrf.slurm.out','processing successfully']
+
+miscInputFiles:
+  real: ["200608050000.d01.nc","200608050000.d02.nc"]
+
+expectedInputFiles:
+  geogrid: ''
+  ungrib:  'ungrib_input'
+  metgrid: ['expectedOutputFiles.geogrid','expectedOutputFiles.ungrib']
+  real: ['expectedOutputFiles.metgrid','miscInputFiles.real']
+  casa2wrf: 'expectedOutputFiles.real'
+  wrf: 'expectedOutputFiles.casa2wrf'
+  rip: 'expectedOutputFiles.wrf'
+
+expectedOutputFiles:
+  metgrid: ["met_em.d01.2006-08-05_00:00:00.nc",
+    "met_em.d01.2006-08-05_06:00:00.nc",
+    "met_em.d01.2006-08-05_12:00:00.nc",
+    "met_em.d01.2006-08-05_18:00:00.nc",
+    "met_em.d01.2006-08-06_00:00:00.nc",
+    "met_em.d02.2006-08-05_00:00:00.nc",
+    "met_em.d02.2006-08-05_06:00:00.nc",
+    "met_em.d02.2006-08-05_12:00:00.nc",
+    "met_em.d02.2006-08-05_18:00:00.nc",
+    "met_em.d02.2006-08-06_00:00:00.nc"]
+  real: ["namelist.output.real",
+     "wrfbdy_d01.real",
+     "wrfinput_d01.real",
+     "wrfinput_d02.real"]
+  wrf: ["wrfout_d01_2006-08-05_00:00:00",
+    "wrfout_d01_2006-08-05_01:00:00",
+    "wrfout_d01_2006-08-05_02:00:00",
+    "wrfout_d01_2006-08-05_03:00:00",
+    "wrfout_d01_2006-08-05_04:00:00",
+    "wrfout_d01_2006-08-05_05:00:00",
+    "wrfout_d01_2006-08-05_06:00:00",
+    "wrfout_d01_2006-08-05_07:00:00",
+    "wrfout_d01_2006-08-05_08:00:00",
+    "wrfout_d01_2006-08-05_09:00:00",
+    "wrfout_d01_2006-08-05_10:00:00",
+    "wrfout_d01_2006-08-05_11:00:00",
+    "wrfout_d01_2006-08-05_12:00:00",
+    "wrfout_d01_2006-08-05_13:00:00",
+    "wrfout_d01_2006-08-05_14:00:00",
+    "wrfout_d01_2006-08-05_15:00:00",
+    "wrfout_d01_2006-08-05_16:00:00",
+    "wrfout_d01_2006-08-05_17:00:00",
+    "wrfout_d01_2006-08-05_18:00:00",
+    "wrfout_d01_2006-08-05_19:00:00",
+    "wrfout_d01_2006-08-05_20:00:00",
+    "wrfout_d01_2006-08-05_21:00:00",
+    "wrfout_d01_2006-08-05_22:00:00",
+    "wrfout_d01_2006-08-05_23:00:00",
+    "wrfout_d01_2006-08-06_00:00:00",
+    "wrfout_d02_2006-08-05_00:00:00",
+    "wrfout_d02_2006-08-05_01:00:00",
+    "wrfout_d02_2006-08-05_02:00:00",
+    "wrfout_d02_2006-08-05_03:00:00",
+    "wrfout_d02_2006-08-05_04:00:00",
+    "wrfout_d02_2006-08-05_05:00:00",
+    "wrfout_d02_2006-08-05_06:00:00",
+    "wrfout_d02_2006-08-05_07:00:00",
+    "wrfout_d02_2006-08-05_08:00:00",
+    "wrfout_d02_2006-08-05_09:00:00",
+    "wrfout_d02_2006-08-05_10:00:00",
+    "wrfout_d02_2006-08-05_11:00:00",
+    "wrfout_d02_2006-08-05_12:00:00",
+    "wrfout_d02_2006-08-05_13:00:00",
+    "wrfout_d02_2006-08-05_14:00:00",
+    "wrfout_d02_2006-08-05_15:00:00",
+    "wrfout_d02_2006-08-05_16:00:00",
+    "wrfout_d02_2006-08-05_17:00:00",
+    "wrfout_d02_2006-08-05_18:00:00",
+    "wrfout_d02_2006-08-05_19:00:00",
+    "wrfout_d02_2006-08-05_20:00:00",
+    "wrfout_d02_2006-08-05_21:00:00",
+    "wrfout_d02_2006-08-05_22:00:00",
+    "wrfout_d02_2006-08-05_23:00:00",
+    "wrfout_d02_2006-08-06_00:00:00"]
+  rip: ['200_d01.cgm','250_d01.cgm','300_d01.cgm','500Vort_d01.cgm',
+        '700RH_d01.cgm','850_d01.cgm','COMDBZ_d01.cgm','sfcDBZUV_d01.cgm',
+        'sfcThk_d01.cgm','sfcTUV_d01.cgm',
+        '200_d02.cgm','250_d02.cgm','300_d02.cgm','500Vort_d02.cgm',
+        '700RH_d02.cgm','850_d02.cgm','COMDBZ_d02.cgm','sfcDBZUV_d02.cgm',
+        'sfcThk_d02.cgm','sfcTUV_d02.cgm']
+

@@ -1,0 +1,6 @@
+ddts_extends: 'r_casaco2'
+ddts_build: 'allchem_discover_gnu48_openmpi'
+ddts_baseline: 'r_casaco2_gfortran'
+compiler: 'gfortran'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','casa2wrf','wrf','rip']

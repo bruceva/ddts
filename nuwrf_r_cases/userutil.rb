@@ -149,7 +149,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64
 
 # Define locations of LIS, NUWRF, and the experiment work directory
 LISDIR=#{env.run.lis_dir}
-NUWRFDIR=#{env.build._root}
+NUWRFDIR=#{env.build.ddts_root}
 WORKDIR=#{rundir}
 
 # Set environment variables needed by RIP

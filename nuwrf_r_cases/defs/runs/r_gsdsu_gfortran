@@ -1,0 +1,6 @@
+ddts_extends: 'r_gsdsu'
+ddts_baseline: 'r_gsdsu_gfortran'
+compiler: 'gfortran'
+ddts_build: 'all_discover_gnu48_openmpi'
+
+preprocessors: ['gsdsu']

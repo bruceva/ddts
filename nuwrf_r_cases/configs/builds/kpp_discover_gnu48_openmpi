@@ -1,2 +1,0 @@
-extends: 'kpp'
-config: 'discover_gnu48_openmpi.cfg'

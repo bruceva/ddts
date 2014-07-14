@@ -1,2 +1,0 @@
-extends: 'wrf_debug'
-config: 'discover.cfg'

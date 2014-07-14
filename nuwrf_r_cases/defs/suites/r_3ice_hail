@@ -1,0 +1,13 @@
+ddts_extends: 'email_nuwrf'
+ddts_retain_builds: true
+#build_only: true
+ddts_continue: true
+group1:
+  - r_3ice_hail_intel
+group2:
+  - r_3ice_hail_gfortran
+#group3:
+#  - r_3ice_hail_intel_debug
+#group4:
+#  - r_3ice_hail_gfortran_debug
+

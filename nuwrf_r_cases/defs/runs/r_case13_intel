@@ -1,0 +1,3 @@
+ddts_extends: 'r_case13'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip']

@@ -1,0 +1,2 @@
+ddts_extends: 'wrf-wps-rip_debug'
+config: 'discover_gnu48_openmpi.cfg'

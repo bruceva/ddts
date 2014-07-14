@@ -1,2 +1,0 @@
-extends: 'wrf-wps-rip'
-config: 'discover.cfg'

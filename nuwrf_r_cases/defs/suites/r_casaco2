@@ -1,0 +1,13 @@
+ddts_extends: 'email_nuwrf'
+ddts_retain_builds: true
+#build_only: true
+ddts_continue: true
+group1:
+  - r_casaco2_intel
+#group2:
+#  - r_casaco2_intel_debug
+group3:
+  - r_casaco2_gfortran
+#group4:
+#  - r_casaco2_gfortran_debug
+

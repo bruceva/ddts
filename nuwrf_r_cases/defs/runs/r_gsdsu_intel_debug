@@ -1,0 +1,4 @@
+ddts_extends: 'r_gsdsu_intel'
+ddts_baseline: 'r_gsdsu_intel_debug'
+ddts_build: 'all_debug_discover'
+

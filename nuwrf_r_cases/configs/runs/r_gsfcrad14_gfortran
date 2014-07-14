@@ -1,6 +1,0 @@
-extends: 'r_gsfcrad14'
-build: 'allchem_lisreal_discover_gnu48_openmpi'
-baseline: 'r_gsfcrad14_gfortran'
-compiler: 'gfortran'
-
-preprocessors: ['real','wrf','rip']

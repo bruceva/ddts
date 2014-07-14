@@ -1,0 +1,3 @@
+ddts_extends: 'r_gsfcrad14'
+
+preprocessors: ['real','wrf','rip']

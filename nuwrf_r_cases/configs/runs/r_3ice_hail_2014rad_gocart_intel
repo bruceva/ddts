@@ -1,4 +1,0 @@
-extends: 'r_3ice_hail_2014rad_gocart'
-
-preprocessors: ['geogrid','ungrib','metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip']
-

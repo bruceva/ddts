@@ -1,0 +1,2 @@
+ddts_extends: 'wrf-wps-rip'
+config: 'discover.cfg'

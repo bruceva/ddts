@@ -1,0 +1,223 @@
+ddts_extends: 'sbatch'
+ddts_build: 'allchem_discover'
+ddts_baseline: 'r_4ice_gocart_intel'
+compiler: 'intel'
+
+namelist_link: [['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_4ICE_GOCART/namelist.wps','namelist.wps'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_4ICE_GOCART/namelist.input.wrf','namelist.input.wrf'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_4ICE_GOCART/namelist.input.real','namelist.input.real'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_4ICE_GOCART/namelist.input.convert_emiss.d01','namelist.input.convert_emiss.d01'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_4ICE_GOCART/namelist.input.convert_emiss.d02','namelist.input.convert_emiss.d02'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_4ICE_GOCART/namelist.gocart2wrf','namelist.gocart2wrf']]
+
+ungrib_input: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_4ICE_GOCART/ungrib_input'
+gocart2wrf_input: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_4ICE_GOCART/gocart_input'
+
+#baselinedir supplies missing data in cases when we just want to run a smaller pipeline
+baselinedir: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_4ICE_GOCART'
+
+
+preprocessor_links:
+  geogrid_nochem: ['GEOGRID.TBL.ARW','GEOGRID.TBL']
+  geogrid_chemerod: ['GEOGRID.TBL.ARW_CHEM_NUWRF','GEOGRID.TBL']
+  geogrid_chem: ['GEOGRID.TBL.ARW_CHEM','GEOGRID.TBL']
+  ungrib_gfs: ['Vtable.GFS','Vtable','.','gfs_*']
+  ungrib_nam: ['Vtable.NAM','Vtable','.','nam.*']
+  ungrib_narr: ['Vtable.NARR','Vtable','.','narr-a*']
+  metgrid_arw: ['METGRID.TBL.ARW','METGRID.TBL']
+  metgrid_nmm: ['METGRID.TBL.NMM','METGRID.TBL']
+  metgrid_afwa: ['METGRID.TBL.AFWA','METGRID.TBL']
+  real: ['CAM_ABS_DATA','CAM_AEROPT_DATA','co2_trans','ETAMPNEW_DATA',
+         'ETAMPNEW_DATA_DBL', 'ETAMPNEW_DATA.expanded_rain',
+         'ETAMPNEW_DATA.expanded_rain_DBL', 'GENPARM.TBL', 'grib2map.tbl', 
+         'gribmap.txt', 'LANDUSE.TBL','MPTABLE.TBL', 'ozone.formatted',
+         'ozone_lat.formatted', 'ozone_plev.formatted', 'RRTM_DATA', 'RRTM_DATA_DBL', 
+         'RRTMG_LW_DATA', 'RRTMG_LW_DATA_DBL', 'RRTMG_SW_DATA', 'RRTMG_SW_DATA_DBL', 
+         'SOILPARM.TBL', 'tr49t67', 'tr49t85', 'tr67t85', 'URBPARM.TBL', 'URBPARM_UZE.TBL', 
+         'VEGPARM.TBL']
+  wrf: ['CAM_ABS_DATA','CAM_AEROPT_DATA','co2_trans','ETAMPNEW_DATA',
+        'ETAMPNEW_DATA_DBL', 'ETAMPNEW_DATA.expanded_rain',
+        'ETAMPNEW_DATA.expanded_rain_DBL', 'GENPARM.TBL', 'grib2map.tbl',
+        'gribmap.txt', 'LANDUSE.TBL','MPTABLE.TBL', 'ozone.formatted',
+        'ozone_lat.formatted', 'ozone_plev.formatted', 'RRTM_DATA', 'RRTM_DATA_DBL',
+        'RRTMG_LW_DATA', 'RRTMG_LW_DATA_DBL', 'RRTMG_SW_DATA', 'RRTMG_SW_DATA_DBL',
+        'SOILPARM.TBL', 'tr49t67', 'tr49t85', 'tr67t85', 'URBPARM.TBL', 'URBPARM_UZE.TBL',
+        'VEGPARM.TBL']
+  lis: ['LS_PARAMETERS','MET_FORCING']
+  rip: ['200','250','300','500Vort','700RH','850','sfcThk','sfcTUV','COMDBZ','sfcDBZUV']
+  prep_chem_sources: [['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_4ICE_GOCART/prep_chem_sources.inp','prep_chem_sources.inp']]
+  convert_emiss: ['CAM_ABS_DATA','CAM_AEROPT_DATA','co2_trans','ETAMPNEW_DATA',
+         'ETAMPNEW_DATA_DBL', 'ETAMPNEW_DATA.expanded_rain',
+         'ETAMPNEW_DATA.expanded_rain_DBL', 'GENPARM.TBL', 'grib2map.tbl',
+         'gribmap.txt', 'LANDUSE.TBL','MPTABLE.TBL', 'ozone.formatted',
+         'ozone_lat.formatted', 'ozone_plev.formatted', 'RRTM_DATA', 'RRTM_DATA_DBL',
+         'RRTMG_LW_DATA', 'RRTMG_LW_DATA_DBL', 'RRTMG_SW_DATA', 'RRTMG_SW_DATA_DBL',
+         'SOILPARM.TBL', 'tr49t67', 'tr49t85', 'tr67t85', 'URBPARM.TBL', 'URBPARM_UZE.TBL',
+         'VEGPARM.TBL']
+  gocart2wrf: [['gocart','trainning.inst3d_aer_v.*']]
+
+
+geogrid_select: 'geogrid_chem'
+ungrib_select: 'ungrib_nam'
+metgrid_select: 'metgrid_arw'
+real_select: 'real'
+
+#note: processing wrf and lis properly requires 'wrf' and 'lis' to be part of the name respectively
+#ex: 'wrf' and 'wrf_other' will process the links according to wrf rules.
+#Must not have both 'wrf' and 'lis' in the same name!
+wrf_select: ['wrf','lis']
+
+rip_select: 'rip'
+prep_chem_sources_select: 'prep_chem_sources'
+convert_emiss_select: 'convert_emiss'
+gocart2wrf_select: 'gocart2wrf'
+
+#This definition supports preprocessors: ['geogrid','ungrib','metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip']
+
+expectedStatusFiles:
+  geogrid: ['geogrid_logs/geogrid.log.0000','Successful completion of program']
+  ungrib: ['ungrib_logs/ungrib.log','Successful completion of program']
+  metgrid: ['metgrid_logs/metgrid.log.0000','Successful completion of program']
+  real: ['real_logs/real.rsl.out.0000','SUCCESS COMPLETE REAL_EM']
+  wrf:  ['wrf_logs/wrf.rsl.out.0000','SUCCESS COMPLETE WRF']
+  rip:  ['rip_logs/rip_results.out','Success']
+  prep_chem_sources: ['pcs.slurm.out','maproj file is 3ice-T-2009-04-10-120000-g2-gocartBG.map']
+  convert_emiss: ['convert_emiss_logs/convert_emiss_results.out','Success']
+  gocart2wrf: ['gc2wrf.slurm.out','Processing SO4']  
+
+expectedInputFiles:
+  geogrid: ''
+  ungrib:  'ungrib_input'
+  metgrid: ['expectedOutputFiles.geogrid','expectedOutputFiles.ungrib']
+  real: 'expectedOutputFiles.metgrid'
+  gocart2wrf: ['gocart2wrf_input','expectedOutputFiles.real']
+  prep_chem_sources: ''
+  convert_emiss: ['expectedOutputFiles.prep_chem_sources','expectedOutputFiles.gocart2wrf']
+  wrf: ['expectedOutputFiles.convert_emiss','expectedOutputFiles.gocart2wrf']
+  rip: 'expectedOutputFiles.wrf'
+
+expectedOutputFiles:
+  geogrid: ["geo_em.d01.nc",
+    "geo_em.d02.nc"]
+  ungrib: ["NAM:2009-04-10_12",
+    "NAM:2009-04-10_15",
+    "NAM:2009-04-10_18",
+    "NAM:2009-04-10_21",
+    "NAM:2009-04-11_00",
+    "NAM:2009-04-11_03",
+    "NAM:2009-04-11_06",
+    "NAM:2009-04-11_09",
+    "NAM:2009-04-11_12"]
+  metgrid: ["met_em.d01.2009-04-10_12:00:00.nc",
+    "met_em.d01.2009-04-10_15:00:00.nc",
+    "met_em.d01.2009-04-10_18:00:00.nc",
+    "met_em.d01.2009-04-10_21:00:00.nc",
+    "met_em.d01.2009-04-11_00:00:00.nc",
+    "met_em.d01.2009-04-11_03:00:00.nc",
+    "met_em.d01.2009-04-11_06:00:00.nc",
+    "met_em.d01.2009-04-11_09:00:00.nc",
+    "met_em.d01.2009-04-11_12:00:00.nc",
+    "met_em.d02.2009-04-10_12:00:00.nc",
+    "met_em.d02.2009-04-10_15:00:00.nc",
+    "met_em.d02.2009-04-10_18:00:00.nc",
+    "met_em.d02.2009-04-10_21:00:00.nc",
+    "met_em.d02.2009-04-11_00:00:00.nc",
+    "met_em.d02.2009-04-11_03:00:00.nc",
+    "met_em.d02.2009-04-11_06:00:00.nc",
+    "met_em.d02.2009-04-11_09:00:00.nc",
+    "met_em.d02.2009-04-11_12:00:00.nc"]
+  real: ["wrfbdy_d01.real","wrfinput_d01.real","wrfinput_d02.real"]
+  gocart2wrf: ["wrfbdy_d01.gocart2wrf","wrfinput_d01.gocart2wrf","wrfinput_d02.gocart2wrf"]
+  prep_chem_sources: ["3ice-T-2009-04-10-120000-g1-ab.bin",
+    "3ice-T-2009-04-10-120000-g1-bb.bin",
+    "3ice-T-2009-04-10-120000-g1.ctl",
+    "3ice-T-2009-04-10-120000-g1-DMS.ctl",
+    "3ice-T-2009-04-10-120000-g1-DMS.gra",
+    "3ice-T-2009-04-10-120000-g1-DMS.map",
+    "3ice-T-2009-04-10-120000-g1-EROD.ctl",
+    "3ice-T-2009-04-10-120000-g1-EROD.gra",
+    "3ice-T-2009-04-10-120000-g1-EROD.map",
+    "3ice-T-2009-04-10-120000-g1-gocartBG.bin",
+    "3ice-T-2009-04-10-120000-g1-gocartBG.ctl",
+    "3ice-T-2009-04-10-120000-g1-gocartBG.gra",
+    "3ice-T-2009-04-10-120000-g1-gocartBG.map",
+    "3ice-T-2009-04-10-120000-g1.gra",
+    "3ice-T-2009-04-10-120000-g1.map",
+    "3ice-T-2009-04-10-120000-g1.vfm",
+    "3ice-T-2009-04-10-120000-g2-ab.bin",
+    "3ice-T-2009-04-10-120000-g2-bb.bin",
+    "3ice-T-2009-04-10-120000-g2.ctl",
+    "3ice-T-2009-04-10-120000-g2-DMS.ctl",
+    "3ice-T-2009-04-10-120000-g2-DMS.gra",
+    "3ice-T-2009-04-10-120000-g2-DMS.map",
+    "3ice-T-2009-04-10-120000-g2-EROD.ctl",
+    "3ice-T-2009-04-10-120000-g2-EROD.gra",
+    "3ice-T-2009-04-10-120000-g2-EROD.map",
+    "3ice-T-2009-04-10-120000-g2-gocartBG.bin",
+    "3ice-T-2009-04-10-120000-g2-gocartBG.ctl",
+    "3ice-T-2009-04-10-120000-g2-gocartBG.gra",
+    "3ice-T-2009-04-10-120000-g2-gocartBG.map",
+    "3ice-T-2009-04-10-120000-g2.gra",
+    "3ice-T-2009-04-10-120000-g2.map",
+    "3ice-T-2009-04-10-120000-g2.vfm"]
+  convert_emiss: ["wrfchemi_d01_2009-04-10_12:00:00",
+    "wrfchemi_d02_2009-04-10_12:00:00",
+    "wrfchemi_gocart_bg_d01_2009-04-10",
+    "wrfchemi_gocart_bg_d02_2009-04-10"]
+  wrf: ["wrfout_d01_2009-04-10_12:00:00",
+    "wrfout_d01_2009-04-10_13:00:00",
+    "wrfout_d01_2009-04-10_14:00:00",
+    "wrfout_d01_2009-04-10_15:00:00",
+    "wrfout_d01_2009-04-10_16:00:00",
+    "wrfout_d01_2009-04-10_17:00:00",
+    "wrfout_d01_2009-04-10_18:00:00",
+    "wrfout_d01_2009-04-10_19:00:00",
+    "wrfout_d01_2009-04-10_20:00:00",
+    "wrfout_d01_2009-04-10_21:00:00",
+    "wrfout_d01_2009-04-10_22:00:00",
+    "wrfout_d01_2009-04-10_23:00:00",
+    "wrfout_d01_2009-04-11_00:00:00",
+    "wrfout_d01_2009-04-11_01:00:00",
+    "wrfout_d01_2009-04-11_02:00:00",
+    "wrfout_d01_2009-04-11_03:00:00",
+    "wrfout_d01_2009-04-11_04:00:00",
+    "wrfout_d01_2009-04-11_05:00:00",
+    "wrfout_d01_2009-04-11_06:00:00",
+    "wrfout_d01_2009-04-11_07:00:00",
+    "wrfout_d01_2009-04-11_08:00:00",
+    "wrfout_d01_2009-04-11_09:00:00",
+    "wrfout_d01_2009-04-11_10:00:00",
+    "wrfout_d01_2009-04-11_11:00:00",
+    "wrfout_d01_2009-04-11_12:00:00",
+    "wrfout_d02_2009-04-10_12:00:00",
+    "wrfout_d02_2009-04-10_13:00:00",
+    "wrfout_d02_2009-04-10_14:00:00",
+    "wrfout_d02_2009-04-10_15:00:00",
+    "wrfout_d02_2009-04-10_16:00:00",
+    "wrfout_d02_2009-04-10_17:00:00",
+    "wrfout_d02_2009-04-10_18:00:00",
+    "wrfout_d02_2009-04-10_19:00:00",
+    "wrfout_d02_2009-04-10_20:00:00",
+    "wrfout_d02_2009-04-10_21:00:00",
+    "wrfout_d02_2009-04-10_22:00:00",
+    "wrfout_d02_2009-04-10_23:00:00",
+    "wrfout_d02_2009-04-11_00:00:00",
+    "wrfout_d02_2009-04-11_01:00:00",
+    "wrfout_d02_2009-04-11_02:00:00",
+    "wrfout_d02_2009-04-11_03:00:00",
+    "wrfout_d02_2009-04-11_04:00:00",
+    "wrfout_d02_2009-04-11_05:00:00",
+    "wrfout_d02_2009-04-11_06:00:00",
+    "wrfout_d02_2009-04-11_07:00:00",
+    "wrfout_d02_2009-04-11_08:00:00",
+    "wrfout_d02_2009-04-11_09:00:00",
+    "wrfout_d02_2009-04-11_10:00:00",
+    "wrfout_d02_2009-04-11_11:00:00",
+    "wrfout_d02_2009-04-11_12:00:00"]
+  rip: ['200_d01.cgm','250_d01.cgm','300_d01.cgm','500Vort_d01.cgm',
+        '700RH_d01.cgm','850_d01.cgm','COMDBZ_d01.cgm','sfcDBZUV_d01.cgm',
+        'sfcThk_d01.cgm','sfcTUV_d01.cgm',
+        '200_d02.cgm','250_d02.cgm','300_d02.cgm','500Vort_d02.cgm',
+        '700RH_d02.cgm','850_d02.cgm','COMDBZ_d02.cgm','sfcDBZUV_d02.cgm',
+        'sfcThk_d02.cgm','sfcTUV_d02.cgm']
+

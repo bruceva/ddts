@@ -1,0 +1,7 @@
+ddts_extends: 'email_nuwrf'
+ddts_retain_builds: true
+#build_only: true
+group1:
+  - r_erod_mdb_intel
+group2:
+  - r_erod_mdb_intel_debug

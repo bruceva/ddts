@@ -1,0 +1,6 @@
+ddts_extends: 'r_erod_dyn'
+ddts_build: 'allchem_discover_gnu48_openmpi'
+ddts_baseline: 'r_erod_dyn_gfortran'
+compiler: 'gfortran'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']

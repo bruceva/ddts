@@ -1,4 +1,0 @@
-extends: 'r_3ice_hail_2014rad'
-
-preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
-

@@ -1,0 +1,2 @@
+ddts_extends: 'wrf'
+config: 'discover_gnu48_openmpi.cfg'

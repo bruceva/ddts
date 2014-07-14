@@ -1,2 +1,0 @@
-extends: 'all'
-config: 'discover.cfg'

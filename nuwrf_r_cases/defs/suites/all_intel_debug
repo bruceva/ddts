@@ -1,0 +1,24 @@
+ddts_extends: 'email_nuwrf'
+ddts_retain_builds: true
+ddts_continue: true
+#build_only: true
+group1:
+  - r_casaco2_intel_debug
+group2:
+  - r_case05_intel_debug
+group3:
+  - r_case06_intel_debug
+group4:
+  - r_case08_intel_debug
+group5:
+  - r_case09_intel_debug
+group6:
+  - r_case11_intel_debug
+group7:
+  - r_case13_intel_debug
+group8:
+  - r_case15_intel_debug
+group9:
+  - r_case16_intel_debug
+group10:
+  - r_erod_mdb_intel_debug

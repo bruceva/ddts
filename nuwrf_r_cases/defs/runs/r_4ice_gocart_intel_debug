@@ -1,0 +1,4 @@
+ddts_extends: 'r_4ice_gocart_intel'
+ddts_baseline: 'r_4ice_gocart_intel_debug'
+ddts_build: 'allchem_debug_discover'
+

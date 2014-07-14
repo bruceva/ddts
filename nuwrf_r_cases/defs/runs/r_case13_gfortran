@@ -1,0 +1,6 @@
+ddts_extends: 'r_case13'
+ddts_baseline: 'r_case13_gfortran'
+compiler: 'gfortran'
+ddts_build: 'allchem_discover_gnu48_openmpi'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip']

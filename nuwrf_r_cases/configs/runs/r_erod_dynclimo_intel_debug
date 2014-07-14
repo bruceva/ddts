@@ -1,8 +1,0 @@
-extends: 'r_erod_dynclimo_intel'
-baseline: 'r_erod_dynclimo_intel_debug'
-build: 'allchem_debug_discover'
-
-#WRF needs more time 
-batch_time:
-  wrf: '3:00:00'
-

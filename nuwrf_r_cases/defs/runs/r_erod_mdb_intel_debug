@@ -1,0 +1,8 @@
+ddts_extends: 'r_erod_mdb_intel'
+ddts_baseline: 'r_erod_mdb_intel_debug'
+ddts_build: 'allchem_debug_discover'
+
+#WRF needs more time 
+batch_time:
+  wrf: '3:00:00'
+

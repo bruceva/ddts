@@ -1,0 +1,4 @@
+ddts_extends: 'r_3ice_hail_gocart_gfortran'
+ddts_baseline: 'r_3ice_hail_gocart_gfortran_debug'
+ddts_build: 'allchem_debug_discover_gnu48_openmpi'
+

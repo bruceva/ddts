@@ -1,0 +1,4 @@
+ddts_extends: 'r_4ice_2014rad_gfortran'
+ddts_baseline: 'r_4ice_2014rad_gfortran_debug'
+ddts_build: 'all_debug_discover_gnu48_openmpi'
+

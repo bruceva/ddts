@@ -1,0 +1,3 @@
+ddts_extends: 'r_case16'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']

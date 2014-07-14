@@ -1,0 +1,4 @@
+ddts_extends: 'r_case06_intel'
+ddts_baseline: 'r_case06_intel_debug'
+ddts_build: 'all_debug_discover'
+

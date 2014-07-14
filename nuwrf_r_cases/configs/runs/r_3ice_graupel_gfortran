@@ -1,6 +1,0 @@
-extends: 'r_3ice_graupel'
-baseline: 'r_3ice_graupel_gfortran'
-compiler: 'gfortran'
-build: 'all_discover_gnu48_openmpi'
-
-preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']

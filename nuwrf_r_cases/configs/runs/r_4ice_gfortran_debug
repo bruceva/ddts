@@ -1,4 +1,0 @@
-extends: 'r_4ice_gfortran'
-baseline: 'r_4ice_gfortran_debug'
-build: 'all_debug_discover_gnu48_openmpi'
-

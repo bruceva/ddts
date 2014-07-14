@@ -1,0 +1,2 @@
+ddts_extends: 'wrf'
+debug: true

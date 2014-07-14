@@ -1,2 +1,0 @@
-extends: 'all'
-build_only: true

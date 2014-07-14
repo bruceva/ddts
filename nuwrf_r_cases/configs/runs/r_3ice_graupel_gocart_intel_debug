@@ -1,4 +1,0 @@
-extends: 'r_3ice_graupel_gocart_intel'
-baseline: 'r_3ice_graupel_gocart_intel_debug'
-build: 'allchem_debug_discover'
-

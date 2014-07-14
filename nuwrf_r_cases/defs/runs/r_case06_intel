@@ -1,0 +1,6 @@
+ddts_extends: 'r_case06'
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
+#Special time override
+batch_time:
+  wrf: '8:00:00'
+

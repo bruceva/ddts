@@ -1,2 +1,0 @@
-extends: 'kpp_debug'
-config: 'discover.cfg'

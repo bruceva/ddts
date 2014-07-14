@@ -1,4 +1,0 @@
-extends: 'r_3ice_graupel_gocart_gfortran'
-baseline: 'r_3ice_graupel_gocart_gfortran_debug'
-build: 'allchem_debug_discover_gnu48_openmpi'
-

@@ -1,4 +1,0 @@
-extends: 'r_gsdsu'
-
-preprocessors: ['gsdsu']
-

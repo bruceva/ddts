@@ -1,2 +1,0 @@
-extends: 'wps-rip-chem-casa2wrf'
-config: 'discover.cfg'

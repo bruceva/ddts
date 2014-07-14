@@ -1,0 +1,6 @@
+ddts_extends: 'r_case16'
+ddts_baseline: 'r_case16_gfortran'
+compiler: 'gfortran'
+ddts_build: 'all_discover_gnu48_openmpi'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']

@@ -1,2 +1,0 @@
-extends: 'all_debug'
-config: 'discover.cfg'
