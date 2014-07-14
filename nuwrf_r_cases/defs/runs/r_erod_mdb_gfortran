@@ -4,3 +4,8 @@ ddts_baseline: 'r_erod_mdb_gfortran'
 compiler: 'gfortran'
 
 preprocessors: ['geogrid','ungrib','metgrid','real','wrf','rip']
+
+#Special time override
+batch_time:
+  wrf: '4:00:00'
+
