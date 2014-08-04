@@ -1,0 +1,7 @@
+ddts_extends: 'email_ldt'
+ddts_retain_builds: true
+ddts_continue: true
+group1:
+  - control
+group21:
+  - control/ddts_baseline=control_strict,ddts_build=all_strict
