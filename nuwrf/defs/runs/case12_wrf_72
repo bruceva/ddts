@@ -1,0 +1,2 @@
+ddts_extends: 'base_case12_intel_72'
+ddts_build: 'wrf_discover'

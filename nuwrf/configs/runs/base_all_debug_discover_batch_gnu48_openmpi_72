@@ -1,4 +1,0 @@
-extends: 'batch_gnu48_openmpi_72'
-build: 'all_debug_discover_gnu48_openmpi'
-profile: 'Weekly'
-testDataRepository: '/discover/nobackup/projects/nu-wrf/cases'

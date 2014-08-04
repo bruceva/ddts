@@ -1,2 +1,0 @@
-extends: 'base_case12_intel_384'
-build: 'wrf_debug_discover'

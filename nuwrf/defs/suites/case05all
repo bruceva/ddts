@@ -1,0 +1,12 @@
+ddts_extends: 'email_nuwrf'
+ddts_retain_builds: true
+ddts_continue: true
+group1:
+  - case05_all_discover_batch72
+group2:
+  - case05_all_debug_discover_batch72
+group3:
+  - case05_all_discover_batch_gnu48_openmpi_72
+group4:
+  - case05_all_debug_discover_batch_gnu48_openmpi_72
+

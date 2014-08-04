@@ -1,0 +1,2 @@
+ddts_extends: 'all'
+config: 'discover_gnu48_openmpi.cfg'

@@ -1,0 +1,11 @@
+ddts_extends: 'base_all_discover_batch72'
+ddts_baseline: 'case05'
+testCaseNumber: '05'
+expectedOutputFiles: ['wrfout_d01_2005-12-30_00:00:00',
+'wrfout_d01_2005-12-30_03:00:00',
+'wrfout_d02_2005-12-30_00:00:00',
+'wrfout_d02_2005-12-30_03:00:00',
+'wrfout_d03_2005-12-30_00:00:00',
+'wrfout_d03_2005-12-30_03:00:00',
+'wrfout_d04_2005-12-30_00:00:00',
+'wrfout_d04_2005-12-30_03:00:00']

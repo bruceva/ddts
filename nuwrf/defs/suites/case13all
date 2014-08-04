@@ -1,0 +1,15 @@
+ddts_extends: 'email_nuwrf'
+ddts_retain_builds: true
+ddts_continue: true
+group1:
+  - case13_kpp_batch72
+  - case13_kpp_batch60
+group2:
+  - case13_kpp_gnu48_openmpi_batch72
+  - case13_kpp_gnu48_openmpi_batch60
+group3:
+  - case13_kpp_debug_batch72
+  - case13_kpp_debug_batch60
+group4:
+  - case13_kpp_debug_gnu48_openmpi_batch72
+  - case13_kpp_debug_gnu48_openmpi_batch60

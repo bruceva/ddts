@@ -1,0 +1,3 @@
+ddts_extends: weekly
+ddts_retain_builds: true
+build_only: true

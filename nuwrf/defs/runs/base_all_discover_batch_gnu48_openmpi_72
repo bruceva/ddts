@@ -1,0 +1,4 @@
+ddts_extends: 'batch_gnu48_openmpi_72'
+ddts_build: 'all_discover_gnu48_openmpi'
+profile: 'Weekly'
+testDataRepository: '/discover/nobackup/projects/nu-wrf/cases'

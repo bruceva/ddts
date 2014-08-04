@@ -1,3 +1,0 @@
-extends: 'case12all'
-build_only: true
-

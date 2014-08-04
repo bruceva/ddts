@@ -1,2 +1,0 @@
-extends: 'base_case12_gnu48_openmpi_72'
-build: 'wrf_discover_gnu48_openmpi'

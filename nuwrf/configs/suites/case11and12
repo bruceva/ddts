@@ -1,6 +1,0 @@
-retain_builds: true
-#build_only: true
-group_11:
-  - case11
-group_12:
-  - case12

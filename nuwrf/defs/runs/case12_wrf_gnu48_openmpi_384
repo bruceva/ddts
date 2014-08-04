@@ -1,0 +1,2 @@
+ddts_extends: 'base_case12_gnu48_openmpi_384'
+ddts_build: 'wrf_discover_gnu48_openmpi'

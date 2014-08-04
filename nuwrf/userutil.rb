@@ -92,6 +92,24 @@ module UserUtil
     [output,status]
   end
 
+  def getSourceRepository (env)
+    repo_info=nil
+    if env.build.code_repos and env.build.repo_select
+      repo_info=env.build.code_repos.send(env.build.repo_select)
+    else
+      logw "Missing build code_repos and/or repo_select variables"
+    end
+    # repo_info is an array with two strings. 
+    # The first contains the protocol and the second the repo path
+    repo=nil
+    if repo_info and repo_info.length == 2
+      repo="#{repo_info[0]}://#{repo_info[1]}"
+    else
+      logw "Incomplete code_repos information"
+    end
+    repo
+  end
+
   def createBatchJobScript (env,rundir)
     
     walltime=env.run.wallTime

@@ -1,4 +1,0 @@
-extends: 'email_nuwrf'
-retain_builds: true
-group_12_gnu48_openmpi:
-  - case12_gnu48_openmpi

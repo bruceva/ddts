@@ -1,2 +1,0 @@
-extends: 'base_case12_intel_72'
-build: 'wrf_discover'

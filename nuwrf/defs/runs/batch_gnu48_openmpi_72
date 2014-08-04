@@ -1,0 +1,4 @@
+ddts_extends: batch72
+# Override modules from batch
+modules: 'other/comp/gcc-4.8.1 other/mpi/openmpi/1.7.2-gcc-4.8.1-shared'
+

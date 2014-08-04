@@ -1,0 +1,4 @@
+ddts_extends: 'email_nuwrf'
+ddts_retain_builds: true
+group_13:
+  - case13

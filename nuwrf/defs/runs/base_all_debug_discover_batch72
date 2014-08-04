@@ -1,0 +1,4 @@
+ddts_extends: 'batch72'
+ddts_build: 'all_debug_discover'
+profile: 'Weekly'
+testDataRepository: '/discover/nobackup/projects/nu-wrf/cases'

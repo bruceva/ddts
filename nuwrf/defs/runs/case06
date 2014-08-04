@@ -1,0 +1,12 @@
+ddts_extends: 'batch72'
+ddts_baseline: 'case06'
+ddts_build: 'all_discover'
+profile: 'Weekly'
+testCaseNumber: '06'
+testDataRepository: '/discover/nobackup/projects/nu-wrf/cases'
+expectedOutputFiles: ['wrfout_d01_2005-10-18_00:00:00',
+'wrfout_d01_2005-10-18_03:00:00',
+'wrfout_d02_2005-10-18_00:00:00',
+'wrfout_d02_2005-10-18_03:00:00',
+'wrfout_d03_2005-10-18_00:00:00',
+'wrfout_d03_2005-10-18_03:00:00']
