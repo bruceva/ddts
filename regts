@@ -1,8 +1,12 @@
 #!/bin/bash
 
 p=$(readlink $0) || p=$0
-d=$(dirname  $p)
+d=$(readlink -f $(dirname  $p))
 b=$(basename $p)
+
+#echo $p
+#echo $d
+#echo $b
 
 jruby=$d/jruby-complete.jar
 
@@ -12,8 +16,15 @@ then
   exit 1
 fi
 
-export DDTSHOME=$d
-export DDTSAPP=`pwd`/app
-export DDTSOUT=`pwd`
+export DDTSHOME=`pwd`
+export DDTSAPP=$DDTSHOME/app
+export DDTSOUT=$DDTSHOME
 
-ulimit -St unlimited && java -Xms512m -Xmx2048m -jar $jruby --1.9 -I. $d/ts.rb $b $*
+#echo $DDTSAPP
+
+jdir=/usr/local/other/SLES11.1/jdk/jdk1.7.0_60/bin
+
+#ulimit -St unlimited && java -Xms512m -Xmx4096m -Djruby.compile.lazyHandles=true -jar $jruby --1.9 -I$d -I$DDTSAPP $d/ts.rb $b "$@" 
+ulimit -St unlimited && $jdir/java -Xms512m -Xmx8192m -jar $jruby --1.9 -I$d -I$DDTSAPP $d/ts.rb $b "$@"
+
+

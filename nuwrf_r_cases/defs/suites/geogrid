@@ -1,0 +1,5 @@
+ddts_extends: email_nuwrf 
+ddts_continue: true
+ddts_retain_builds: true
+group28:
+  - r_case05_intel/preprocessors=!replace ['geogrid']

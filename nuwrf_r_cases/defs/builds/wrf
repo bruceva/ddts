@@ -1,3 +1,4 @@
+ddts_extends: 'repo'
 bindir: 'bin'
 param: 'wrf'
 executables: ["WRFV3/main/ndown.exe",

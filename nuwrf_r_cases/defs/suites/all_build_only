@@ -1,2 +1,2 @@
 ddts_extends: 'all'
-build_only: true
+ddts_build_only: true

@@ -1,5 +1,5 @@
 ddts_extends: 'email_nuwrf'
 ddts_retain_builds: true
-#build_only: true
+#ddts_build_only: true
 group:
   - r_erod_mdb_gfortran

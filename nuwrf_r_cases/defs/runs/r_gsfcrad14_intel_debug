@@ -1,4 +1,4 @@
 ddts_extends: 'r_gsfcrad14_intel'
 ddts_baseline: 'r_gsfcrad14_intel_debug'
-ddts_build: 'allchem_lisreal_debug_discover'
+ddts_build: 'allchem_debug_discover'
 

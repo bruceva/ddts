@@ -1,7 +1,7 @@
 ddts_extends: 'email_nuwrf'
 ddts_retain_builds: true
 ddts_continue: true
-#build_only: true
+#ddts_build_only: true
 group1:
   - r_casaco2_gfortran_debug
 group2:

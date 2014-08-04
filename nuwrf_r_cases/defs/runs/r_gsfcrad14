@@ -1,13 +1,13 @@
 ddts_extends: 'sbatch_xtralong'
-ddts_build: 'allchem_lisreal_discover'
+ddts_build: 'allchem_discover'
 ddts_baseline: 'r_gsfcrad14_intel'
 compiler: 'intel'
 
 batch_procline:
   wrf: 'p288'
 
-namelist_link: [['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GSFCRAD14/namelist.input','namelist.input.wrf'],
-                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GSFCRAD14/namelist.input','namelist.input.real'],
+namelist_link: [['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GSFCRAD14/namelist.input.lis7','namelist.input.wrf'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GSFCRAD14/namelist.input.lis7','namelist.input.real'],
                 ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GSFCRAD14/lis.config','lis.config']]
 
 #ungrib_input: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GSFCRAD14/ungrib_input'

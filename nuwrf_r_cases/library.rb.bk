@@ -21,10 +21,8 @@ module Library
        forcebuild=File.join(srcdir,"ddts.forcebuild")
        if not sourceexists 
           logi "First time code checkout"
-          repo=getSourceRepository(env)
-          cmd="svn co #{repo} #{srcdir}"
           #cmd="svn co svn+ssh://progressdirect/svn/nu-wrf/code/trunk #{srcdir}"
-          #cmd="svn co svn+ssh://progressdirect/svn/nu-wrf/code/branches/features/v7_lis7merge #{srcdir}"
+          cmd="svn co svn+ssh://progressdirect/svn/nu-wrf/code/branches/features/v7_lis7merge #{srcdir}"
           ext(cmd,{:msg=>"SVN checkout failed",:out=>true})
           # Copy the source files, recursively, into the build directory.
           FileUtils.touch(forcebuild)
@@ -51,7 +49,7 @@ module Library
           else 
              logi "Running source code update"          
              cmd="svn update #{srcdir}"
-             o,s=my_ext(cmd,{:msg=>"SVN update failed",:out=>true,:die=>true})
+             o,s=UserUtil.my_ext(cmd,{:msg=>"SVN update failed",:out=>true,:die=>true})
              if o.length > 0 and o.grep(/^Updated|updated/).length > 0 
                 logi "Source code updated"              
                 FileUtils.touch(forcebuild)
@@ -86,7 +84,7 @@ module Library
        #build missed an update.
        logd "Retrieving local source repository info"
        cmd="svn info #{srcdir}"
-       o,s=my_ext(cmd,{:msg=>"SVN info failed",:out=>true,:die=>false})
+       o,s=UserUtil.my_ext(cmd,{:msg=>"SVN info failed",:out=>true,:die=>false})
        env.build.local_src_rev="????"
        if o.length > 0 and o.grep(/^Revision/).length > 0
          env.build.local_src_rev= o.grep(/^Revision/)[0].split(":")[1].strip
@@ -96,7 +94,7 @@ module Library
 
        logd "Retrieving build target repository info"
        cmd="svn info #{env.build.dir}"
-       o,s=my_ext(cmd,{:msg=>"SVN info failed",:out=>true,:die=>false})
+       o,s=UserUtil.my_ext(cmd,{:msg=>"SVN info failed",:out=>true,:die=>false})
        env.build.build_src_rev="????"
        if o.length > 0 and o.grep(/^Revision/).length > 0
          env.build.build_src_rev= o.grep(/^Revision/)[0].split(":")[1].strip
@@ -196,7 +194,7 @@ module Library
     logd "Rundir: #{rundir}"
 
     # Create the batch system scripts with information from the run conf file.
-    s = createCommonPreprocessorScript(env,rundir)
+    s = UserUtil.createCommonPreprocessorScript(env,rundir)
     fileName = File.join(rundir,'common.bash')
     File.open(fileName, "w+") do |batchFile|
       batchFile.print(s)
@@ -207,37 +205,37 @@ module Library
       s=""
       f=nil
       if prep == 'geogrid'
-        s=createGeogridPreprocessorScript(env)
+        s=UserUtil.createGeogridPreprocessorScript(env)
         f='geogrid.bash'
       elsif prep == 'ungrib'
-        s=createUngribPreprocessorScript(env)
+        s=UserUtil.createUngribPreprocessorScript(env)
         f='ungrib.bash'
       elsif prep == 'metgrid'
-        s=createMetgridPreprocessorScript(env)
+        s=UserUtil.createMetgridPreprocessorScript(env)
         f='metgrid.bash'
       elsif prep == 'real'
-        s=createRealPreprocessorScript(env)
+        s=UserUtil.createRealPreprocessorScript(env)
         f='real.bash'
       elsif prep == 'wrf'
-        s=createWrfPreprocessorScript(env)
+        s=UserUtil.createWrfPreprocessorScript(env)
         f='wrf.bash'
       elsif prep == 'rip'
-        s=createRipPreprocessorScript(env)
+        s=UserUtil.createRipPreprocessorScript(env)
         f='rip.bash'
       elsif prep == 'casa2wrf'
-        s=createCasa2wrfPreprocessorScript(env)
+        s=UserUtil.createCasa2wrfPreprocessorScript(env)
         f='casa2wrf.bash'
       elsif prep == 'gocart2wrf'
-        s=createGocart2wrfPreprocessorScript(env)
+        s=UserUtil.createGocart2wrfPreprocessorScript(env)
         f='gocart2wrf.bash'
       elsif prep == 'prep_chem_sources'
-        s=createPrepchemsourcesPreprocessorScript(env)
+        s=UserUtil.createPrepchemsourcesPreprocessorScript(env)
         f='prep_chem_sources.bash'
       elsif prep == 'convert_emiss'
-        s=createConvertemissPreprocessorScript(env)
+        s=UserUtil.createConvertemissPreprocessorScript(env)
         f='convert_emiss.bash'
       elsif prep == 'gsdsu'
-        s=createGsdsuPreprocessorScript(env)
+        s=UserUtil.createGsdsuPreprocessorScript(env)
         f='gsdsu.bash'
       end
 
@@ -280,7 +278,7 @@ module Library
       laststep=prep
 
       if 'geogrid ungrib metgrid real casa2wrf wrf rip gocart2wrf prep_chem_sources convert_emiss gsdsu'.include?(prep)
-        arr=expectedInput(env.run,prep)
+        arr=UserUtil.expectedInput(env.run,prep)
         if arr and arr.size >  0
           arr.each do |a|
             #logi "#{a.class} #{prep}"
@@ -289,7 +287,7 @@ module Library
             if a.class == String and 'ungrib gocart2wrf'.include?(prep)
               if Dir.exist?(a)
                 logi "Found #{prep} #{a} input directory"
-                linkdir=getInputLinkDir(env,prep)
+                linkdir=UserUtil.getInputLinkDir(env,prep)
                 if linkdir == '.'
                   linkdir=rundir
                 else 
@@ -301,7 +299,7 @@ module Library
                     die ("#{prep} processing: Unable to create link directory #{linkdir}") 
                   end
                 end
-                files=Dir[File.join(a,getInputPattern(env,prep))]
+                files=Dir[File.join(a,UserUtil.getInputPattern(env,prep))]
                 files.each do |f|
                   logd "sym linking #{prep} input file: #{f}"
                   FileUtils.ln_sf(f,linkdir)
@@ -366,7 +364,7 @@ module Library
       else
         # Submit the script to the batch system
         logi "About to submit #{prep} preprocessor job"
-        output=run_batch_job(env,rundir,prep)
+        output=UserUtil.run_batch_job(env,rundir,prep)
         #output=File.join(rundir,"fake.txt")
         logi "Verifying preprocessor result..."
         match=re_str_success(env,prep)
@@ -501,7 +499,7 @@ module Library
       msg<<"See log: #{logfile()}\n"
       logi logmsg
       subject="#{email_subject} -- #{suite_name} (FAILED)"
-      send_email(email_from,email_to,subject,email_server,msg,false) if email_ready
+      UserUtil.send_email(email_from,email_to,subject,email_server,msg,false) if email_ready
     else
       msg="ALL TESTS PASSED\n"
       logmsg="ALL TESTS PASSED\n"
@@ -550,7 +548,7 @@ module Library
       msg<<"See log: #{logfile()}\n"
       logi logmsg
       subject="#{email_subject} -- #{suite_name} (COMPLETED)"
-      send_email(email_from,email_to,subject,email_server,msg,false) if email_ready  
+      UserUtil.send_email(email_from,email_to,subject,email_server,msg,false) if email_ready  
     end
   end
 

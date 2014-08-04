@@ -1,0 +1,6 @@
+code_repos:
+  trunk: ["svn+ssh","progressdirect/svn/nu-wrf/code/trunk"]
+  v7_lis7merge: ["svn+ssh","progressdirect/svn/nu-wrf/code/branches/features/v7_lis7merge"]
+
+repo_select: 'v7_lis7merge'
+

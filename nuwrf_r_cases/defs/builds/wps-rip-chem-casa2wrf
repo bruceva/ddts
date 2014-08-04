@@ -1,3 +1,4 @@
+ddts_extends: 'repo'
 bindir: 'bin'
 param: 'wps rip chem casa2wrf'
 executables: ["RIP4/src/rip",

@@ -1,3 +1,4 @@
+ddts_extends: 'repo'
 bindir: 'bin'
 param: 'wrf wps rip'
 executables: ["RIP4/src/rip",

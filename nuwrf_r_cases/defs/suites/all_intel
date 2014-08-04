@@ -1,24 +1,56 @@
-ddts_extends: 'email_nuwrf'
-ddts_retain_builds: true
+ddts_extends: email_nuwrf 
 ddts_continue: true
-#build_only: true
+ddts_retain_builds: true
 group1:
-  - r_casaco2_intel
+  - r_3ice_graupel_2014rad_gocart_intel
 group2:
-  - r_case05_intel
+  - r_3ice_graupel_2014rad_intel
 group3:
-  - r_case06_intel
+  - r_3ice_graupel_gocart_intel
 group4:
-  - r_case08_intel
+  - r_3ice_graupel_intel
 group5:
-  - r_case09_intel
+  - r_3ice_hail_2014rad_gocart_intel
 group6:
-  - r_case11_intel
+  - r_3ice_hail_2014rad_intel
 group7:
-  - r_case13_intel
+  - r_3ice_hail_gocart_intel
 group8:
-  - r_case15_intel
+  - r_3ice_hail_intel
 group9:
-  - r_case16_intel
+  - r_4ice_2014rad_gocart_intel
 group10:
+  - r_4ice_2014rad_intel
+group11:
+  - r_4ice_gocart_intel
+group12:
+  - r_4ice_intel
+group13:
+  - r_casaco2_intel
+group14:
+  - r_case05_intel
+group15:
+  - r_case06_intel
+group16:
+  - r_case08_intel
+group17:
+  - r_case09_intel
+group18:
+  - r_case11_intel
+group19:
+  - r_case13_intel
+group20:
+  - r_case15_intel
+group21:
+  - r_case16_intel
+group22:
+  - r_erod_dynclimo_intel
+group23:
+  - r_erod_dyn_intel
+group24:
   - r_erod_mdb_intel
+group25:
+  - r_gsdsu_intel
+#group26:
+#  - r_gsfcrad14_intel
+#end

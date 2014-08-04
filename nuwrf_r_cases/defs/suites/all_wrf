@@ -1,0 +1,104 @@
+ddts_extends: email_nuwrf 
+ddts_continue: true
+ddts_retain_builds: true
+group1:
+  - r_3ice_graupel_2014rad_gfortran/preprocessors=\!replace ['wrf']
+group2:
+  - r_3ice_graupel_2014rad_gocart_gfortran/preprocessors=\!replace ['wrf']
+group3:
+  - r_3ice_graupel_2014rad_gocart_intel/preprocessors=\!replace ['wrf']
+group4:
+  - r_3ice_graupel_2014rad_intel/preprocessors=\!replace ['wrf']
+group5:
+  - r_3ice_graupel_gfortran/preprocessors=\!replace ['wrf']
+group6:
+  - r_3ice_graupel_gocart_gfortran/preprocessors=\!replace ['wrf']
+group7:
+  - r_3ice_graupel_gocart_intel/preprocessors=\!replace ['wrf']
+group8:
+  - r_3ice_graupel_intel/preprocessors=\!replace ['wrf']
+group9:
+  - r_3ice_hail_2014rad_gfortran/preprocessors=\!replace ['wrf']
+group10:
+  - r_3ice_hail_2014rad_gocart_gfortran/preprocessors=\!replace ['wrf']
+group11:
+  - r_3ice_hail_2014rad_gocart_intel/preprocessors=\!replace ['wrf']
+group12:
+  - r_3ice_hail_2014rad_intel/preprocessors=\!replace ['wrf']
+group13:
+  - r_3ice_hail_gfortran/preprocessors=\!replace ['wrf']
+group14:
+  - r_3ice_hail_gocart_gfortran/preprocessors=\!replace ['wrf']
+group15:
+  - r_3ice_hail_gocart_intel/preprocessors=\!replace ['wrf']
+group16:
+  - r_3ice_hail_intel/preprocessors=\!replace ['wrf']
+group17:
+  - r_4ice_2014rad_gfortran/preprocessors=\!replace ['wrf']
+group18:
+  - r_4ice_2014rad_gocart_gfortran/preprocessors=\!replace ['wrf']
+group19:
+  - r_4ice_2014rad_gocart_intel/preprocessors=\!replace ['wrf']
+group20:
+  - r_4ice_2014rad_intel/preprocessors=\!replace ['wrf']
+group21:
+  - r_4ice_gfortran/preprocessors=\!replace ['wrf']
+group22:
+  - r_4ice_gocart_gfortran/preprocessors=\!replace ['wrf']
+group23:
+  - r_4ice_gocart_intel/preprocessors=\!replace ['wrf']
+group24:
+  - r_4ice_intel/preprocessors=\!replace ['wrf']
+group25:
+  - r_casaco2_gfortran/preprocessors=\!replace ['wrf']
+group26:
+  - r_casaco2_intel/preprocessors=\!replace ['wrf']
+group27:
+  - r_case05_gfortran/preprocessors=\!replace ['wrf']
+group28:
+  - r_case05_intel/preprocessors=\!replace ['wrf']
+group29:
+  - r_case06_gfortran/preprocessors=\!replace ['wrf']
+group30:
+  - r_case06_intel/preprocessors=\!replace ['wrf']
+group31:
+  - r_case08_gfortran/preprocessors=\!replace ['wrf']
+group32:
+  - r_case08_intel/preprocessors=\!replace ['wrf']
+group33:
+  - r_case09_gfortran/preprocessors=\!replace ['wrf']
+group34:
+  - r_case09_intel/preprocessors=\!replace ['wrf']
+group35:
+  - r_case11_gfortran/preprocessors=\!replace ['wrf']
+group36:
+  - r_case11_intel/preprocessors=\!replace ['wrf']
+group37:
+  - r_case13_gfortran/preprocessors=\!replace ['wrf']
+group38:
+  - r_case13_intel/preprocessors=\!replace ['wrf']
+group39:
+  - r_case15_gfortran/preprocessors=\!replace ['wrf']
+group40:
+  - r_case15_intel/preprocessors=\!replace ['wrf']
+group41:
+  - r_case16_gfortran/preprocessors=\!replace ['wrf']
+group42:
+  - r_case16_intel/preprocessors=\!replace ['wrf']
+group43:
+  - r_erod_dynclimo_gfortran/preprocessors=\!replace ['wrf']
+group44:
+  - r_erod_dynclimo_intel/preprocessors=\!replace ['wrf']
+group45:
+  - r_erod_dyn_gfortran/preprocessors=\!replace ['wrf']
+group46:
+  - r_erod_dyn_intel/preprocessors=\!replace ['wrf']
+group47:
+  - r_erod_mdb_gfortran/preprocessors=\!replace ['wrf']
+group48:
+  - r_erod_mdb_intel/preprocessors=\!replace ['wrf']
+group49:
+  - r_gsfcrad14_gfortran/preprocessors=\!replace ['wrf']
+group50:
+  - r_gsfcrad14_intel/preprocessors=\!replace ['wrf']
+#end

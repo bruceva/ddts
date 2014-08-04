@@ -1,0 +1,7 @@
+ddts_retain_builds: true
+ddts_build_only: true
+ddts_continue: true
+group1:
+  - override_test/x=10,ddts_build='all/param=gsdsu,executables=!replace []'
+group2:
+  - override_test/ddts_build='all/param=gsdsu,executables=!replace []',x=20

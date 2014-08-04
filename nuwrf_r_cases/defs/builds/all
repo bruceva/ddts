@@ -1,9 +1,12 @@
+ddts_extends: 'repo'
 bindir: 'bin'
 param: 'all'
 executables: ["ARWpost/src/ARWpost.exe",
   "GSDSU/QRUN/GSDSU.x",
   "GSDSU/QRUN/HOW_MANY_CPU_GSDSU",
-  "LVT/make/LVT","MET/bin/ascii2nc",
+  "lvt/make/LVT",
+  "ldt/make/LDT",
+  "MET/bin/ascii2nc",
   "MET/bin/ensemble_stat",
   "MET/bin/gen_poly_mask",
   "MET/bin/grid_stat",

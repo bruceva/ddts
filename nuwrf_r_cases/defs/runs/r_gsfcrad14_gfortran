@@ -1,5 +1,5 @@
 ddts_extends: 'r_gsfcrad14'
-ddts_build: 'allchem_lisreal_discover_gnu48_openmpi'
+ddts_build: 'allchem_discover_gnu48_openmpi'
 ddts_baseline: 'r_gsfcrad14_gfortran'
 compiler: 'gfortran'
 

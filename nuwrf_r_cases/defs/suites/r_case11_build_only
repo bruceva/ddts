@@ -1,2 +1,2 @@
 ddts_extends: 'r_case11'
-build_only: true
+ddts_build_only: true
