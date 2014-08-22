@@ -7,7 +7,7 @@ batch_time:
   ungrib: '1:00:00'
   metgrid: '8:00:00'
   real: '3:00:00'
-  wrf: '3:00:00'
+  wrf: '4:00:00'
   rip: '1:00:00'
   casa2wrf: '1:00:00'
   prep_chem_sources: '0:30:00'

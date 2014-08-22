@@ -23,8 +23,6 @@ module Library
           logi "First time code checkout"
           repo=getSourceRepository(env)
           cmd="svn co #{repo} #{srcdir}"
-          #cmd="svn co svn+ssh://progressdirect/svn/nu-wrf/code/trunk #{srcdir}"
-          #cmd="svn co svn+ssh://progressdirect/svn/nu-wrf/code/branches/features/v7_lis7merge #{srcdir}"
           ext(cmd,{:msg=>"SVN checkout failed",:out=>true})
           # Copy the source files, recursively, into the build directory.
           FileUtils.touch(forcebuild)
@@ -129,6 +127,7 @@ module Library
     # Construct the command to execute in a subshell to perform the build.
     buildscript="build.sh"
     mparam = env.build.param
+    env.build.env_script="common.bash"
     logd "Make file param: #{mparam}"
     logd "env.build.dir = #{env.build.dir}"
     buildfile=File.join(env.build.dir,buildscript) 
@@ -184,7 +183,7 @@ module Library
     # Return the name of the dir to be copied for each run that requires it.
     {:dir=>env.build.dir,:name=>File.basename(env.build.dir),:result=>true,
      :src_rev=>env.build.local_src_rev,:build_rev=>env.build.build_src_rev,
-     :debug=>env.build.debug, :build_param=>env.build.param}
+     :debug=>env.build.debug, :build_param=>env.build.param,:env_script=>env.build.env_script}
   end
 
   def lib_data(env)
@@ -197,7 +196,7 @@ module Library
 
     # Create the batch system scripts with information from the run conf file.
     s = createCommonPreprocessorScript(env,rundir)
-    fileName = File.join(rundir,'common.bash')
+    fileName = File.join(rundir,env.build.ddts_result[:env_script])
     File.open(fileName, "w+") do |batchFile|
       batchFile.print(s)
       logd "Created batch file: #{fileName}"
@@ -239,6 +238,15 @@ module Library
       elsif prep == 'gsdsu'
         s=createGsdsuPreprocessorScript(env)
         f='gsdsu.bash'
+      elsif prep == 'ldt_prelis'
+        f='ldt_prelis.bash'
+        s=createLdtPrelisPreprocessorScript(env,f+".out")
+      elsif prep == 'ldt_postlis'
+        f='ldt_postlis.bash'
+        s=createLdtPostlisPreprocessorScript(env,f+".out")
+      elsif prep == 'lis'
+        f='lis.bash'
+        s=createLisPreprocessorScript(env,f+".out")
       end
 
       if f
@@ -279,7 +287,7 @@ module Library
    
       laststep=prep
 
-      if 'geogrid ungrib metgrid real casa2wrf wrf rip gocart2wrf prep_chem_sources convert_emiss gsdsu'.include?(prep)
+      if 'ldt_prelis lis ldt_postlis geogrid ungrib metgrid real casa2wrf wrf rip gocart2wrf prep_chem_sources convert_emiss gsdsu'.include?(prep)
         arr=expectedInput(env.run,prep)
         if arr and arr.size >  0
           arr.each do |a|
@@ -422,6 +430,53 @@ module Library
 
   def lib_run_check(env,postkit)
     postkit[:result]
+  end
+
+  def lib_comp(env,file1, file2, exec_id="")
+    logi exec_id
+    logi env.inspect()
+    die ("comp test")
+    #define exec_name=env.?.send(exec_id)
+    #define exec_params=env.?.send(exec_id)
+    cmd="which #{exec_name}"
+    o,s=ext(cmd,{:die=>false,:msg=>"Unable to locate #{exec_name}",:out=>true})
+    if o
+      logd "Located #{exec_name} at #{o}"
+    else
+      die ("Unable to located #{exec_name}. Please add it to the PATH env var, or establish alias.")
+    end
+    if exec_params
+      logd "#{exec_name} #{exec_params} comparison of #{file1} against #{file2}"
+      cmd="#{exec_name} #{exec_params} #{file1} #{file2}"
+    else
+      logd "#{exec_name} comparison of #{file1} against #{file2}"
+      cmd="#{exec_name} #{file1} #{file2}"
+    end
+    o,s=ext(cmd,{:die=>false,:msg=>"Error running #{exec_name}",:out=>true})
+    if o and o.size==0
+      true
+    else
+      false
+    end
+  end
+
+  def method_missing(meth, *args, &block)
+    logi meth.to_s
+    if meth.to_s =~ /^lib_comp_(.+)$/
+      lib_comp(*args, $1)
+    else
+      super # You *must* call super if you don't handle the
+            # method, otherwise you'll mess up Ruby's method
+            # lookup.
+    end
+  end
+
+  def respond_to?(meth)
+    if meth.to_s =~ /^lib_comp_.*$/
+      true
+    else
+      super
+    end
   end
 
   def lib_suite_prep(env)

@@ -149,6 +149,82 @@ module Userutil
     repo
   end
 
+  def createTypedLinks(env,type)
+
+    script=""
+
+    if type.include?('wrf')
+      links=env.run.preprocessor_links.send(type)
+      links.each do |l|
+        f=File.join('$NUWRFDIR','WRFV3','run',l)
+        check=<<-eos
+if [ ! -e #{f} ] ; then 
+    echo "ERROR, #{f} does not exist!"
+    exit 1
+fi
+eos
+        script<<check
+        script<<"ln -fs #{f} #{l} || exit 1\n"
+      end
+    elsif type.include?('lis')
+      links=env.run.preprocessor_links.send(type)
+      links.each do |l|
+        fw=File.join('$WORKDIR',l)
+        script<<"rm #{fw}\n"
+        f=File.join('$LISDIR',l)
+        check=<<-eos
+if [ ! -e #{f} ] ; then 
+    echo "ERROR, #{f} does not exist!"
+    exit 1
+fi  
+eos
+        script<<check
+        script<<"ln -fs #{f} #{fw} || exit 1\n"
+      end
+    elsif type.include?('root')
+      links=env.run.preprocessor_links.send(type)
+      links.each do |l|
+        fw=File.join('$WORKDIR',l)
+        script<<"rm #{fw}\n"
+        f=File.join('$NUWRFDIR','WRFV3',l)
+        check=<<-eos
+if [ ! -e #{f} ] ; then 
+    echo "ERROR, #{f} does not exist!"
+    exit 1
+fi  
+eos
+        script<<check
+        script<<"ln -fs #{f} #{fw} || exit 1\n"
+      end
+    elsif type.include?('local_links') 
+      links=env.run.preprocessor_links.send(type)
+      links.each do |lk|
+        if lk.size == 2
+          #First item is the file path relative to the working directory 
+          fw=File.join('$WORKDIR',lk[0])
+          #Second item is the link name relative ot the working directory
+          fl=File.join('$WORKDIR',lk[1])
+          if fw != fl
+        check=<<-eos
+if [ ! -e #{fw} ] ; then 
+    echo "ERROR, #{fw} does not exist!"
+    exit 1
+fi  
+eos
+            script<<check
+            script<<"ln -fs #{fw} #{fl} || exit 1\n"  
+          else
+            logw ("File and link are identical  in #{type} YAML definiton")
+          end      
+        else
+          logw ("Incomplete link pair in #{type} YAML definition")
+        end
+      end
+    end
+
+    script
+  end
+
   def createCommonPreprocessorScript(env,rundir)
 
     loadModules=env.run.modules.send(env.run.compiler)
@@ -172,6 +248,7 @@ ulimit -s unlimited
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64
 
 # Define locations of LIS, NUWRF, and the experiment work directory
+LDTDIR=#{env.build.ddts_root}/ldt
 LISDIR=#{env.run.lis_dir}
 NUWRFDIR=#{env.build.ddts_root}
 WORKDIR=#{rundir}
@@ -252,6 +329,117 @@ eos
     else
       script
     end
+  end
+
+  def createLdtLinks(env,var_select)
+    script=""
+    if env.run.send(var_select) and env.run.send(var_select).class == Array
+      env.run.send(var_select).each do |type|
+        script<<createTypedLinks(env,type)
+      end
+    elsif env.run.send(var_select)
+      script<<createTypedLinks(env,env.run.send(var_select))
+    end
+    script
+  end
+
+  def createLdtPrelisPreprocessorScript(env,scriptout)
+
+    header=createPreprocessorHeader(env,'ldt_prelis')
+
+    body=createCommonPreprocessorBody(env,'ldt.config.prelis')
+
+    body<<createLdtLinks(env,'ldt_prelis_select')
+
+    footer=<<-eos
+
+rm ldt.config
+ln -s ldt.config.prelis ldt.config || exit 1
+
+# Run LDT
+ln -fs $LDTDIR/LDT LDT || exit 1
+if [ ! -e LDT ] ; then 
+    echo "ERROR, LDT does not exist!"
+    exit 1
+fi
+
+# Execute
+mpirun -np $SLURM_NTASKS ./LDT ldt.config > #{scriptout}
+
+# The end
+exit 0
+eos
+
+  header+body+footer
+
+  end
+
+  def createLisPreprocessorScript(env,scriptout)
+
+    header=createPreprocessorHeader(env,'lis')
+
+    body=createCommonPreprocessorBody(env,'lis.config.prewrf')
+
+    body<<createLdtLinks(env,'lis_select')
+
+    footer=<<-eos
+
+rm lis.config
+ln -s lis.config.prewrf lis.config || exit 1
+
+# Run LIS
+ln -fs $NUWRFDIR/WRFV3/lis/make/LIS $WORKDIR/LIS || exit 1
+if [ ! -e $WORKDIR/LIS ] ; then 
+    echo "ERROR, $WORKDIR/LIS does not exist!"
+    exit 1
+fi
+
+# Execute
+mpirun -np $SLURM_NTASKS ./LIS lis.config > #{scriptout}
+
+# Tidy up logs
+mkdir -p lis_logs || exit 1
+
+mv lislog.* lis_logs
+
+# The end
+exit 0
+eos
+
+  header+body+footer
+
+  end
+
+
+  def createLdtPostlisPreprocessorScript(env,scriptout)
+
+    header=createPreprocessorHeader(env,'ldt_postlis')
+
+    body=createCommonPreprocessorBody(env,'ldt.config.postlis')
+
+    body<<createLdtLinks(env,'ldt_postlis_select')
+
+    footer=<<-eos
+
+rm ldt.config
+ln -s ldt.config.postlis ldt.config || exit 1
+
+# Run LDT
+ln -fs $LDTDIR/LDT LDT || exit 1
+if [ ! -e LDT ] ; then 
+    echo "ERROR, LDT does not exist!"
+    exit 1
+fi
+
+# Execute
+mpirun -np $SLURM_NTASKS ./LDT ldt.config > #{scriptout}
+
+# The end
+exit 0
+eos
+
+  header+body+footer
+
   end
 
   def createGeogridLinks(env)
@@ -933,63 +1121,11 @@ eos
     script=""
     if env.run.wrf_select and env.run.wrf_select.class == Array
       env.run.wrf_select.each do |type|
-        script<<createWrfTypedLinks(env,type)
+        script<<createTypedLinks(env,type)
       end      
     elsif env.run.wrf_select
-      script<<createWrfTypedLinks(env,env.run.wrf_select)
+      script<<createTypedLinks(env,env.run.wrf_select)
     end
-    script
-  end
-
-  def createWrfTypedLinks(env,type)
-
-    script=""
-
-    if type.include?('wrf')
-      links=env.run.preprocessor_links.send(type)
-      links.each do |l|
-        f=File.join('$NUWRFDIR','WRFV3','run',l)
-        check=<<-eos
-if [ ! -e #{f} ] ; then 
-    echo "ERROR, #{f} does not exist!"
-    exit 1
-fi
-eos
-        script<<check
-        script<<"ln -fs #{f} #{l} || exit 1\n"
-      end
-    elsif type.include?('lis')
-      links=env.run.preprocessor_links.send(type)
-      links.each do |l|
-        fw=File.join('$WORKDIR',l)
-        script<<"rm #{fw}\n"
-        f=File.join('$LISDIR',l)
-        check=<<-eos
-if [ ! -e #{f} ] ; then 
-    echo "ERROR, #{f} does not exist!"
-    exit 1
-fi  
-eos
-        script<<check
-        script<<"ln -fs #{f} #{fw} || exit 1\n"
-      end
-    elsif type.include?('root')
-      links=env.run.preprocessor_links.send(type)
-      links.each do |l|
-        fw=File.join('$WORKDIR',l)
-        script<<"rm #{fw}\n"
-        f=File.join('$NUWRFDIR','WRFV3',l)
-        check=<<-eos
-if [ ! -e #{f} ] ; then 
-    echo "ERROR, #{f} does not exist!"
-    exit 1
-fi  
-eos
-        script<<check
-        script<<"ln -fs #{f} #{fw} || exit 1\n"
-      end
-    end
-
     script
   end
 
@@ -1002,6 +1138,12 @@ eos
     body<<createWrfLinks(env)
 
     footer=<<-eos
+
+# Make lis connections as appropriate
+if [ -f lis.config.wrf ] ; then
+  rm lis.config
+  ln -s lis.config.wrf lis.config || exit 1
+fi
 
 # Make wrf's namelist current
 rm namelist.input
@@ -1027,6 +1169,11 @@ done
 mkdir -p wrf_logs || exit 1
 
 mv wrf.rsl.* wrf_logs
+
+# Tidy up logs
+mkdir -p wrf_lis_logs || exit 1
+
+mv lislog.* wrf_lis_logs
 
 # The end
 exit 0
@@ -1201,7 +1348,6 @@ eos
 
     header+body+footer
   end
-
 
   def run_batch_job(env,rundir,preprocessor)
     jobid=nil

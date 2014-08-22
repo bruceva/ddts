@@ -2,6 +2,9 @@
 
 # SBATCH -J
 batch_name: 
+  ldt_prelis: 'ldtprelis'
+  lis: 'lis'
+  ldt_postlis: 'ldtpostlis'
   geogrid: 'geogrid'
   ungrib: 'ungrib'
   metgrid: 'metgrid'
@@ -16,11 +19,14 @@ batch_name:
 
 # SBATCH -t
 batch_time:
+  ldt_prelis: '0:10:00'
+  lis: '08:00:00'
+  ldt_postlis: '0:10:00'
   geogrid: '0:15:00' 
   ungrib: '1:00:00'
   metgrid: '0:10:00'
   real: '0:30:00'
-  wrf: '2:00:00'
+  wrf: '4:00:00'
   rip: '1:00:00'
   casa2wrf: '1:00:00'
   prep_chem_sources: '0:30:00'
@@ -30,6 +36,9 @@ batch_time:
 
 #SBATCH -A
 batch_group:
+  ldt_prelis: 's0942'
+  lis: 's0942'
+  ldt_postlis: 's0942'
   geogrid: 's0942'
   ungrib: 's0942'
   metgrid: 's0942'
@@ -44,6 +53,9 @@ batch_group:
 
 #SBATCH -o
 batch_slurmout:
+  ldt_prelis: 'ldt_prelis.slurm.out'
+  lis: 'lis.slurm.out'
+  ldt_postlis: 'ldt_postlis.slurm.out'
   geogrid: 'geogrid.slurm.out'
   ungrib: 'ungrib.slurm.out'
   metgrid: 'metgrid.slurm.out'
@@ -58,6 +70,9 @@ batch_slurmout:
 
 #SBATCH -p 
 batch_queue:
+  ldt_prelis: 'general'
+  lis: 'general'
+  ldt_postlis: 'general'
   geogrid: 'general'
   ungrib: 'general'
   metgrid: 'general'
@@ -72,6 +87,9 @@ batch_queue:
 
 #SBATCH -N
 batch_procline:
+  ldt_prelis: 'p1'
+  lis: 'p64_16'
+  ldt_postlis: 'p1'
   geogrid: 'p288' 
   ungrib: 'p1'
   metgrid: 'p288' 
@@ -88,8 +106,10 @@ batch_procline:
 proc_line: 
   p1: '1 -n 1 --ntasks-per-node=1'
   p64: '8 -n 64 --ntasks-per-node=8'
+  p64_16: '4 -n 64 --ntasks-per-node=16 --constraint=sand'
   p72: '6 -n 72 --ntasks-per-node=12'
   p288: '24 -n 288 --ntasks-per-node=12'
+  p256: '16 -n 256 --ntasks-per-node=16'
 
 # lis.config x and y values for each supported processor count
 lis_config: 
