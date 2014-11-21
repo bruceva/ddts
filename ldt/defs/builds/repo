@@ -1,0 +1,6 @@
+code_repos:
+  trunk: ["svn+ssh","progressdirect/svn/nu-wrf/code/trunk/ldt"]
+  lisgroup: ["https","progress.nccs.nasa.gov/svn/lis/tools/ldt/7/public7.0"] 
+
+repo_select: 'trunk'
+
