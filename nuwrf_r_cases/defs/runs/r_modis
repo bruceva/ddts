@@ -5,7 +5,7 @@ compiler: 'intel'
 
 #override the number of processors for wrf
 batch_procline:
-  wrf: 'p256'
+  wrf: 'p256_16'
 
 #override certain requested wall times
 batch_time:

@@ -55,7 +55,7 @@ preprocessor_links:
          'SOILPARM.TBL', 'tr49t67', 'tr49t85', 'tr67t85', 'URBPARM.TBL', 'URBPARM_UZE.TBL',
          'VEGPARM.TBL']
   gocart2wrf: [['gocart','trainning.inst3d_aer_v.*']]
-  root: ['GODDARDRAD_SSLUT']
+  WRFV3: ['GODDARDRAD_SSLUT']
 
 geogrid_select: 'geogrid_chem'
 ungrib_select: 'ungrib_nam'
@@ -65,7 +65,7 @@ real_select: 'real'
 #note: processing wrf and lis properly requires 'wrf' and 'lis' to be part of the name respectively
 #ex: 'wrf' and 'wrf_other' will process the links according to wrf rules.
 #Must not have both 'wrf' and 'lis' in the same name!
-wrf_select: ['wrf','lis','root']
+wrf_select: ['wrf','lis','WRFV3']
 
 rip_select: 'rip'
 prep_chem_sources_select: 'prep_chem_sources'

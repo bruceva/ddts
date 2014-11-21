@@ -4,7 +4,7 @@ ddts_baseline: 'r_3ice_hail_2014rad_intel'
 compiler: 'intel'
 
 batch_procline:
-  wrf: 'p288'
+  wrf: 'p288_16'
 
 namelist_link: [['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_3ICE_HAIL_2014RAD/namelist.wps','namelist.wps'],
                 ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_3ICE_HAIL_2014RAD/namelist.input','namelist.input.wrf'],
@@ -42,7 +42,7 @@ preprocessor_links:
         'SOILPARM.TBL', 'tr49t67', 'tr49t85', 'tr67t85', 'URBPARM.TBL', 'URBPARM_UZE.TBL',
         'VEGPARM.TBL']
   lis: ['LS_PARAMETERS','MET_FORCING']
-  root: ['GODDARDRAD_SSLUT']
+  WRFV3: ['GODDARDRAD_SSLUT']
   rip: ['200','250','300','500Vort','700RH','850','sfcThk','sfcTUV','COMDBZ','sfcDBZUV']
 
 geogrid_select: 'geogrid_nochem'
@@ -53,7 +53,7 @@ real_select: 'real'
 #note: processing wrf and lis properly requires 'wrf' and 'lis' to be part of the name respectively
 #ex: 'wrf' and 'wrf_other' will process the links according to wrf rules.
 #Must not have both 'wrf' and 'lis' in the same name!
-wrf_select: ['wrf','lis','root']
+wrf_select: ['wrf','lis','WRFV3']
 
 rip_select: 'rip'
 
