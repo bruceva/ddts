@@ -1,0 +1,51 @@
+ddts_extends: 'sbatch'
+ddts_build: 'all_discover'
+ddts_baseline: 'r_merra2wrf_intel'
+compiler: 'intel'
+
+namelist_link: []
+
+#baselinedir supplies missing data in cases when we just want to run a smaller pipeline
+baselinedir: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_MERRA2WRF'
+
+preprocessor_links:
+
+merra_dates:
+  start: 
+    year: 1992
+    month: 1
+    day: 1
+  end: 
+    year: 1992
+    month: 1
+    day: 2
+  
+#This definition supports preprocessors: ['ftp_merra','merra2wrf']
+
+expectedStatusFiles:
+  ftp_merra: ['ftpmerra_logs/ftpmerra.log','Successful MERRA ftp processing']
+  merra2wrf: ['merra2wrf_logs/merra2wrf.log','Successful MERRA2WRF processing']
+
+expectedInputFiles:
+  ftp_merra: ''
+  merra2wrf: 'expectedOutputFiles.ftp_merra'
+
+expectedOutputFiles:
+  ftp_merra: ["MERRA100.prod.assim.inst6_3d_ana_Np.19920101.hdf",
+      "MERRA100.prod.assim.inst6_3d_ana_Np.19920102.hdf",
+      "MERRA100.prod.assim.inst6_3d_ana_Nv.19920101.hdf",
+      "MERRA100.prod.assim.inst6_3d_ana_Nv.19920102.hdf",
+      "MERRA100.prod.assim.tavg1_2d_ocn_Nx.19920101.hdf",
+      "MERRA100.prod.assim.tavg1_2d_ocn_Nx.19920102.hdf",
+      "MERRA100.prod.assim.tavg1_2d_slv_Nx.19920101.hdf",
+      "MERRA100.prod.assim.tavg1_2d_slv_Nx.19920102.hdf",
+      "MERRA300.prod.assim.const_2d_asm_Nx.00000000.hdf"]
+  merra2wrf: ["MERRA:1992-01-01_00",
+      "MERRA:1992-01-01_06",
+      "MERRA:1992-01-01_12",
+      "MERRA:1992-01-01_18",
+      "MERRA:1992-01-02_00",
+      "MERRA:1992-01-02_06",
+      "MERRA:1992-01-02_12",
+      "MERRA:1992-01-02_18"]
+

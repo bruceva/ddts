@@ -55,12 +55,18 @@ module Library
                 FileUtils.touch(forcebuild)
                 logi "Created force build bread crumb"
                 if Dir.exist?(env.build.dir)
-                   logi "Removing previous build directory"
-                   FileUtils.rm_rf(env.build.dir)
+                   if not File.exist?(File.join(env.build.dir,"ddts.lockbuild")) 
+                     logi "Removing previous build directory"
+                     FileUtils.rm_rf(env.build.dir)
+                   else
+                     logi "Previous build not updated due to ddts lock presence"
+                   end
                 end
-                # Copy the source files, recursively, into the build directory.
-                logi "Copying #{srcdir} -> #{env.build.dir}"
-                FileUtils.cp_r(srcdir,env.build.dir,{:remove_destination=>true})
+                if not File.exist?(File.join(env.build.dir,"ddts.lockbuild"))
+                  # Copy the source files, recursively, into the build directory.
+                  logi "Copying #{srcdir} -> #{env.build.dir}"
+                  FileUtils.cp_r(srcdir,env.build.dir,{:remove_destination=>true})
+                end
              else
                 logi "SVN update revealed no change of repository working copy"
                 if not File.exist?(File.join(env.build.dir,buildscript))
@@ -107,19 +113,22 @@ module Library
 
        if env.build.local_src_rev != env.build.build_src_rev 
          logi "Build source repo and local copies are not in sync!!!"
-         logi "Invalidating build copy"
-         if Dir.exist?(env.build.dir)
-           logd "Removing build directory to avoid copy misplacement"
-           FileUtils.rm_rf(env.build.dir)
+         if not File.exist?(File.join(env.build.dir,"ddts.lockbuild"))
+           logi "Invalidating build copy"
+           if Dir.exist?(env.build.dir)           
+             logd "Removing build directory to avoid copy misplacement"
+             FileUtils.rm_rf(env.build.dir)
+           end
+
+           # Copy the source files, recursively, into the build directory.
+           logi "Copying #{srcdir} -> #{env.build.dir}"
+           FileUtils.cp_r(srcdir,env.build.dir,{:remove_destination=>true})
+           logi "Build source repo and local one are now in sync"
+           env.build.build_src_rev = env.build.local_src_rev
+         else
+           logi "Previous build not updated due to ddts lock presence"
          end
-
-         # Copy the source files, recursively, into the build directory.
-         logi "Copying #{srcdir} -> #{env.build.dir}"
-         FileUtils.cp_r(srcdir,env.build.dir,{:remove_destination=>true})
-         logi "Build source repo and local one are now in sync"
-         env.build.build_src_rev = env.build.local_src_rev
        end
-
     end
   end
 
@@ -211,6 +220,18 @@ module Library
       elsif prep == 'ungrib'
         s=createUngribPreprocessorScript(env)
         f='ungrib.bash'
+      elsif prep == 'merra2wrf'
+        s=createMerra2wrfPreprocessorScript(env)
+        f='merra2wrf.bash'
+      elsif prep == 'ftp_merra'
+        s=createFTPMerraPreprocessorScript(env)
+        f='ftp_merra.bash'
+      elsif prep == 'run_merra'
+        s=createRunMerraPreprocessorScript(env)
+        f='run_merra.bash'
+      elsif prep == 'geos2wrf'
+        s=createGeos2wrfPreprocessorScript(env)
+        f='geos2wrf.bash'
       elsif prep == 'metgrid'
         s=createMetgridPreprocessorScript(env)
         f='metgrid.bash'
@@ -254,6 +275,7 @@ module Library
         File.open(fileName, "w+") do |batchFile|
           batchFile.print(s)
           logd "Created batch file: #{fileName}"
+          FileUtils.chmod(0754,fileName,:verbose=>true)
         end
       end
     end
@@ -287,14 +309,14 @@ module Library
    
       laststep=prep
 
-      if 'ldt_prelis lis ldt_postlis geogrid ungrib metgrid real casa2wrf wrf rip gocart2wrf prep_chem_sources convert_emiss gsdsu'.include?(prep)
+      if 'ldt_prelis lis ldt_postlis geogrid geos2wrf merra2wrf run_merra ftp_merraungrib metgrid real casa2wrf wrf rip gocart2wrf prep_chem_sources convert_emiss gsdsu'.include?(prep)
         arr=expectedInput(env.run,prep)
         if arr and arr.size >  0
           arr.each do |a|
             #logi "#{a.class} #{prep}"
             # Some preprocessors contain files and entire directories as input
             # Files are listed in an array format while directories are single strings
-            if a.class == String and 'ungrib gocart2wrf'.include?(prep)
+            if a.class == String and 'ungrib gocart2wrf geos2wrf'.include?(prep)
               if Dir.exist?(a)
                 logi "Found #{prep} #{a} input directory"
                 linkdir=getInputLinkDir(env,prep)
@@ -368,14 +390,23 @@ module Library
         end
       end 
 
+      #abortprocessing = true
+
       if abortprocessing
         logd "ERROR: #{prep} processing aborted due to missing data"
         run_success=false
       else
-        # Submit the script to the batch system
-        logi "About to submit #{prep} preprocessor job"
-        output=run_batch_job(env,rundir,prep)
-        #output=File.join(rundir,"fake.txt")
+        output=nil
+        if env.run.submission_type.send(prep) == 'batch'
+          # Submit the script to the batch system
+          logi "About to submit #{prep} preprocessor job"
+          output=run_batch_job(env,rundir,prep)
+          #output=File.join(rundir,"fake.txt")
+        else
+          # Execute the job in the local system
+          logi "About to execute #{prep} preprocessor job"
+          output=run_local_job(env,rundir,prep)
+        end  
         logi "Verifying preprocessor result..."
         match=re_str_success(env,prep)
         if File.exist?(output)

@@ -1,0 +1,4 @@
+ddts_extends: 'r_geos2wrf'
+
+preprocessors: ['geogrid' ,'geos2wrf','metgrid','real','wrf','rip']
+

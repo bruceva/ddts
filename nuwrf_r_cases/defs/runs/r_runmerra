@@ -1,0 +1,36 @@
+ddts_extends: 'sbatch'
+ddts_build: 'all_discover'
+ddts_baseline: 'r_runmerra_intel'
+compiler: 'intel'
+
+namelist_link: []
+
+#baselinedir supplies missing data in cases when we just want to run a smaller pipeline
+baselinedir: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_MERRA2'
+
+preprocessor_links:
+  utils: [['geos2wrf_2/RUN_MERRA/Get_dates_daily.py','Get_dates_daily.py'],['geos2wrf_2/RUN_MERRA/Run_MERRA.csh','Run_MERRA.csh']] 
+
+run_merra_select: 'utils'
+
+merra_dates:
+  start: '19920101'
+  end: '19920102'
+  
+#This definition supports preprocessors: ['run_merra']
+
+expectedStatusFiles:
+  run_merra: ['runmerra_logs/runmerra.log','Completed MERRA ftp and MERRA2WRF processing']
+
+expectedInputFiles:
+  run_merra: ''
+
+expectedOutputFiles:
+  run_merra: ["data/merra2wrf/MERRA:1992-01-01_00",
+      "data/merra2wrf/MERRA:1992-01-01_06",
+      "data/merra2wrf/MERRA:1992-01-01_12",
+      "data/merra2wrf/MERRA:1992-01-01_18",
+      "data/merra2wrf/MERRA:1992-01-02_00",
+      "data/merra2wrf/MERRA:1992-01-02_06",
+      "data/merra2wrf/MERRA:1992-01-02_12",
+      "data/merra2wrf/MERRA:1992-01-02_18"]

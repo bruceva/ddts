@@ -1,0 +1,112 @@
+ddts_extends: 'sbatch'
+ddts_build: 'all_discover'
+ddts_baseline: 'r_geos2wrf_intel'
+compiler: 'intel'
+
+namelist_link: [['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GEOS2WRF/namelist.wps','namelist.wps'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GEOS2WRF/namelist.input','namelist.input.wrf'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GEOS2WRF/namelist.input','namelist.input.real'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GEOS2WRF/LIS:2005-11-01_00','LIS:2005-11-01_00'],
+                ['/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GEOS2WRF/c1440_NR.geos2wrf.settings.cfg','c1440_NR.geos2wrf.settings.cfg']]
+
+geos2wrf_geosdata: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GEOS2WRF/GEOSDATA'
+
+#baselinedir supplies missing data in cases when we just want to run a smaller pipeline
+baselinedir: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_GEOS2WRF'
+
+preprocessor_links:
+  geogrid_nochem: ['GEOGRID.TBL.ARW','GEOGRID.TBL']
+  geogrid_chemerod: ['GEOGRID.TBL.ARW_CHEM_NUWRF','GEOGRID.TBL']
+  geogrid_chem: ['GEOGRID.TBL.ARW_CHEM','GEOGRID.TBL']
+  g2w_check_exist: ['c1440_NR.geos2wrf.py','c1440_NR.geos2wrf.settings.cfg','c1440_NR.geos2wrf.variables.cfg','geos2wrfUtil.py']
+  utils: [['geos2wrf_2/scripts/DSCALE/c1440_NR.geos2wrf.py','c1440_NR.geos2wrf.py'],
+          ['geos2wrf_2/scripts/DSCALE/geos2wrfUtil.py','geos2wrfUtil.py'],
+          ['geos2wrf_2/scripts/DSCALE/c1440_NR.geos2wrf.variables.cfg','c1440_NR.geos2wrf.variables.cfg']]
+  metgrid_arw: ['METGRID.TBL.ARW','METGRID.TBL']
+  metgrid_nmm: ['METGRID.TBL.NMM','METGRID.TBL']
+  metgrid_afwa: ['METGRID.TBL.AFWA','METGRID.TBL']
+  real: ['CAM_ABS_DATA','CAM_AEROPT_DATA','co2_trans','ETAMPNEW_DATA',
+         'ETAMPNEW_DATA_DBL', 'ETAMPNEW_DATA.expanded_rain',
+         'ETAMPNEW_DATA.expanded_rain_DBL', 'GENPARM.TBL', 'grib2map.tbl', 
+         'gribmap.txt', 'LANDUSE.TBL','MPTABLE.TBL', 'ozone.formatted',
+         'ozone_lat.formatted', 'ozone_plev.formatted', 'RRTM_DATA', 'RRTM_DATA_DBL', 
+         'RRTMG_LW_DATA', 'RRTMG_LW_DATA_DBL', 'RRTMG_SW_DATA', 'RRTMG_SW_DATA_DBL', 
+         'SOILPARM.TBL', 'tr49t67', 'tr49t85', 'tr67t85', 'URBPARM.TBL', 'URBPARM_UZE.TBL', 
+         'VEGPARM.TBL']
+  wrf: ['CAM_ABS_DATA','CAM_AEROPT_DATA','co2_trans','ETAMPNEW_DATA',
+        'ETAMPNEW_DATA_DBL', 'ETAMPNEW_DATA.expanded_rain',
+        'ETAMPNEW_DATA.expanded_rain_DBL', 'GENPARM.TBL', 'grib2map.tbl',
+        'gribmap.txt', 'LANDUSE.TBL','MPTABLE.TBL', 'ozone.formatted',
+        'ozone_lat.formatted', 'ozone_plev.formatted', 'RRTM_DATA', 'RRTM_DATA_DBL',
+        'RRTMG_LW_DATA', 'RRTMG_LW_DATA_DBL', 'RRTMG_SW_DATA', 'RRTMG_SW_DATA_DBL',
+        'SOILPARM.TBL', 'tr49t67', 'tr49t85', 'tr67t85', 'URBPARM.TBL', 'URBPARM_UZE.TBL',
+        'VEGPARM.TBL']
+  lis: ['LS_PARAMETERS','MET_FORCING']
+  rip: ['200','250','300','500Vort','700RH','850','sfcThk','sfcTUV','COMDBZ','sfcDBZUV']
+
+geogrid_select: 'geogrid_nochem'
+geos2wrf_select: 'utils'
+metgrid_select: 'metgrid_arw'
+real_select: 'real'
+
+#note: processing wrf and lis properly requires 'wrf' and 'lis' to be part of the name respectively
+#ex: 'wrf' and 'wrf_other' will process the links according to wrf rules.
+#Must not have both 'wrf' and 'lis' in the same name!
+wrf_select: ['wrf']
+
+rip_select: 'rip'
+
+#This definition supports preprocessors: ['geogrid','geos2wrf','metgrid','real','wrf','rip']
+
+expectedStatusFiles:
+  geogrid: ['geogrid_logs/geogrid.log.0000','Successful completion of program']
+  geos2wrf: ['geos2wrf_logs/geos2wrf.log','Successful completion of program']
+  metgrid: ['metgrid_logs/metgrid.log.0000','Successful completion of program']
+  real: ['real_logs/real.rsl.out.0000','SUCCESS COMPLETE REAL_EM']
+  wrf:  ['wrf_logs/wrf.rsl.out.0000','SUCCESS COMPLETE WRF']
+  rip:  ['rip_logs/rip_results.out','Success']
+
+expectedInputFiles:
+  geogrid: ''
+  geos2wrf:  ['geos2wrf_geosdata']
+  metgrid: ['expectedOutputFiles.geogrid','expectedOutputFiles.geos2wrf']
+  real: 'expectedOutputFiles.metgrid'
+  wrf: 'expectedOutputFiles.real'
+  rip: 'expectedOutputFiles.wrf'
+
+expectedOutputFiles:
+  geogrid: ["geo_em.d01.nc"]
+  geos2wrf: ["namelist.createSOILHGT",
+     "namelist.createLANDSEA",
+     "namelist.geos2wps",
+     "namelist.createRH",
+     "SOILHGT_GROUND_LEVEL",
+     "LANDSEA_GROUND_LEVEL",
+     "GEOS:2005-11-01_00:00",
+     "GEOS:2005-11-01_00:30",
+     "GEOS:2005-11-01_01:00",
+     "GEOS:2005-11-01_01:30",
+     "GEOS:2005-11-01_02:00",
+     "GEOS:2005-11-01_02:30",
+     "GEOS:2005-11-01_03:00"]
+  metgrid: ["met_em.d01.2005-11-01_00:00:00.nc",
+    "met_em.d01.2005-11-01_00:30:00.nc",
+    "met_em.d01.2005-11-01_01:00:00.nc",
+    "met_em.d01.2005-11-01_01:30:00.nc",
+    "met_em.d01.2005-11-01_02:00:00.nc",
+    "met_em.d01.2005-11-01_02:30:00.nc",
+    "met_em.d01.2005-11-01_03:00:00.nc"]
+  real: ["wrfbdy_d01.real",
+    "wrfinput_d01.real",
+    "wrflowinp_d01"]
+  wrf: ["wrfout_d01_2005-11-01_00:00:00","wrfout_d01_2005-11-01_03:00:00"]
+  rip: ["200_d01.cgm",
+     "250_d01.cgm",
+     "300_d01.cgm",
+     "500Vort_d01.cgm",
+     "700RH_d01.cgm",
+     "850_d01.cgm",
+     "COMDBZ_d01.cgm",
+     "sfcDBZUV_d01.cgm",
+     "sfcThk_d01.cgm",
+     "sfcTUV_d01.cgm"]

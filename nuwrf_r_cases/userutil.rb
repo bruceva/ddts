@@ -1,5 +1,6 @@
 require 'net/smtp'
 require 'open3'
+require 'time'
 
 puts "Loading userutil.rb"
 
@@ -10,6 +11,179 @@ module Userutil
 
   def userutil_version()
     1.0
+  end
+
+  #Returns array of date hashes containing year month day 0 padded,
+  #between 'from' and 'to' dates of Time type.  Note step is number of seconds.
+  # ex: getDateArray(Time.utc(2000,1,1),Time.utc(2000,1,5),60*60*24)
+  def getDateArray(from,to,step)
+    temp=from
+    result=Array.new
+    while to >= temp do
+      elt={'year'=>temp.strftime("%Y"),'month'=>temp.strftime("%m"),'day'=>temp.strftime("%d")}
+      result<<elt
+      temp = temp + step
+    end
+    result
+  end
+
+  def getMERRADailysetTemplate()
+    result=Array.new
+    elt={"setname"=>"const_2d_asm_Nx","filename"=>"MERRA300.prod.assim.${setname}.00000000.hdf",
+         "site"=>"ftp://goldsmr2.sci.gsfc.nasa.gov","path"=>"data/s4pa//MERRA_MONTHLY/MAC0NXASM.5.2.0/1979"}
+    result<<elt
+    elt={"setname"=>"inst6_3d_ana_Nv","filename"=>"${merraname}.prod.assim.${setname}.${year}${month}${day}.hdf",
+         "site"=>"ftp://goldsmr3.sci.gsfc.nasa.gov","path"=>"data/s4pa/MERRA/MAI6NVANA.5.2.0/${year}/${month}"}
+    result<<elt    
+    elt={"setname"=>"inst6_3d_ana_Np","filename"=>"${merraname}.prod.assim.${setname}.${year}${month}${day}.hdf",
+         "site"=>"ftp://goldsmr3.sci.gsfc.nasa.gov","path"=>"data/s4pa/MERRA/MAI6NPANA.5.2.0/${year}/${month}"}
+    result<<elt
+    elt={"setname"=>"tavg1_2d_slv_Nx","filename"=>"${merraname}.prod.assim.${setname}.${year}${month}${day}.hdf",
+         "site"=>"ftp://goldsmr2.sci.gsfc.nasa.gov","path"=>"data/s4pa/MERRA/MAT1NXSLV.5.2.0/${year}/${month}"}
+    result<<elt
+    elt={"setname"=>"tavg1_2d_ocn_Nx","filename"=>"${merraname}.prod.assim.${setname}.${year}${month}${day}.hdf",
+         "site"=>"ftp://goldsmr2.sci.gsfc.nasa.gov","path"=>"data/s4pa/MERRA/MAT1NXOCN.5.2.0/${year}/${month}"}
+    result<<elt
+    result
+  end
+
+  def addMERRADailysetMetadata(dates,settemplate,scriptprefix)
+    dates.each do |elt| 
+      merraname=""
+      if elt["year"].to_i < 1993 ; merraname="MERRA100" ; end
+      if elt["year"].to_i > 1992 and elt["year"].to_i < 2001 ; merraname="MERRA200" ; end
+      if elt["year"].to_i > 2000 ; merraname="MERRA300" ; end
+      datelabel="#{elt['year']}#{elt['month']}#{elt['day']}"
+      elt["namelistfile"]="namelist.#{scriptprefix}_#{datelabel}"
+      elt["scriptfile"]="#{scriptprefix}_#{datelabel}.bash"
+      if settemplate
+        elt["set"]=Hash.new
+        settemplate.each do |s|
+          setname=s["setname"]
+          site=s["site"]
+          #start with filename template and perform substitutions
+          #Note: must be a string copy since substitutions are in place.
+          filename=String.new(s["filename"])
+          filename.gsub!("${setname}",setname)
+          filename.gsub!("${merraname}",merraname)
+          filename.gsub!("${year}",elt["year"])
+          filename.gsub!("${month}",elt["month"])
+          filename.gsub!("${day}",elt["day"])
+          #start with path template and perform substitutions
+          path=String.new(s["path"])
+          path.gsub!("${year}",elt["year"])
+          path.gsub!("${month}",elt["month"])
+          path.gsub!("${day}",elt["day"])          
+          elt["set"][setname]={"site"=>site,"filename"=>filename,"path"=>path}
+        end
+      end
+    end
+  end 
+
+# Creates the namelist from the data structure w/metadata of a single date.
+  def createMERRANamelist(data)
+
+    result=<<-eos
+! MERRA namelist file: #{data["namelistfile"]}
+!------------------------------------
+&input
+
+  ! Directory to write output
+  outputDirectory = '.',
+
+  ! Directory with input MERRA files
+  merraDirectory = '.',
+
+  ! Format and name of const_2d_asm_Nx file
+  merraFormat_const_2d_asm_Nx = 4,
+  merraFile_const_2d_asm_Nx = '#{data["set"]["const_2d_asm_Nx"]["filename"]}',
+
+  ! Number of days to process.  Note that each file type (excluding const_2d_asm_Nx)
+  ! will have one file per day.
+  numberOfDays = 1,
+
+  ! Dates of each day being processed (YYYY-MM-DD)
+  ! ex: merraDate(1) = '2009-08-25',
+  merraDates(1) = '#{data["year"]}-#{data["month"]}-#{data["day"]}',
+
+  ! Format and Names of inst6_3d_ana_Nv files.
+  merraFormat_inst6_3d_ana_Nv = 4,
+  merraFiles_inst6_3d_ana_Nv(1) = '#{data["set"]["inst6_3d_ana_Nv"]["filename"]}',
+
+  ! Names of inst6_3d_ana_Np files.
+  merraFormat_inst6_3d_ana_Np = 4,
+  merraFiles_inst6_3d_ana_Np(1) = '#{data["set"]["inst6_3d_ana_Np"]["filename"]}',
+
+  ! Names of tavg1_2d_slv_Nx files.
+  merraFormat_tavg1_2d_slv_Nx = 4,
+  merraFiles_tavg1_2d_slv_Nx(1) = '#{data["set"]["tavg1_2d_slv_Nx"]["filename"]}',
+
+  ! Names of tavg1_2d_ocn_Nx files.
+  merraFormat_tavg1_2d_ocn_Nx = 4,
+  merraFiles_tavg1_2d_ocn_Nx(1) = '#{data["set"]["tavg1_2d_ocn_Nx"]["filename"]}',
+
+/
+eos
+  end
+
+  def createMERRAFtpScript(data)
+    header=<<-eos
+#!/bin/bash
+# MERRA ftp script for date: #{data["year"]}-#{data["month"]}-#{data["day"]}
+# ------------------------------------
+eos
+
+    body=""
+    data["set"].keys.each do |k|
+      site=data["set"][k]["site"]
+      path=data["set"][k]["path"]
+      filename=data["set"][k]["filename"]
+      temp=<<-eos
+
+# *** data set #{k} ****
+
+if wget -nc "#{site}/#{path}/#{filename}" ; then
+  echo "Downloaded #{filename}"
+else
+  echo "Error downloading #{filename}"
+  exit 1
+fi
+eos
+      body<<temp
+    end
+
+    header+body 
+  end
+
+# Creates the executes script from the data structure w/metadata of a single date.
+  def createMERRAExecuteScript(data)
+    result=<<-eos
+#!/bin/bash
+# MERRA script for date: #{data["year"]}-#{data["month"]}-#{data["day"]}
+# ------------------------------------
+if [ -f #{data['namelistfile']} ] ; then
+  # Run the merra2wrf 
+  if ./merra2wrf #{data['namelistfile']} ; then 
+    echo 'MERRA2WRF completed successfully for #{data["year"]}-#{data["month"]}-#{data["day"]}' 
+  else
+    echo 'ERROR: MERRA2WRF failed for #{data["year"]}-#{data["month"]}-#{data["day"]}'  
+    exit 1
+  fi
+else
+  echo "ERROR Unable to run merra2wrf: #{data['namelistfile']}  not found"
+  exit 1
+fi
+
+# Clean the downloaded data files
+#rm #{data['set']['inst6_3d_ana_Nv']['filename']} 
+#rm #{data['set']['inst6_3d_ana_Np']['filename']}
+#rm #{data['set']['tavg1_2d_slv_Nx']['filename']}
+#rm #{data['set']['tavg1_2d_ocn_Nx']['filename']}
+
+exit 0
+
+eos
+  result
   end
 
   # Edit the lis.config file found in rundir according to the parameters
@@ -181,7 +355,7 @@ eos
         script<<check
         script<<"ln -fs #{f} #{fw} || exit 1\n"
       end
-    elsif type.include?('root')
+    elsif type.include?('WRFV3')
       links=env.run.preprocessor_links.send(type)
       links.each do |l|
         fw=File.join('$WORKDIR',l)
@@ -195,6 +369,28 @@ fi
 eos
         script<<check
         script<<"ln -fs #{f} #{fw} || exit 1\n"
+      end
+    elsif type.include?('utils')
+      links=env.run.preprocessor_links.send(type)
+      links.each do |l|
+        namesource=namelink=""
+        if l.size == 2
+          namesource=l[0]
+          namelink=l[1]
+        else
+          namesource=namelink=l
+        end 
+        fw=File.join('$WORKDIR',namelink)
+        script<<"rm #{fw}\n"
+        fs=File.join('$NUWRFDIR','utils',namesource)
+        check=<<-eos
+if [ ! -e #{fs} ] ; then 
+    echo "ERROR, #{fs} does not exist!"
+    exit 1
+fi  
+eos
+        script<<check
+        script<<"ln -fs #{fs} #{fw} || exit 1\n"
       end
     elsif type.include?('local_links') 
       links=env.run.preprocessor_links.send(type)
@@ -219,6 +415,19 @@ eos
         else
           logw ("Incomplete link pair in #{type} YAML definition")
         end
+      end
+    elsif type.include?('check_exist')
+      links=env.run.preprocessor_links.send(type)
+      links.each do |lk|
+        fw=File.join('$WORKDIR',lk)
+        check=<<-eos
+if [ ! -e #{fw} ] ; then 
+    echo "ERROR, #{fw} does not exist!"
+    exit 1
+fi  
+
+eos
+        script<<check
       end
     end
 
@@ -277,26 +486,42 @@ eos
   def createPreprocessorHeader(env, preprocessor)
 
     script="#!/bin/bash\n"
-    script<<"#SBATCH -J #{env.run.batch_name.send(preprocessor)}\n"
-    script<<"#SBATCH -t #{env.run.batch_time.send(preprocessor)}\n"
-    script<<"#SBATCH -A #{env.run.batch_group.send(preprocessor)}\n"
-    script<<"#SBATCH -o #{env.run.batch_slurmout.send(preprocessor)}\n"
-    script<<"#SBATCH -p #{env.run.batch_queue.send(preprocessor)}\n"
-    proclineid=env.run.batch_procline.send(preprocessor)
-    script<<"#SBATCH -N #{env.run.proc_line.send(proclineid)}\n"
+    if "#{env.run.submission_type.send(preprocessor)}" == "batch"
+      script<<"# *** Note: Batch job script ***\n"
+      script<<"#SBATCH -J #{env.run.batch_name.send(preprocessor)}\n"
+      script<<"#SBATCH -t #{env.run.batch_time.send(preprocessor)}\n"
+      script<<"#SBATCH -A #{env.run.batch_group.send(preprocessor)}\n"
+      script<<"#SBATCH -o #{env.run.batch_slurmout.send(preprocessor)}\n"
+      if env.run.batch_queue.send(preprocessor) != ''
+         script<<"#SBATCH -p #{env.run.batch_queue.send(preprocessor)}\n"
+      end
+      proclineid=env.run.batch_procline.send(preprocessor)
+      if env.run.proc_line.send(proclineid)
+        script<<"#SBATCH -N #{env.run.proc_line.send(proclineid)}\n"
+      else
+        logw "Unable to locate an entry for #{proclineid} in proc_line" 
+      end
+    else
+      script<<"# *** Note: Local job script  ***\n"
+    end
     script<<"\n#---------------------- #{preprocessor} script -----------------------------\n\n"  
 
     script
   end
 
-  def createCommonPreprocessorBody(env,namelist=nil)
+  def createCommonPreprocessorBody(env, preprocessor, namelist=nil)
 
-    script=<<-eos
+    script=nil
+    if env.run.submission_type.send(preprocessor) == 'batch'
+      script=<<-eos
 # Change to the directory where job was submitted.
 if [ ! -z $SLURM_SUBMIT_DIR ] ; then
     cd $SLURM_SUBMIT_DIR || exit 1
 fi
+eos
+    end
 
+    script2=<<-eos
 # Load config file for modules and paths
 source ./common.bash || exit 1
 
@@ -315,9 +540,10 @@ cd $WORKDIR || exit 1
 
 eos
 
+    script3=nil
     if namelist
 
-      script2=<<-eos
+      script3=<<-eos
 # make sure #{namelist} is present.
 if [ ! -e #{namelist} ] ; then
     echo "ERROR, #{namelist} not found!"
@@ -325,10 +551,21 @@ if [ ! -e #{namelist} ] ; then
 fi
 
 eos
-      script+script2
-    else
-      script
     end
+
+    # Assemble the result
+    result=""
+    if script
+      result<<script
+    end
+    if script2
+      result<<script2
+    end
+    if script3
+      result<<script3
+    end
+
+    result
   end
 
   def createLdtLinks(env,var_select)
@@ -347,7 +584,7 @@ eos
 
     header=createPreprocessorHeader(env,'ldt_prelis')
 
-    body=createCommonPreprocessorBody(env,'ldt.config.prelis')
+    body=createCommonPreprocessorBody(env,'ldt_prelis','ldt.config.prelis')
 
     body<<createLdtLinks(env,'ldt_prelis_select')
 
@@ -378,7 +615,7 @@ eos
 
     header=createPreprocessorHeader(env,'lis')
 
-    body=createCommonPreprocessorBody(env,'lis.config.prewrf')
+    body=createCommonPreprocessorBody(env,'lis','lis.config.prewrf')
 
     body<<createLdtLinks(env,'lis_select')
 
@@ -415,7 +652,7 @@ eos
 
     header=createPreprocessorHeader(env,'ldt_postlis')
 
-    body=createCommonPreprocessorBody(env,'ldt.config.postlis')
+    body=createCommonPreprocessorBody(env,'ldt_postlis','ldt.config.postlis')
 
     body<<createLdtLinks(env,'ldt_postlis_select')
 
@@ -472,7 +709,7 @@ eos
 
     header=createPreprocessorHeader(env,'geogrid')
   
-    body=createCommonPreprocessorBody(env,'namelist.wps')
+    body=createCommonPreprocessorBody(env,'geogrid','namelist.wps')
 
     body<<createGeogridLinks(env)
 
@@ -532,6 +769,8 @@ eos
       getUngribInputPattern(env)
     elsif prep == 'gocart2wrf'
       getGocart2wrfInputPattern(env)
+    elsif prep == 'geos2wrf'
+      "*"
     else
       die ("#{prep} does not have a corresponding input pattern")
     end
@@ -542,6 +781,8 @@ eos
       getUngribInputLinkDir(env)
     elsif prep == 'gocart2wrf'
       getGocart2wrfInputLinkDir(env)
+    elsif prep == 'geos2wrf'
+      '.'
     else
       die ("#{prep} does not have an associated input link directory")
     end
@@ -592,7 +833,7 @@ eos
 
     header=createPreprocessorHeader(env,'ungrib')
 
-    body=createCommonPreprocessorBody(env,'namelist.wps')
+    body=createCommonPreprocessorBody(env,'ungrib','namelist.wps')
 
     body<<createUngribLinks(env)
 
@@ -616,6 +857,246 @@ mv ungrib.log ungrib_logs
 exit 0
 eos
 
+    header+body+footer
+  end
+
+  def createFTPMerraPreprocessorScript(env)
+
+    header=createPreprocessorHeader(env,'ftp_merra')
+
+    body=createCommonPreprocessorBody(env,'ftp_merra')
+
+    #Express start and end dates in terms of Time objects
+    date_start=Time.utc(env.run.merra_dates.start.year,env.run.merra_dates.start.month,env.run.merra_dates.start.day)
+    date_end=Time.utc(env.run.merra_dates.end.year,env.run.merra_dates.end.month,env.run.merra_dates.end.day)
+    #Calculate a day in seconds for the interval
+    interval=60*60*24
+    #Initialize the merra data structure with the dates
+    merra_data=getDateArray(date_start,date_end,interval)
+    #Add the metadata to the data structure as dictated by the template
+    addMERRADailysetMetadata(merra_data,getMERRADailysetTemplate(),"ftp_merra")
+    
+    #Create one ftp script per day
+    rundir=env.run.ddts_root
+    scripts_to_run =""
+    merra_data.each do |data|
+      content=createMERRAFtpScript(data)
+      fileName = File.join(rundir,data["scriptfile"])
+      File.open(fileName, "w+") do |scriptFile|
+        scriptFile.print(content)
+        logd "Created script file: #{fileName}"
+        FileUtils.chmod(0754,fileName,:verbose=>true)
+      end
+      scripts_to_run<<data["scriptfile"]+" "
+    end
+   
+    #Finalize main driver script
+    footer=<<-eos
+
+for file in #{scripts_to_run} ; do
+   
+  if ! ./$file >& ftpmerra.log ; then
+    exit 1
+ fi
+
+done
+
+echo "Successful MERRA ftp processing" >> ftpmerra.log
+
+# Tidy up logs
+mkdir -p ftpmerra_logs || exit 1
+
+mv ftpmerra.log ftpmerra_logs
+
+exit 0
+   
+eos
+
+    header+body+footer
+
+  end
+
+  def createMerra2wrfPreprocessorScript(env)
+
+    header=createPreprocessorHeader(env,'merra2wrf')
+
+    body=createCommonPreprocessorBody(env,'merra2wrf')
+
+    #Express start and end dates in terms of Time objects
+    date_start=Time.utc(env.run.merra_dates.start.year,env.run.merra_dates.start.month,env.run.merra_dates.start.day)
+    date_end=Time.utc(env.run.merra_dates.end.year,env.run.merra_dates.end.month,env.run.merra_dates.end.day)
+    #Calculate a day in seconds for the interval
+    interval=60*60*24
+    #Initialize the merra data structure with the dates
+    merra_data=getDateArray(date_start,date_end,interval)
+    #Add the metadata to the data structure as dictated by the template
+    addMERRADailysetMetadata(merra_data,getMERRADailysetTemplate(),"merra2wrf")
+
+    #Create one ftp script per day
+    rundir=env.run.ddts_root
+    scripts_to_run =""
+    merra_data.each do |data|
+      #Create the daily script file
+      content=createMERRAExecuteScript(data)
+      fileName = File.join(rundir,data["scriptfile"])
+      File.open(fileName, "w+") do |scriptFile|
+        scriptFile.print(content)
+        logd "Created script file: #{fileName}"
+        FileUtils.chmod(0754,fileName,:verbose=>true)
+      end
+      scripts_to_run<<data["scriptfile"]+" "
+
+      #Create the required namelist file
+      content=createMERRANamelist(data)
+      fileName = File.join(rundir,data["namelistfile"])
+      File.open(fileName, "w+") do |nlFile|
+        nlFile.print(content)
+        logd "Created file: #{fileName}"
+      end
+
+    end
+
+    #Finalize main driver script
+    footer=<<-eos
+
+ln -fs $NUWRFDIR/utils/geos2wrf_2/merra2wrf  || exit 1
+if [ ! -e merra2wrf ] ; then
+    echo "ERROR, merra2wrf not found!"
+    exit 1
+fi
+
+for file in #{scripts_to_run} ; do
+   
+  ./$file >> merra2wrf.log 2>&1 || exit 1
+
+done
+
+echo "Successful MERRA2WRF processing" >> merra2wrf.log
+
+# Tidy up logs
+mkdir -p merra2wrf_logs || exit 1
+
+mv merra2wrf.log merra2wrf_logs
+
+exit 0
+   
+eos
+
+    header+body+footer
+
+  end
+
+  def createRunMerraLinks(env)
+    script=""
+    if env.run.run_merra_select and env.run.run_merra_select.class == Array
+      env.run.run_merra_select.each do |type|
+        script<<createTypedLinks(env,type)
+      end
+    elsif env.run.run_merra_select
+      script<<createTypedLinks(env,env.run.run_merra_select)
+    end
+    script
+  end
+
+  def createRunMerraPreprocessorScript(env)
+
+    header=createPreprocessorHeader(env,'run_merra')
+
+    body=createCommonPreprocessorBody(env,'run_merra')
+
+    body<<createRunMerraLinks(env)
+
+    footer=<<-eos
+
+ln -fs $NUWRFDIR/utils/geos2wrf_2/merra2wrf  || exit 1
+if [ ! -e merra2wrf ] ; then
+    echo "ERROR, merra2wrf not found!"
+    exit 1
+fi
+
+#Run script
+if [ ! -e Run_MERRA.csh ] ; then
+    echo "ERROR, Run_MERRA.csh does not exist!"
+    exit 1
+fi
+
+chmod +x Run_MERRA.csh
+
+./Run_MERRA.csh #{env.run.merra_dates.start} #{env.run.merra_dates.end} .  >& runmerra.log || exit
+
+# Tidy up logs
+mkdir -p runmerra_logs || exit 1
+mv runmerra.log runmerra_logs
+
+# end
+exit 0
+
+eos
+    header+body+footer
+  end
+
+  def createGeos2wrfLinks(env)
+    script=""
+    if env.run.geos2wrf_select and env.run.geos2wrf_select.class == Array
+      env.run.geos2wrf_select.each do |type|
+        script<<createTypedLinks(env,type)
+      end
+    elsif env.run.geos2wrf_select
+      script<<createTypedLinks(env,env.run.geos2wrf_select)
+    end
+    script
+  end
+
+  def createGeos2wrfPreprocessorScript(env)
+    header=createPreprocessorHeader(env,'geos2wrf')
+    body=createCommonPreprocessorBody(env,'geos2wrf','namelist.wps')
+
+    body<<createGeos2wrfLinks(env)
+
+    footer=<<-eos
+
+ln -fs $NUWRFDIR/utils/geos2wrf_2/geos2wps  || exit 1
+if [ ! -e geos2wps ] ; then
+    echo "ERROR, geos2wps not found!"
+    exit 1
+fi
+
+ln -fs $NUWRFDIR/utils/geos2wrf_2/createSOILHGT  || exit 1
+if [ ! -e createSOILHGT ] ; then
+    echo "ERROR, createSOILHGT not found!"
+    exit 1
+fi
+
+ln -fs $NUWRFDIR/utils/geos2wrf_2/createLANDSEA  || exit 1
+if [ ! -e createLANDSEA ] ; then
+    echo "ERROR, createLANDSEA not found!"
+    exit 1
+fi
+
+ln -fs $NUWRFDIR/utils/geos2wrf_2/createRH  || exit 1
+if [ ! -e createRH ] ; then
+    echo "ERROR, createRH not found!"
+    exit 1
+fi
+
+#Run script
+if [ ! -e c1440_NR.geos2wrf.py ] ; then
+    echo "ERROR, c1440_NR.geos2wrf.py does not exist!"
+    exit 1
+fi
+
+./c1440_NR.geos2wrf.py c1440_NR.geos2wrf.settings.cfg c1440_NR.geos2wrf.variables.cfg >& geos2wrf.log || exit
+
+echo "Successful completion of program" >> geos2wrf.log
+
+# Tidy up logs
+mkdir -p geos2wrf_logs || exit 1
+mv geos2wrf.log geos2wrf_logs
+
+# end
+exit 0
+
+eos
     header+body+footer
   end
 
@@ -648,7 +1129,7 @@ eos
 
     header=createPreprocessorHeader(env,'metgrid')
 
-    body=createCommonPreprocessorBody(env,'namelist.wps')
+    body=createCommonPreprocessorBody(env,'metgrid','namelist.wps')
 
     body<<createMetgridLinks(env)
 
@@ -697,7 +1178,7 @@ eos
 
     header=createPreprocessorHeader(env,'real')
 
-    body=createCommonPreprocessorBody(env,'namelist.input.real')
+    body=createCommonPreprocessorBody(env,'real','namelist.input.real')
 
     body<<createRealLinks(env)
 
@@ -752,7 +1233,7 @@ eos
 
     header=createPreprocessorHeader(env,'gocart2wrf')
 
-    body=createCommonPreprocessorBody(env,'namelist.gocart2wrf')
+    body=createCommonPreprocessorBody(env,'gocart2wrf','namelist.gocart2wrf')
 
     footer=<<-eos
 # Run gocart2wrf.  No MPI is used since the program is serial.
@@ -814,7 +1295,7 @@ eos
 
     header=createPreprocessorHeader(env,'casa2wrf')
 
-    body=createCommonPreprocessorBody(env,'namelist.casa2wrf')
+    body=createCommonPreprocessorBody(env,'casa2wrf','namelist.casa2wrf')
 
     body<<createCasa2wrfLinks(env)
 
@@ -878,7 +1359,7 @@ eos
 
     header=createPreprocessorHeader(env,'prep_chem_sources')
 
-    body=createCommonPreprocessorBody(env)
+    body=createCommonPreprocessorBody(env,'prep_chem_sources')
 
     body<<createPrepchemsourcesLinks(env)
 
@@ -928,7 +1409,7 @@ eos
 
     header=createPreprocessorHeader(env,'convert_emiss')
 
-    body=createCommonPreprocessorBody(env,'namelist.input.convert_emiss.d01')
+    body=createCommonPreprocessorBody(env,'convert_emiss','namelist.input.convert_emiss.d01')
 
     body<<createConvertemissLinks(env)
 
@@ -1133,7 +1614,7 @@ eos
 
     header=createPreprocessorHeader(env,'wrf')
 
-    body=createCommonPreprocessorBody(env,'namelist.input.wrf')
+    body=createCommonPreprocessorBody(env,'wrf','namelist.input.wrf')
 
     body<<createWrfLinks(env)
 
@@ -1174,6 +1655,8 @@ mv wrf.rsl.* wrf_logs
 mkdir -p wrf_lis_logs || exit 1
 
 mv lislog.* wrf_lis_logs
+
+sleep 60
 
 # The end
 exit 0
@@ -1216,7 +1699,7 @@ eos
 
     header=createPreprocessorHeader(env,'rip')
 
-    body=createCommonPreprocessorBody(env)
+    body=createCommonPreprocessorBody(env,'rip')
 
     body<<createRipLinks(env)
 
@@ -1326,7 +1809,7 @@ eos
   
     header=createPreprocessorHeader(env,'gsdsu')
     
-    body=createCommonPreprocessorBody(env,'Configure_SDSU.F')
+    body=createCommonPreprocessorBody(env,'gsdsu','Configure_SDSU.F')
 
     body<<createGsdsuLinks(env)
 
@@ -1347,6 +1830,26 @@ exit 0
 eos
 
     header+body+footer
+  end
+
+  def run_local_job(env,rundir,preprocessor)
+    jobid=nil
+    re1=Regexp.new(lib_re_str_job_id)
+    ss=File.join(".",getPreprocessorScriptName(preprocessor))
+    cmd="cd #{rundir} && #{ss}"
+    logd "Executing job with command: #{cmd}"
+    output,status=ext(cmd,{:msg=>"Job execution failed"})
+    output.each do |e|
+      e.chomp!
+      logd e
+    end
+    outfile=File.join(rundir,env.run.expectedStatusFiles.send(preprocessor)[0])
+    if File.exists?(outfile)
+      logd "#{outfile} found"
+    else
+      logd "ERROR: #{outfile} not found"
+    end
+    outfile
   end
 
   def run_batch_job(env,rundir,preprocessor)
