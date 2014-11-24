@@ -28,7 +28,7 @@ batch_time:
   geogrid: '0:15:00' 
   ungrib: '1:00:00'
   run_merra: '0:30:00'
-  merra2wrf: '0:30:00'
+  merra2wrf: '0:10:00'
   geos2wrf: '0:20:00'
   metgrid: '0:10:00'
   real: '0:30:00'

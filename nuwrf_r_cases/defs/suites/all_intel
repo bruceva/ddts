@@ -65,5 +65,13 @@ group29:
   - r_geos2wrf_intel
 group30:
   - r_runmerra_intel
-#end
+group31:
+  - r_merra2wrf_intel
+group32:
+  - r_gfed3_gocart_intel
+group33:
+  - r_gfed3_gocart_idl_intel
+group34:
+  - r_gfed3_gocartracm_kpp_intel
 
+#end

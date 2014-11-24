@@ -1,4 +1,4 @@
 ddts_extends: 'r_merra2wrf'
 
-preprocessors: ['merra2wrf']
+preprocessors: ['ftp_merra','merra2wrf']
 

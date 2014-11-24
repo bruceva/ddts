@@ -316,7 +316,7 @@ module Library
             #logi "#{a.class} #{prep}"
             # Some preprocessors contain files and entire directories as input
             # Files are listed in an array format while directories are single strings
-            if a.class == String and 'ungrib gocart2wrf geos2wrf'.include?(prep)
+            if a.class == String and 'ungrib gocart2wrf geos2wrf prep_chem_sources'.include?(prep)
               if Dir.exist?(a)
                 logi "Found #{prep} #{a} input directory"
                 linkdir=getInputLinkDir(env,prep)

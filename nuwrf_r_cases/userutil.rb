@@ -771,6 +771,8 @@ eos
       getGocart2wrfInputPattern(env)
     elsif prep == 'geos2wrf'
       "*"
+    elsif prep == 'prep_chem_sources'
+      "*"
     else
       die ("#{prep} does not have a corresponding input pattern")
     end
@@ -782,6 +784,8 @@ eos
     elsif prep == 'gocart2wrf'
       getGocart2wrfInputLinkDir(env)
     elsif prep == 'geos2wrf'
+      '.'
+    elsif prep == 'prep_chem_sources'
       '.'
     else
       die ("#{prep} does not have an associated input link directory")
@@ -895,7 +899,7 @@ eos
 
 for file in #{scripts_to_run} ; do
    
-  if ! ./$file >& ftpmerra.log ; then
+  if ! ./$file >> ftpmerra.log 2>&1 ; then
     exit 1
  fi
 
@@ -1577,7 +1581,7 @@ for domain in `seq 1 $numDomains` ; do
         mv wrfchemi_gocart_bg_${d}.actual wrfchemi_gocart_bg_${d}_${idate} || exit 1
     fi
     if [ -e wrffirechemi_${d}.actual ] ; then
-        mv wrffirechemi_${d}.actual wrffirechemi_${d} || exit 1
+        mv wrffirechemi_${d}.actual wrffirechemi_${d}_${idate}_${itime} || exit 1
     fi
 done
 

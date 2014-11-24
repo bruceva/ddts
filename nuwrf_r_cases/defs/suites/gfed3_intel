@@ -1,0 +1,12 @@
+ddts_extends: email_nuwrf 
+ddts_continue: true
+ddts_retain_builds: true
+group1:
+  - r_gfed3_gocart_intel
+group2:
+  - r_gfed3_gocart_idl_intel
+group3:
+  - r_gfed3_gocartracm_kpp_intel
+
+#end
+
