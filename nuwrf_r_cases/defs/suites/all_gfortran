@@ -1,24 +1,64 @@
-ddts_extends: 'email_nuwrf'
-ddts_retain_builds: true
+ddts_extends: 'email_nuwrf' 
 ddts_continue: true
-#ddts_build_only: true
+ddts_retain_builds: true
+
 group1:
-  - r_casaco2_gfortran
+  - r_3ice_graupel_2014rad_gocart_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_3ice_graupel_2014rad_gocart_gfortran',batch_time:wrf='4:00:00'
 group2:
-  - r_case05_gfortran
+  - r_3ice_graupel_2014rad_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_3ice_graupel_2014rad_gfortran'
 group3:
-  - r_case06_gfortran
+  - r_3ice_graupel_gocart_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_3ice_graupel_gocart_gfortran',batch_time:wrf='4:00:00'
 group4:
-  - r_case08_gfortran
+  - r_3ice_graupel_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_3ice_graupel_gfortran'
 group5:
-  - r_case09_gfortran
+  - r_3ice_hail_2014rad_gocart_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_3ice_hail_2014rad_gocart_gfortran',batch_time:wrf='4:00:00'
 group6:
-  - r_case11_gfortran
+  - r_3ice_hail_2014rad_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_3ice_hail_2014rad_gfortran'
 group7:
-  - r_case13_gfortran
+  - r_3ice_hail_gocart_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_3ice_hail_gocart_gfortran',batch_time:wrf='4:00:00'
 group8:
-  - r_case15_gfortran
+  - r_3ice_hail_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_3ice_hail_gfortran'
 group9:
-  - r_case16_gfortran
+  - r_4ice_2014rad_gocart_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_4ice_2014rad_gocart_gfortran',batch_time:wrf='4:00:00'
 group10:
-  - r_erod_mdb_gfortran
+  - r_4ice_2014rad_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_4ice_2014rad_gfortran'
+group11:
+  - r_4ice_gocart_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_4ice_gocart_gfortran',batch_time:wrf='6:00:00'
+group12:
+  - r_4ice_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_4ice_gfortran'
+group13:
+  - r_casaco2_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_casaco2_gfortran'
+group16:
+  - r_case08_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_case08_gfortran'
+group22:
+  - r_erod_dynclimo_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_erod_dynclimo_gfortran',batch_time:wrf='4:00:00'
+group23:
+  - r_erod_dyn_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_erod_dyn_gfortran'
+group24:
+  - r_erod_mdb_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_erod_mdb_gfortran',batch_time:wrf='4:00:00'
+group25:
+  - r_gsdsu_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_gsdsu_gfortran'
+group26:
+  - r_modis_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_modis_gfortran'
+group27:
+  - r_umd_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_umd_gfortran'
+group28:
+  - r_usgs_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_usgs_gfortran'
+#group26:
+#  - r_gsfcrad14_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_gsfcrad14_gfortran'
+group29:
+  - r_geos2wrf_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_geos2wrf_gfortran'
+group30:
+  - r_runmerra_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_runmerra_gfortran'
+group31:
+  - r_merra2wrf_intel/compiler='gfortran',ddts_build='all_discover_gnu48_openmpi',ddts_baseline='r_merra2wrf_gfortran'
+group32:
+  - r_gfed3_gocart_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_gfed3_gocart_gfortran'
+group33:
+  - r_gfed3_gocart_idl_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_gfed3_gocart_idl_gfortran'
+group34:
+  - r_gfed3_gocartracm_kpp_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_gfed3_gocartracm_kpp_gfortran'
+group35:
+  - r_3ice_graupel_merraero_intel/compiler='gfortran',ddts_build='allchem_discover_gnu48_openmpi',ddts_baseline='r_3ice_graupel_merraero_gfortran'
+
+#end

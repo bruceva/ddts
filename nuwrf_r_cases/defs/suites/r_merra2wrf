@@ -1,7 +1,12 @@
-#ddts_extends: 'email_nuwrf'
+ddts_extends: 'email_nuwrf'
 ddts_retain_builds: true
 #ddts_build_only: true
 ddts_continue: true
-group1:
-  - r_merra2wrf_intel
+# intel13_mvapich2_override: "preprocessors=!replace ['merra2wrf'],compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_merra2wrf_intel13_mvapich2'"
+#group1:
+#  - r_merra2wrf_intel
+group2:
+#  - r_merra2wrf_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_merra2wrf_intel13_mvapich2'
+   - r_merra2wrf_intel/ddts_include='intel13_mvapich2_override'
+
 

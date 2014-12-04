@@ -1,0 +1,64 @@
+ddts_extends: 'email_nuwrf' 
+ddts_continue: true
+ddts_retain_builds: true
+
+group1:
+  - r_3ice_graupel_2014rad_gocart_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_3ice_graupel_2014rad_gocart_intel13_mvapich2',batch_time:metgrid='3:00:00'
+group2:
+  - r_3ice_graupel_2014rad_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_3ice_graupel_2014rad_intel13_mvapich2'
+group3:
+  - r_3ice_graupel_gocart_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_3ice_graupel_gocart_intel13_mvapich2',batch_time:metgrid='3:00:00'
+group4:
+  - r_3ice_graupel_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_3ice_graupel_intel13_mvapich2',batch_time:metgrid='3:00:00'
+group5:
+  - r_3ice_hail_2014rad_gocart_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_3ice_hail_2014rad_gocart_intel13_mvapich2',batch_time:metgrid='3:00:00'
+group6:
+  - r_3ice_hail_2014rad_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_3ice_hail_2014rad_intel13_mvapich2'
+group7:
+  - r_3ice_hail_gocart_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_3ice_hail_gocart_intel13_mvapich2',batch_time:metgrid='3:00:00'
+group8:
+  - r_3ice_hail_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_3ice_hail_intel13_mvapich2',batch_time:metgrid='3:00:00'
+group9:
+  - r_4ice_2014rad_gocart_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_4ice_2014rad_gocart_intel13_mvapich2',batch_time:metgrid='3:00:00'
+group10:
+  - r_4ice_2014rad_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_4ice_2014rad_intel13_mvapich2'
+group11:
+  - r_4ice_gocart_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_4ice_gocart_intel13_mvapich2',batch_time:metgrid='3:00:00'
+group12:
+  - r_4ice_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_4ice_intel13_mvapich2',batch_time:metgrid='3:00:00'
+group13:
+  - r_casaco2_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_casaco2_intel13_mvapich2',batch_time:real='6:00:00'
+group16:
+  - r_case08_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_case08_intel13_mvapich2'
+group22:
+  - r_erod_dynclimo_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_erod_dynclimo_intel13_mvapich2',batch_time:metgrid='1:00:00'
+group23:
+  - r_erod_dyn_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_erod_dyn_intel13_mvapich2',batch_time:metgrid='1:00:00'
+group24:
+  - r_erod_mdb_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_erod_mdb_intel13_mvapich2',batch_time:metgrid='1:00:00'
+group25:
+  - r_gsdsu_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_gsdsu_intel13_mvapich2'
+group26:
+  - r_modis_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_modis_intel13_mvapich2',batch_time:metgrid='1:00:00'
+group27:
+  - r_umd_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_umd_intel13_mvapich2',batch_time:metgrid='1:00:00'
+group28:
+  - r_usgs_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_usgs_intel13_mvapich2',batch_time:metgrid='1:00:00'
+#group26:
+#  - r_gsfcrad14_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_gsfcrad14_intel13_mvapich2'
+group29:
+  - r_geos2wrf_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_geos2wrf_intel13_mvapich2',batch_time:metgrid='1:00:00'
+group30:
+  - r_runmerra_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_runmerra_intel13_mvapich2'
+group31:
+  - r_merra2wrf_intel/compiler='intel13_w_mvapich2',ddts_build='all_discover_intel13_mvapich2',ddts_baseline='r_merra2wrf_intel13_mvapich2'
+group32:
+  - r_gfed3_gocart_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_gfed3_gocart_intel13_mvapich2',batch_time:metgrid='1:00:00'
+group33:
+  - r_gfed3_gocart_idl_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_gfed3_gocart_idl_intel13_mvapich2',batch_time:metgrid='1:00:00'
+group34:
+  - r_gfed3_gocartracm_kpp_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_gfed3_gocartracm_kpp_intel13_mvapich2',batch_time:metgrid='1:00:00'
+group35:
+  - r_3ice_graupel_merraero_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_3ice_graupel_merraero_intel13_mvapich2',batch_time:metgrid='3:00:00'
+
+#end
