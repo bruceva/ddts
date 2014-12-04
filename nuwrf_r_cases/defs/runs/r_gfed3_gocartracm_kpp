@@ -84,7 +84,7 @@ expectedStatusFiles:
   real: ['real_logs/real.rsl.out.0000','SUCCESS COMPLETE REAL_EM']
   wrf:  ['wrf_logs/wrf.rsl.out.0000','SUCCESS COMPLETE WRF']
   rip:  ['rip_logs/rip_results.out','Success']
-  prep_chem_sources: ['pcs.slurm.out','gfedv3-T-2008-01-01-000000-g1-bb.bin']
+  prep_chem_sources: ['pcs.slurm.out','Opening prep_chem_sources.inp']
   convert_emiss: ['convert_emiss_logs/convert_emiss_results.out','Success']
   gocart2wrf: ['gc2wrf.slurm.out','Processing SO4']  
 

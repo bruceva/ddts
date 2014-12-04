@@ -25,6 +25,7 @@ preprocessor_links:
   metgrid_arw: ['METGRID.TBL.ARW','METGRID.TBL']
   metgrid_nmm: ['METGRID.TBL.NMM','METGRID.TBL']
   metgrid_afwa: ['METGRID.TBL.AFWA','METGRID.TBL']
+  metgrid_arw2: ['METGRID.TBL.ARW.lis','METGRID.TBL']
   real: ['CAM_ABS_DATA','CAM_AEROPT_DATA','co2_trans','ETAMPNEW_DATA',
          'ETAMPNEW_DATA_DBL', 'ETAMPNEW_DATA.expanded_rain',
          'ETAMPNEW_DATA.expanded_rain_DBL', 'GENPARM.TBL', 'grib2map.tbl', 
@@ -46,7 +47,7 @@ preprocessor_links:
 
 geogrid_select: 'geogrid_nochem'
 geos2wrf_select: 'utils'
-metgrid_select: 'metgrid_arw'
+metgrid_select: 'metgrid_arw2'
 real_select: 'real'
 
 #note: processing wrf and lis properly requires 'wrf' and 'lis' to be part of the name respectively

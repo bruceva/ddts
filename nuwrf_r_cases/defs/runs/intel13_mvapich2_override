@@ -1,0 +1,7 @@
+# intel13_mvapich2_override creates only certain replacements 
+ddts_includes: test1/ddts_includes='test2'
+ddts_build: 'all_discover_intel13_mvapich2'
+ddts_baseline: 'r_merra2wrf_intel13_mvapich2'
+preprocessors: !replace ['merra2wrf']
+compiler: 'intel13_w_mvapich2'
+

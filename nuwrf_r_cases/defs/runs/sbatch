@@ -176,11 +176,13 @@ lis_config:
 modules: 
   intel: 'comp/intel-13.0.1.117 mpi/impi-4.0.3.008'
   gfortran: 'other/comp/gcc-4.8.1 other/mpi/openmpi/1.7.2-gcc-4.8.1-shared'
+  intel13_w_mvapich2: 'comp/intel-13.0.1.117 other/mpi/mvapich2-2.0a2/intel-13.0.1.117'
 
 # script exports required 
 batch_exports:
-  intel: ["NCARG_ROOT=/usr/local/other/SLES11.1/ncarg/6.0.0/intel-13.0.1.117"] 
-  gfortran: ["NCARG_ROOT=/usr/local/other/SLES11.1/ncarg/6.0.0/gnu-4.8.1"]     
+  intel: ["NCARG_ROOT=/discover/nobackup/projects/nu-wrf/lib/SLES11.1/ncarg/6.0.0/intel-13.0.1.117"] 
+  gfortran: ["NCARG_ROOT=/discover/nobackup/projects/nu-wrf/lib/SLES11.1/ncarg/6.0.0/gnu-4.8.1"]     
+  intel13_w_mvapich2: ["NCARG_ROOT=/discover/nobackup/projects/nu-wrf/lib/SLES11.1/ncarg/6.0.0/intel-13.0.1.117"]
 
 lis_dir: '/discover/nobackup/projects/lis'
 
