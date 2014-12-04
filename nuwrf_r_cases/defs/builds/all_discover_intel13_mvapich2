@@ -1,0 +1,2 @@
+ddts_extends: 'all'
+config: 'discover_intel13_mvapich2.cfg'
