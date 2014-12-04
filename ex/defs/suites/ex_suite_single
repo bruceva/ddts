@@ -1,0 +1,3 @@
+ddts_extends: ex_suite_base
+group_ex:
+  - ex_4

@@ -1,0 +1,3 @@
+ddts_extends: 'ex_base'
+sleep: 2
+tasks: 2

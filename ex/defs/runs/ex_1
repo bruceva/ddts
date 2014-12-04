@@ -1,0 +1,5 @@
+ddts_extends: 'ex_base'
+lib_comp: 'lib_comp_alt'
+message: ['Running','case','ex_1']
+sleep: 3
+tasks: 1

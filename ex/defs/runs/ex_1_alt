@@ -1,0 +1,4 @@
+ddts_extends: 'ex_1'
+a: 6.283
+b: 16.283
+message: !replace ['Running','case','ex_1_alt']

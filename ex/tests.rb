@@ -16,15 +16,18 @@ def exe(desc,suite,*expected)
   # The 'expected' strings are escaped, so regexp characters will be
   # treated literally.
 
-  expected.map! { |e| Regexp::escape(e) }
-  print "Testing: #{desc}"+" "*(40-desc.length)
+  expected.map! { |e| [e,Regexp::escape(e)] }
+  print "Testing: #{desc}"+" "*(78-desc.length)
   ddts=File.join("..","ddts")
-  cmd="DDTSOUT=#{$OUT} #{ddts} #{suite} 2>&1"
+  cmd="DDTSAPP=. DDTSOUT=#{$OUT} #{ddts} #{suite} 2>&1"
   out=`#{cmd}`.split("\n")
-  expected.each do |string|
-    if out.grep(/.*#{string}.*/).empty? 
-      puts "FAILED"
+  expected.each do |pair|
+    string=pair.first
+    re_str=pair.last
+    if out.grep(/.*#{re_str}.*/).empty?
+      puts "FAILED\n"
       puts "\nCommand was:\n\n#{cmd}"
+      puts "\nExpected to see:\n\n#{string}"
       die "\nOutput was:\n\n#{out.join("\n")}"
     end
   end
@@ -49,7 +52,8 @@ FileUtils.rm_rf(baseline)
 
 exe("ex_suite_single","ex_suite_single",
   "Run ex_4: Completed",
-  "ALL TESTS PASSED"
+  "ALL TESTS PASSED",
+  "build fail rate = 0.0"
   )
 
 # ex_suite_fail executes the single ex_fail run, which is expected to fail.
@@ -90,7 +94,7 @@ exe("ex_suite (gen baseline pass)","gen-baseline #{baseline} ex_suite",
 # Retry baseline creation -- it should fail.
 
 exe("ex_suite (gen baseline fail)","gen-baseline #{baseline} ex_suite",
-  "ex_baseline already exists",
+  "Run 'ex_1' could overwrite baseline 'ex_baseline'",
   "Test suite 'ex_suite' FAILED"
   )
 
@@ -98,6 +102,7 @@ exe("ex_suite (gen baseline fail)","gen-baseline #{baseline} ex_suite",
 
 exe("ex_suite use-baseline","use-baseline #{baseline} ex_suite",
   "Run ex_1: Baseline comparison OK",
+  "with alternate comparator",
   "Comparison: ex_1, ex_1_alt, ex_2, ex_4: OK",
   "ALL TESTS PASSED"
   )
@@ -108,7 +113,8 @@ exe("ex_suite use-baseline","use-baseline #{baseline} ex_suite",
 exe("ex_suite_1p_1f","ex_suite_1p_1f",
   "Group stats: 1 of 2 runs failed, skipping comparison",
   "Suite stats: Failure in 1 of 1 group(s)",
-  "Failure in 1 of 1 group(s)"
+  "Failure in 1 of 1 group(s)",
+  "run fail rate = 0.5"
   )
 
 # ex_suite_2p_1f executes three runs in one group, where one fails. The two
@@ -157,6 +163,132 @@ exe("ex_suite_mismatch_continue","ex_suite_mismatch_continue",
   "Comparison failed (ex_2 vs ex_4_bad)",
   "Suite stats: Failure in 1 of 2 group(s)",
   "0 of 4 TEST(S) FAILED"
+  )
+
+# Remove baseline
+
+FileUtils.rm_rf(baseline)
+
+# Single run, generate baseline
+
+exe("ex_1 gen baseline","run gen-baseline #{baseline} ex_1",
+  "Run ex_1: Completed",
+  "Creating ex_baseline baseline: OK"
+  )
+
+# Single run, generate baseline (fail due to conflict)
+
+exe("ex_1 gen baseline (conflict)","run gen-baseline #{baseline} ex_1",
+  "Run 'ex_1' could overwrite baseline 'ex_baseline'",
+  "Aborting..."
+  )
+
+# Single run, use baseline
+
+exe("ex_1 use baseline","run use-baseline #{baseline} ex_1",
+  "Comparing to baseline ex_baseline",
+  "Baseline comparison OK"
+  )
+
+# Single run with unsatisfied 'require'.
+
+exe("ex_2_require_scalar fail","run ex_2_require_scalar",
+  "Run 'ex_2_require_scalar' depends on unscheduled run 'ex_1'",
+  "Aborting..."
+  )
+
+# Suite with satisfied 'require', scalar version
+
+exe("ex_suite_require_pass_1","ex_suite_require_pass_1",
+  "Waiting on required run: ex_1",
+  "Run ex_2_require_scalar: Completed",
+  "ALL TESTS PASSED"
+  )
+
+# Suite with satisfied 'require', array version
+
+exe("ex_suite_require_pass_2","ex_suite_require_pass_2",
+  "Waiting on required run: ex_1",
+  "Run ex_2_require_array: Completed",
+  "ALL TESTS PASSED"
+  )
+
+# Suite with unsatisfied 'require' (unscheduled run)
+
+exe("ex_suite_require fail_1 (unscheduled run)","ex_suite_require_fail_1",
+  "Run 'ex_2_require_array' depends on unscheduled run 'ex_1'",
+  "Test suite 'ex_suite_require_fail_1' FAILED"
+  )
+
+# Suite with unsatisfied 'require' (failed run)
+
+exe("ex_suite_require fail_2 (failed run)","ex_suite_require_fail_2",
+  "Run 'ex_2_require_fail' depends on failed run 'ex_fail'",
+  "2 of 2 TEST(S) FAILED"
+  )
+
+# Suite with a failed build, no continue
+
+exe("ex_suite_build_fail","ex_suite_build_fail",
+  "Build ex_build_fail started",
+  "Build failed",
+  "Test suite 'ex_suite_build_fail' FAILED"
+  )
+
+# Suite with a failed build, with continue
+
+exe("ex_suite_build_fail_continue","ex_suite_build_fail_continue",
+  "Build ex_build_fail started",
+  "Build failed",
+  "1 of 2 TEST(S) FAILED",
+  "build fail rate = 0.5",
+  "run fail rate = 0.5"
+  )
+
+# Run with no build specified
+
+exe("ex_no_build","run ex_no_build",
+  "Run 'ex_no_build' not associated with any build, aborting..."
+  )
+
+# Run with non-existent build specified
+
+exe("ex_bad_build","run ex_bad_build",
+  "Run 'ex_bad_build' associated with unknown build 'no_such_build', aborting..."
+  )
+
+# Test !replace yaml tag
+
+exe("ex_1_alt !replace test","run ex_1_alt",
+  ": Running case ex_1_alt"
+  )
+
+# Test !delete yaml tag (hash)
+
+exe("ex_1_no_n !delete test (no n parameter)","run ex_1_no_n",
+  "Configuration parameter 'n' must be > 0"
+  )
+
+# Test !delete yaml tag (array)
+
+exe("ex_1_no_case !delete test (no 'case' in message)","run ex_1_no_case",
+  "Running ex_1 now",
+  )
+
+# Override run test
+
+exe("ex_1 with override","run ex_1/sleep=0,message='Sleeping 0'",
+  "ex_1_v1: Sleeping 0",
+  "ex_1_v1: Completed"
+  )
+
+# Override suite test
+
+exe("ex_suite_override (ex_1 overridden two ways)","ex_suite_override",
+  "Sleeping 0",
+  "Sleeping 1",
+  "Comparison: ex_1_v1, ex_1_v2: OK",
+  "ALL TESTS PASSED"
   )
 
 # Remove output directory.

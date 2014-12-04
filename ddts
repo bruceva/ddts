@@ -1,17 +1,22 @@
 #!/bin/bash
 
-p=$(readlink $0) || p=$0
-d=$(dirname  $p)
-b=$(basename $p)
+fail() { echo -e "\n$1\n" && exit 1; }
 
-jruby=$d/jruby-complete.jar
+p=$(readlink -e $0)
+d=$(dirname     $p)
+b=$(basename    $p)
 
-if [[ ! -f "$jruby" ]]
+engine=jruby # 'jruby' or 'ruby'
+
+test -z "$engine" && fail "No engine specified"
+
+if [[ "$engine" = "jruby" ]]
 then
-  echo "Cannot find '$jruby'."
-  exit 1
+  jruby=$d/jruby-complete.jar
+  test -f "$jruby" || fail "Cannot find $jruby"
+  engine="java -jar $jruby --1.9"
 fi
 
 export DDTSHOME=$d
 
-ulimit -Su 512 && java -jar $jruby --1.9 -I. $d/ts.rb $b $*
+ulimit -St unlimited -Su unlimited && $engine $d/ts.rb $b "$@"

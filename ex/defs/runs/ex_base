@@ -1,0 +1,9 @@
+a: 0.0
+b: 10.0
+binname: 'integrate'
+conffile: 'tr.nl'
+ddts_baseline: 'ex_baseline'
+ddts_build: 'ex_build'
+lib_outfiles: 'lib_outfiles_ex'
+n: 10000
+runcmd: 'mpirun -np'

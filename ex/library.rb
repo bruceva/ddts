@@ -1,37 +1,31 @@
 module Library
 
-  # REQUIRED METHODS (CALLED BY DRIVER)
+  # TODO Comments are needed here to explain how these routines use information
+  #      from the 'env' object and their arguments and how they satisfy return-
+  #      value requirements. For now, please consult Section 5 in ../README
+  #      when reading this code. Other sections of the README may be helpful,
+  #      too.
 
-  def lib_build(env)
+  def lib_build(env,prepkit)
     bindir=env.build.bindir
     binname=env.run.binname
     compiler=env.build.compiler
-    srcdir=env.build._root
+    srcdir=env.build.ddts_root
     srcfile=env.build.srcfile
     cmd="cd #{srcdir} && #{compiler} #{srcfile} -o #{bindir}/#{binname}"
     ext(cmd,{:msg=>"Build failed, see #{logfile}"})
   end
 
-  def lib_build_post(env,output)
-    File.join(env.build._root,env.build.bindir,env.build.binname)
+  def lib_build_post(env,buildkit)
+    File.join(env.build.ddts_root,env.build.bindir,env.build.binname)
   end
 
   def lib_build_prep(env)
-    FileUtils.mkdir_p(env.build._root)
-    FileUtils.cp(File.join(app_dir,env.build.srcfile),env.build._root)
-    FileUtils.mkdir_p(File.join(env.build._root,env.build.bindir))
+    FileUtils.cp(File.join(app_dir,env.build.srcfile),env.build.ddts_root)
+    FileUtils.mkdir_p(File.join(env.build.ddts_root,env.build.bindir))
   end
 
-  def lib_outfiles(env,path)
-    nil
-  end
-
-  def lib_outfiles_ex(env,path)
-    expr=File.join(path,'out[0-9]')
-    Dir.glob(expr).map { |e| [path,File.basename(e)] }
-  end
-
-  def lib_comp_alt(f1,f2)
+  def lib_comp_alt(env,f1,f2)
     logi "Comparing '#{f1}' to '#{f2}' with alternate comparator..."
     FileUtils.compare_file(f1,f2)
   end
@@ -54,37 +48,51 @@ module Library
     logd "Data extract complete"
   end
 
-  def lib_run(env,rundir)
+  def lib_outfiles_ex(env,path)
+    expr=File.join(path,'out[0-9]')
+    Dir.glob(expr).map { |e| [path,File.basename(e)] }
+  end
+
+  def lib_run(env,prepkit)
+    rundir=prepkit
     bin=env.run.binname
     run=env.run.runcmd
     sleep=env.run.sleep
     tasks=env.run.tasks
+    if message=env.run.message
+      logi (message.is_a?(Array))?(message.join(" ")):(message)
+    end
     cmd="cd #{rundir} && #{run} #{tasks} #{bin} >stdout 2>&1 && sleep #{sleep}"
+    logd "Running: #{cmd}"
     IO.popen(cmd) { |io| io.readlines.each { |e| logd "#{e}" } }
     File.join(rundir,'stdout')
   end
 
-  def lib_run_post(env,runkit)
-    stdout=runkit
-    (job_check(stdout,"SUCCESS"))?(true):(false)
+  def lib_run_check(env,postkit)
+    stdout=postkit
+    unless (lines=File.open(stdout).read)=~/SUCCESS/
+      lines.each_line { |line| logi line.chomp }
+    end
+    (job_check(stdout,"SUCCESS"))?(env.run.ddts_root):(nil)
   end
 
-  def lib_run_prep(env,rundir)
+  def lib_run_post(env,runkit)
+    stdout=runkit
+  end
+
+  def lib_run_prep(env)
+    rundir=env.run.ddts_root
     binname=env.run.binname
     conffile=env.run.conffile
-    FileUtils.cp(env.build._result,rundir)
+    FileUtils.cp(env.build.ddts_result,rundir)
     FileUtils.chmod(0755,File.join(rundir,binname))
     a=env.run.a
     b=env.run.b
-    n=env.run.n
+    n=env.run.n||0
     confstr="&config a=#{a} b=#{b} n=#{n} /\n"
     conffile=File.join(rundir,env.run.conffile)
     File.open(conffile,'w') { |f| f.write(confstr) }
     rundir
-  end
-
-  def lib_queue_del_cmd(env)
-    nil
   end
 
   def lib_suite_post(env)
@@ -92,6 +100,10 @@ module Library
   end
 
   def lib_suite_post_ex(env)
+    buildfails=env.suite.ddts_builds.reduce(0) { |m,(k,v)| (v.failed)?(m+1):(m) }
+    logi "build fail rate = #{Float(buildfails)/env.suite.ddts_builds.size}"
+    runfails=env.suite.ddts_runs.reduce(0) { |m,(k,v)| (v.failed)?(m+1):(m) }
+    logi "run fail rate = #{Float(runfails)/env.suite.ddts_runs.size}"
     logi "[ custom post action ]"
   end
 
@@ -102,7 +114,5 @@ module Library
   def lib_suite_prep_ex(env)
     logi "[ custom prep action ]"
   end
-
-  # CUSTOM METHODS (NOT CALLED BY DRIVER)
 
 end

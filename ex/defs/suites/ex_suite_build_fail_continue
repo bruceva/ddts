@@ -1,0 +1,5 @@
+ddts_extends: ex_suite_base
+ddts_continue: true
+group_ex:
+  - ex_1
+  - ex_1_build_fail

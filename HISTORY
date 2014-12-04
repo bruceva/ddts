@@ -3,15 +3,62 @@ HISTORY
 Version numbers are in major.minor form, where changes to the minor component
 indicate bugfixes and similar non-breaking enhanements, and changes to the major
 component indicate breaking changes.
+
+3.0
+
+Changed app/configs to app/defs to align with DDTS design terminology. Changed
+references to 'config' to 'definition' in documentation and comments.
+
+Removed 'show [builds|runs|suites]' commands, as these show definition fragments
+that are not buildable or runnable. Users need to know via other means which
+suites are defined for their use. The 'show suite' command, with a valid suite
+name as its argument, will show a list of runnable runs, and 'show run' will
+show buildable builds. The 'show [builds|runs|suites' commands would only have
+been useful to application developers, and they can use 'ls' to achieve the same
+goal (i.e. they must already be aware of the directory structure under app/defs.
+
+Changed lib_run* rooutine arguments lists to align with lib_build* routines',
+and replaced 'rundir' argument to lib_run* routines with env.run.ddts_root. See
+the README for more information.
+
+Renamed reserved definition keys with a 'ddts_' prefix, to avoid conflicts. For
+example, 'extends' becomes 'ddts_extends'. See the README for more information.
+
+Added ability, via !delete YAML tag, to delete an inherited array entry.
+
+2.4
+
+Add support for YAML tag !delete, to suppress inheritance of a key.
+
+2.3
+
+Fix a bug related to baseline generation. Replace a use of Object#method with
+Object#send to allow method_missing handling. Restore Unquoted#initialize.
+
+2.2
+
+Add support for 'lib_comp' setting in run configs, for specifying alternate
+comparators on a per-run basis.
+
+2.1
+
+Add support for YAML tag !replace (see README), and add sanity check for run
+configs with missing or invalid 'build' keys.
+
+2.0
+
+Change env.suite._runs object to always provide .failed, .files and .result
+members, which allows propagation of information from even failed runs to
+post-processing methods like lib_suite_post. Add env.suite._builds object.
+
+1.2
+
+Make 'baseline' key in run configs optional.
+
+1.1
+
+Added support for run dependencies.
  
-v1.0
+1.0
 
-???
-
-TODO
-
-- Provide a mechanism (with exactly-once semantics) for runs to associate with
-  specific data sets.
-
-- Generalize alternate comparator mechanism and get rid of profiles.rb. Have
-  defaults.rb overridden by library.rb overridden by configs.
+Initial release.
