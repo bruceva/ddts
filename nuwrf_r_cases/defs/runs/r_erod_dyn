@@ -67,7 +67,7 @@ expectedStatusFiles:
 expectedInputFiles:
   geogrid: ''
   ungrib:  ['ungrib_input','expectedOutputFiles.geogrid']
-  metgrid: ['metgrid_baredyn_input','expectedOutputFiles.ungrib']
+  metgrid: ['expectedOutputFiles.geogrid','metgrid_baredyn_input','expectedOutputFiles.ungrib']
   real: 'expectedOutputFiles.metgrid'
   wrf: 'expectedOutputFiles.real'
   rip: 'expectedOutputFiles.wrf'
