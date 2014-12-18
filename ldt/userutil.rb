@@ -250,7 +250,6 @@ source #{commonscript}
 ./compile > #{scriptout}
 eos
 
-  default
   end
 
   def createPreprocessorHeader(env, preprocessor)
@@ -260,7 +259,9 @@ eos
     script<<"#SBATCH -t #{env.run.batch_time.send(preprocessor)}\n"
     script<<"#SBATCH -A #{env.run.batch_group.send(preprocessor)}\n"
     script<<"#SBATCH -o #{env.run.batch_slurmout.send(preprocessor)}\n"
-    script<<"#SBATCH -p #{env.run.batch_queue.send(preprocessor)}\n"
+    if env.run.batch_queue.send(preprocessor) != ''
+      script<<"#SBATCH -p #{env.run.batch_queue.send(preprocessor)}\n"
+    end
     proclineid=env.run.batch_procline.send(preprocessor)
     script<<"#SBATCH -N #{env.run.proc_line.send(proclineid)}\n"
     script<<"\n#---------------------- #{preprocessor} script -----------------------------\n\n"

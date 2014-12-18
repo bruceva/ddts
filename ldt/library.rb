@@ -369,29 +369,8 @@ module Library
                   end
                   #Copy those required inputs that are known to change during processor execution
                   # or risk tainting the source. To save space the read only ones are linked.
-                  if f.include?('wrfbdy') or f.include?('wrfinput') or f.include?('namelist.output')
-                    logi "#{prep} processing: required input file #{f} not found, copying from baseline in #{baselinedir}"
-                    FileUtils.cp(File.join(baselinedir,f),linkdir)
-                    #Create special link to the specific file (.real,.casa2wrf,.gocart2wrf,.convert_emiss)
-                    lnk=f
-                    if f.include?('.real')
-                      lnk=f.split('.real')[0]
-                    elsif f.include?('.casa2wrf')
-                      lnk=f.split('.casa2wrf')[0]
-                    elsif f.include?('.gocart2wrf')
-                      lnk=f.split('.gocart2wrf')[0]
-                    elsif f.include?('.convert_emiss')
-                      lnk=f.split('.convert_emiss')[0]
-                    end
-                    #Create link only if one is not already present.
-                    if lnk != f and not File.exist?(File.join(linkdir,lnk))
-                      logi "#{prep} processing: linking #{lnk} to #{f}"
-                      FileUtils.ln_sf(File.join(linkdir,f),File.join(linkdir,lnk))
-                    end
-                  else
-                    logi "#{prep} processing: required input file #{f} not found, linking to baseline in #{baselinedir}"
-                    FileUtils.ln_sf(File.join(baselinedir,f),linkdir)
-                  end
+                  logi "#{prep} processing: required input file #{f} not found, linking to baseline in #{baselinedir}"
+                  FileUtils.ln_sf(File.join(baselinedir,f),linkdir)
                 else
                   message= "#{prep} processing: missing required input #{f}"
                   logi "#{message}"
