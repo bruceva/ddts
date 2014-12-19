@@ -20,11 +20,42 @@ module Userutil
     temp=from
     result=Array.new
     while to >= temp do
-      elt={'year'=>temp.strftime("%Y"),'month'=>temp.strftime("%m"),'day'=>temp.strftime("%d")}
+      elt={'year'=>temp.strftime("%Y"),'month'=>temp.strftime("%m"),'day'=>temp.strftime("%d"),'dayofyear'=>temp.strftime("%j")}
       result<<elt
       temp = temp + step
     end
     result
+  end
+
+  #Creates an Ftp script content assuming you have a hash data structure with year,month,day and set (hash) of associated
+  # sites, paths and filenames
+  def createFtpScript(data)
+    header=<<-eos
+#!/bin/bash
+# Ftp script for date: #{data["year"]}-#{data["month"]}-#{data["day"]}
+# ------------------------------------
+eos
+
+    body=""
+    data["set"].keys.each do |k|
+      site=data["set"][k]["site"]
+      path=data["set"][k]["path"]
+      filename=data["set"][k]["filename"]
+      temp=<<-eos
+
+# *** data set #{k} ****
+
+if wget -nc "#{site}/#{path}/#{filename}" ; then
+  echo "Downloaded #{filename}"
+else
+  echo "Error downloading #{filename}"
+  exit 1
+fi
+eos
+      body<<temp
+    end
+
+    header+body
   end
 
   def getMERRADailysetTemplate()
@@ -45,6 +76,51 @@ module Userutil
          "site"=>"ftp://goldsmr2.sci.gsfc.nasa.gov","path"=>"data/s4pa/MERRA/MAT1NXOCN.5.2.0/${year}/${month}"}
     result<<elt
     result
+  end
+
+  def getSSTDailysetTemplate()
+    result=Array.new
+    elt={"setname"=>"sst_remss_${instrument}","ver"=>"v04.0","suffix"=>"${ver}.gz",
+         "filename"=>"${instrument}.fusion.${year}.${dayofyear}.${suffix}",
+         "site"=>"ftp://data.remss.com","path"=>"sst/daily_${ver}/${instrument}/${year}"}
+    result<<elt
+    result
+  end
+
+  def addSSTDailysetMetadata(dates,settemplate,scriptprefix,instrument)
+    dates.each do |elt|
+      datelabel="#{elt['year']}#{elt['month']}#{elt['day']}"
+      elt["scriptfile"]="#{scriptprefix}_#{datelabel}.bash"
+      if settemplate
+        if not elt["set"]
+           elt["set"]=Hash.new
+        end
+        settemplate.each do |s|
+          ver=s["ver"]
+          site=s["site"]
+          #setname substitutions
+          setname=String.new(s["setname"])
+          setname.gsub!("${instrument}",instrument)
+          #suffix substitutions
+          suffix=String.new(s["suffix"])
+          suffix.gsub!("${ver}",ver)
+          #start with filename template and perform substitutions
+          #Note: must be a string copy since substitutions are in place.
+          filename=String.new(s["filename"])
+          filename.gsub!("${instrument}",instrument)
+          filename.gsub!("${year}",elt["year"])
+          filename.gsub!("${dayofyear}",elt["dayofyear"])          
+          filename.gsub!("${suffix}",suffix)
+          #start with path template and perform substitutions
+          path=String.new(s["path"])
+          path.gsub!("${ver}",ver)
+          path.gsub!("${instrument}",instrument)
+          path.gsub!("${year}",elt["year"])
+          elt["set"][instrument]={"namelistfile"=>"namelist.#{scriptprefix}_#{instrument}_#{datelabel}",
+                                  "setname"=>setname,"ver"=>ver,"site"=>site,"filename"=>filename,"path"=>path}                
+        end
+      end
+    end
   end
 
   def addMERRADailysetMetadata(dates,settemplate,scriptprefix)
@@ -126,33 +202,27 @@ module Userutil
 eos
   end
 
-  def createMERRAFtpScript(data)
-    header=<<-eos
-#!/bin/bash
-# MERRA ftp script for date: #{data["year"]}-#{data["month"]}-#{data["day"]}
-# ------------------------------------
+# Creates the namelist from the data structure w/metadata of a single date.
+  def createSSTNamelist(data,instrument)
+    result=<<-eos
+! SST namelist file: #{data["set"][instrument]["namelistfile"]}
+!------------------------------------
+&input
+  instrument = "#{instrument}",
+  year = "#{data["year"]}",
+  dayOfYear = "#{data["dayofyear"]}", 
+  version = "#{data["set"][instrument]["ver"]}",
+  inputDirectory = ".",
+/
+&output 
+  outputDirectory = ".",
+  prefixWPS = "SSTRSS",
+/
+&fakeoutput 
+  numFakeHours = 4, 
+  fakeHours = 0, 6, 12, 18,
+/  
 eos
-
-    body=""
-    data["set"].keys.each do |k|
-      site=data["set"][k]["site"]
-      path=data["set"][k]["path"]
-      filename=data["set"][k]["filename"]
-      temp=<<-eos
-
-# *** data set #{k} ****
-
-if wget -nc "#{site}/#{path}/#{filename}" ; then
-  echo "Downloaded #{filename}"
-else
-  echo "Error downloading #{filename}"
-  exit 1
-fi
-eos
-      body<<temp
-    end
-
-    header+body 
   end
 
 # Creates the executes script from the data structure w/metadata of a single date.
@@ -864,6 +934,65 @@ eos
     header+body+footer
   end
 
+  def createFTPSstPreprocessorScript(env)
+
+    header=createPreprocessorHeader(env,'ftp_sst')
+
+    body=createCommonPreprocessorBody(env,'ftp_sst')
+
+    #Express start and end dates in terms of Time objects
+    date_start=Time.utc(env.run.sst_dates.start.year,env.run.sst_dates.start.month,env.run.sst_dates.start.day)
+    date_end=Time.utc(env.run.sst_dates.end.year,env.run.sst_dates.end.month,env.run.sst_dates.end.day)
+    #Calculate a day in seconds for the interval
+    interval=60*60*24
+    #Initialize the sst data structure with the dates
+    sst_data=getDateArray(date_start,date_end,interval)
+    #Add the metadata to the data structure as dictated by the template
+    env.run.sst_instrument.each do |instr|
+      addSSTDailysetMetadata(sst_data,getSSTDailysetTemplate(),"ftp_sst",instr)
+    end
+
+    #Create one ftp script per day
+    rundir=env.run.ddts_root
+    scripts_to_run =""
+    sst_data.each do |data|
+      content=createFtpScript(data)
+      fileName = File.join(rundir,data["scriptfile"])
+      File.open(fileName, "w+") do |scriptFile|
+        scriptFile.print(content)
+        logd "Created script file: #{fileName}"
+        FileUtils.chmod(0754,fileName,:verbose=>true)
+      end
+      scripts_to_run<<data["scriptfile"]+" "
+    end
+
+    #Finalize main driver script
+    footer=<<-eos
+
+for file in #{scripts_to_run} ; do
+   
+  if ! ./$file >> ftpsst.log 2>&1 ; then
+    exit 1
+ fi
+
+done
+
+echo "Successful SST ftp processing" >> ftpsst.log
+
+# Tidy up logs
+mkdir -p ftpsst_logs || exit 1
+
+mv ftpsst.log ftpsst_logs
+
+exit 0
+   
+eos
+
+    header+body+footer
+
+  end
+
+
   def createFTPMerraPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'ftp_merra')
@@ -884,7 +1013,7 @@ eos
     rundir=env.run.ddts_root
     scripts_to_run =""
     merra_data.each do |data|
-      content=createMERRAFtpScript(data)
+      content=createFtpScript(data)
       fileName = File.join(rundir,data["scriptfile"])
       File.open(fileName, "w+") do |scriptFile|
         scriptFile.print(content)
@@ -1038,6 +1167,50 @@ exit 0
 eos
     header+body+footer
   end
+
+  def createRunSstLinks(env)
+    script=""
+    if env.run.run_sst_select and env.run.run_sst_select.class == Array
+      env.run.run_sst_select.each do |type|
+        script<<createTypedLinks(env,type)
+      end
+    elsif env.run.run_sst_select
+      script<<createTypedLinks(env,env.run.run_sst_select)
+    end
+    script
+  end
+
+  def createRunSstPreprocessorScript(env)
+
+    header=createPreprocessorHeader(env,'run_sst')
+
+    body=createCommonPreprocessorBody(env,'run_sst')
+
+    body<<createRunSstLinks(env)
+
+    footer=<<-eos
+
+#Run script
+if [ ! -e Run_SST.csh ] ; then
+    echo "ERROR, Run_SST.csh does not exist!"
+    exit 1
+fi
+
+chmod +x Run_SST.csh
+
+./Run_SST.csh #{env.run.sst_dates.start} #{env.run.sst_dates.end} #{env.run.sst_instrument}  >& runsst.log || exit
+
+# Tidy up logs
+mkdir -p runsst_logs || exit 1
+mv runsst.log runsst_logs
+
+# end
+exit 0
+
+eos
+    header+body+footer
+  end
+
 
   def createGeos2wrfLinks(env)
     script=""

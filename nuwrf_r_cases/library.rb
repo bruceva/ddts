@@ -220,6 +220,9 @@ module Library
       elsif prep == 'ungrib'
         s=createUngribPreprocessorScript(env)
         f='ungrib.bash'
+      elsif prep == 'ftp_sst'
+        s=createFTPSstPreprocessorScript(env)
+        f='ftp_sst.bash'
       elsif prep == 'merra2wrf'
         s=createMerra2wrfPreprocessorScript(env)
         f='merra2wrf.bash'
@@ -229,6 +232,9 @@ module Library
       elsif prep == 'run_merra'
         s=createRunMerraPreprocessorScript(env)
         f='run_merra.bash'
+      elsif prep == 'run_sst'
+        s=createRunSstPreprocessorScript(env)
+        f='run_sst.bash'
       elsif prep == 'geos2wrf'
         s=createGeos2wrfPreprocessorScript(env)
         f='geos2wrf.bash'
@@ -268,6 +274,8 @@ module Library
       elsif prep == 'lis'
         f='lis.bash'
         s=createLisPreprocessorScript(env,f+".out")
+      else
+        die ("Unrecognized preprocessor: #{prep}")
       end
 
       if f
@@ -309,7 +317,7 @@ module Library
    
       laststep=prep
 
-      if 'ldt_prelis lis ldt_postlis geogrid geos2wrf merra2wrf run_merra ftp_merraungrib metgrid real casa2wrf wrf rip gocart2wrf prep_chem_sources convert_emiss gsdsu'.include?(prep)
+      if 'ldt_prelis lis ldt_postlis geogrid geos2wrf ftp_sst merra2wrf run_merra ftp_merra run_sst ungrib metgrid real casa2wrf wrf rip gocart2wrf prep_chem_sources convert_emiss gsdsu'.include?(prep)
         arr=expectedInput(env.run,prep)
         if arr and arr.size >  0
           arr.each do |a|

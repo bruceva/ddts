@@ -1,0 +1,4 @@
+ddts_extends: 'r_ftpsst'
+
+preprocessors: ['ftp_sst']
+

@@ -1,0 +1,32 @@
+ddts_extends: 'sbatch'
+ddts_build: 'all_discover'
+ddts_baseline: 'r_runsst_intel'
+compiler: 'intel'
+
+namelist_link: []
+
+#baselinedir supplies missing data in cases when we just want to run a smaller pipeline
+baselinedir: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_SST'
+
+preprocessor_links:
+  utils: [['sst2wrf/scripts/Run_SST.csh','Run_SST.csh'],['sst2wrf/scripts/Get_dayofyear_daily.py','Get_dayofyear_daily.py'],
+          ['sst2wrf/bin/sst2wrf','sst2wrf']] 
+
+run_sst_select: 'utils'
+
+sst_dates:
+  start: '20090410'
+  end: '20090411'
+
+sst_instrument: 'mw_ir'
+  
+#This definition supports preprocessors: ['run_sst']
+
+expectedStatusFiles:
+  run_sst: ['runsst_logs/runsst.log','Completed SST FTP and SST2WRF processing']
+
+expectedInputFiles:
+  run_sst: ''
+
+expectedOutputFiles:
+  run_sst: []

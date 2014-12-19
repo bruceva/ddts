@@ -1,0 +1,38 @@
+ddts_extends: 'sbatch'
+ddts_build: 'all_discover'
+ddts_baseline: 'r_ftpsst_intel'
+compiler: 'intel'
+
+namelist_link: []
+
+#baselinedir supplies missing data in cases when we just want to run a smaller pipeline
+baselinedir: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_SST2WRF'
+
+preprocessor_links:
+
+sst_dates:
+  start: 
+    year: 2000
+    month: 12
+    day: 1
+  end: 
+    year: 2000
+    month: 12
+    day: 5
+
+sst_instrument: ["mw"]
+  
+#This definition supports preprocessors: ['ftp_sst']
+
+expectedStatusFiles:
+  ftp_sst: ['ftpsst_logs/ftpsst.log','Successful SST ftp processing']
+
+expectedInputFiles:
+  ftp_sst: ''
+
+expectedOutputFiles:
+  ftp_sst: ["mw.fusion.2000.336.v04.0.gz",
+     "mw.fusion.2000.337.v04.0.gz",
+     "mw.fusion.2000.338.v04.0.gz",
+     "mw.fusion.2000.339.v04.0.gz",
+     "mw.fusion.2000.340.v04.0.gz"]

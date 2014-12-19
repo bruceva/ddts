@@ -130,6 +130,8 @@ submission_type:
   ungrib: 'batch'
   run_merra: 'local'
   ftp_merra: 'local'
+  ftp_sst: 'local'
+  run_sst: 'local'
   merra2wrf: 'batch'
   geos2wrf: 'batch'
   metgrid: 'batch'
