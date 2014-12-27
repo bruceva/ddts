@@ -32,7 +32,7 @@ $gitexe --version || exit 1
 #Install/Update user application source:
 usergitname="ddts-user"
 localusergit="$topdir/$usergitname"
-remoteusergit="https://github.com/egvalentejr/ddts.git"
+remoteusergit="git://github.com/egvalentejr/ddts.git"
 
 if [ -d $localusergit ] ; then
   cd "$localusergit"
@@ -63,7 +63,7 @@ fi
 #Install/Update core application source:
 coregitname="ddts-core"
 localcoregit="$topdir/$coregitname"
-remotecoregit="https://github.com/maddenp/ddts.git"
+remotecoregit="git://github.com/maddenp/ddts.git"
 
 if [ -d "$localcoregit" ] ; then
   cd "$localcoregit"
