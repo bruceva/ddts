@@ -12,6 +12,15 @@
 # April 11, 2014 - Eduardo G. Valente Jr. - created
 #
 
+if [ "$1" == "" ] ; then
+  echo "This script creates the necessary directories and links to the supported suites in order to create a regression testing enviroment"
+  echo "Usage: $0 ldt_suite|nuwrf_suite|repo_only"
+  exit 0
+elif [ "$1" != "ldt_suite" ] &&  [ "$1" != "nuwrf_suite" ] && [ "$1" != "repo_only" ] ; then
+  echo "Suite not supporte"d
+  exit 1
+fi 
+
 topdir=`pwd`
 
 jrubyjar="$topdir/jruby-complete-1.7.9.jar"
@@ -151,7 +160,5 @@ if [ "$1" == "$suite" ] ; then
     echo "Application $app already installed"
   fi
 fi
-
-
 
 
