@@ -60,5 +60,7 @@ group34:
   - r_gfed3_gocartracm_kpp_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_gfed3_gocartracm_kpp_intel_debug',preprocessors=!replace ['metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip']
 group35:
   - r_3ice_graupel_merraero_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_3ice_graupel_merraero_intel_debug'
+group36:
+  - r_3ice_graupel_merraero_sst_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_3ice_graupel_merraero_sst_intel_debug'
 
 #end

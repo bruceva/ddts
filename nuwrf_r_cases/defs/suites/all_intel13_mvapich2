@@ -60,5 +60,7 @@ group34:
   - r_gfed3_gocartracm_kpp_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_gfed3_gocartracm_kpp_intel13_mvapich2',batch_time:metgrid='1:00:00'
 group35:
   - r_3ice_graupel_merraero_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_3ice_graupel_merraero_intel13_mvapich2',batch_time:metgrid='3:00:00'
+group36:
+  - r_3ice_graupel_merraero_sst_intel/compiler='intel13_w_mvapich2',ddts_build='allchem_discover_intel13_mvapich2',ddts_baseline='r_3ice_graupel_merraero_sst_intel13_mvapich2',batch_time:metgrid='3:00:00'
 
 #end

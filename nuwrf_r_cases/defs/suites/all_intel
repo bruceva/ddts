@@ -75,5 +75,7 @@ group34:
   - r_gfed3_gocartracm_kpp_intel
 group35:
   - r_3ice_graupel_merraero_intel
+group36:
+  - r_3ice_graupel_merraero_sst_intel
 
 #end

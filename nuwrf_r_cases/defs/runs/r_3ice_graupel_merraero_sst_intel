@@ -1,0 +1,6 @@
+ddts_extends: 'r_3ice_graupel_merraero_sst'
+
+#preprocessors: ['ftp_sst','sst2wrf','geogrid','ungrib','metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip'] 
+preprocessors: ['sst2wrf','geogrid','ungrib','metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip'] 
+
+
