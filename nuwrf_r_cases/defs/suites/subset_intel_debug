@@ -1,0 +1,64 @@
+ddts_extends: 'email_nuwrf' 
+ddts_continue: true
+ddts_retain_builds: true
+
+#group1:
+#  - r_3ice_graupel_2014rad_gocart_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_3ice_graupel_2014rad_gocart_intel_debug'
+#group2:
+#  - r_3ice_graupel_2014rad_intel/ddts_build='all_debug_discover',ddts_baseline='r_3ice_graupel_2014rad_intel_debug',batch_time:wrf='10:00:00'
+#group3:
+#  - r_3ice_graupel_gocart_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_3ice_graupel_gocart_intel_debug'
+group4:
+  - r_3ice_graupel_intel/ddts_build='all_debug_discover',ddts_baseline='r_3ice_graupel_intel_debug',batch_time:wrf='12:00:00'
+#group5:
+#  - r_3ice_hail_2014rad_gocart_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_3ice_hail_2014rad_gocart_intel_debug'
+#group6:
+#  - r_3ice_hail_2014rad_intel/ddts_build='all_debug_discover',ddts_baseline='r_3ice_hail_2014rad_intel_debug',batch_time:wrf='10:00:00'
+#group7:
+#  - r_3ice_hail_gocart_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_3ice_hail_gocart_intel_debug'
+group8:
+  - r_3ice_hail_intel/ddts_build='all_debug_discover',ddts_baseline='r_3ice_hail_intel_debug',batch_time:wrf='12:00:00'
+#group9:
+#  - r_4ice_2014rad_gocart_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_4ice_2014rad_gocart_intel_debug'
+#group10:
+#  - r_4ice_2014rad_intel/ddts_build='all_debug_discover',ddts_baseline='r_4ice_2014rad_intel_debug',batch_time:wrf='10:00:00'
+#group11:
+#  - r_4ice_gocart_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_4ice_gocart_intel_debug'
+group12:
+  - r_4ice_intel/ddts_build='all_debug_discover',ddts_baseline='r_4ice_intel_debug',batch_time:wrf='12:00:00'
+#group13:
+#  - r_casaco2_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_casaco2_intel_debug'
+group16:
+  - r_case08_intel/ddts_build='all_debug_discover',ddts_baseline='r_case08_intel_debug',preprocessors=!replace ['metgrid','real','wrf','rip']
+group22:
+  - r_erod_dynclimo_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_erod_dynclimo_intel_debug',batch_time:wrf='12:00:00'
+group23:
+  - r_erod_dyn_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_erod_dyn_intel_debug',preprocessors=!replace ['metgrid','real','wrf','rip']
+group24:
+  - r_erod_mdb_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_erod_mdb_intel_debug',batch_time:wrf='12:00:00'
+#group25:
+#  - r_gsdsu_intel/ddts_build='all_debug_discover',ddts_baseline='r_gsdsu_intel_debug'
+#group26:
+#  - r_modis_intel/ddts_build='all_debug_discover',ddts_baseline='r_modis_intel_debug'
+#group27:
+#  - r_umd_intel/ddts_build='all_debug_discover',ddts_baseline='r_umd_intel_debug'
+#group28:
+#  - r_usgs_intel/ddts_build='all_debug_discover',ddts_baseline='r_usgs_intel_debug'
+##group26:
+##  - r_gsfcrad14_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_gsfcrad14_intel_debug'
+#group29:
+#  - r_geos2wrf_intel/ddts_build='all_debug_discover',ddts_baseline='r_geos2wrf_intel_debug'
+#group30:
+#  - r_runmerra_intel/ddts_build='all_debug_discover',ddts_baseline='r_runmerra_intel_debug'
+#group31:
+#  - r_merra2wrf_intel/ddts_build='all_debug_discover',ddts_baseline='r_merra2wrf_intel_debug'
+#group32:
+#  - r_gfed3_gocart_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_gfed3_gocart_intel_debug',preprocessors=!replace ['metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip']
+#group33:
+#  - r_gfed3_gocart_idl_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_gfed3_gocart_idl_intel_debug',preprocessors=!replace ['metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip']
+#group34:
+#  - r_gfed3_gocartracm_kpp_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_gfed3_gocartracm_kpp_intel_debug',preprocessors=!replace ['metgrid','real','prep_chem_sources','gocart2wrf','convert_emiss','wrf','rip']
+#group35:
+#  - r_3ice_graupel_merraero_intel/ddts_build='allchem_debug_discover',ddts_baseline='r_3ice_graupel_merraero_intel_debug'
+
+#end

@@ -41,6 +41,7 @@ eos
       site=data["set"][k]["site"]
       path=data["set"][k]["path"]
       filename=data["set"][k]["filename"]
+      decompress=data["set"][k]["decompress"]
       temp=<<-eos
 
 # *** data set #{k} ****
@@ -53,6 +54,21 @@ else
 fi
 eos
       body<<temp
+
+      if decompress
+      
+        temp=<<-eos
+if #{decompress} #{filename} ; then
+  echo "Decompressed  #{filename}"
+else
+  echo "Error decompressing #{filename}"
+  exit 1
+fi
+eos
+
+      body<<temp
+      end
+
     end
 
     header+body
@@ -82,7 +98,8 @@ eos
     result=Array.new
     elt={"setname"=>"sst_remss_${instrument}","ver"=>"v04.0","suffix"=>"${ver}.gz",
          "filename"=>"${instrument}.fusion.${year}.${dayofyear}.${suffix}",
-         "site"=>"ftp://data.remss.com","path"=>"sst/daily_${ver}/${instrument}/${year}"}
+         "site"=>"ftp://data.remss.com","path"=>"sst/daily_${ver}/${instrument}/${year}",
+         "decompress"=>"gunzip"}
     result<<elt
     result
   end
@@ -98,6 +115,10 @@ eos
         settemplate.each do |s|
           ver=s["ver"]
           site=s["site"]
+          elt["set"][instrument]=Hash.new
+          if s["decompress"]
+            elt["set"][instrument].merge!({"decompress"=>s["decompress"]})
+          end
           #setname substitutions
           setname=String.new(s["setname"])
           setname.gsub!("${instrument}",instrument)
@@ -116,8 +137,8 @@ eos
           path.gsub!("${ver}",ver)
           path.gsub!("${instrument}",instrument)
           path.gsub!("${year}",elt["year"])
-          elt["set"][instrument]={"namelistfile"=>"namelist.#{scriptprefix}_#{instrument}_#{datelabel}",
-                                  "setname"=>setname,"ver"=>ver,"site"=>site,"filename"=>filename,"path"=>path}                
+          elt["set"][instrument].merge!({"namelistfile"=>"namelist.#{scriptprefix}_#{instrument}_#{datelabel}",
+                                  "setname"=>setname,"ver"=>ver,"site"=>site,"filename"=>filename,"path"=>path})                
         end
       end
     end
@@ -202,29 +223,6 @@ eos
 eos
   end
 
-# Creates the namelist from the data structure w/metadata of a single date.
-  def createSSTNamelist(data,instrument)
-    result=<<-eos
-! SST namelist file: #{data["set"][instrument]["namelistfile"]}
-!------------------------------------
-&input
-  instrument = "#{instrument}",
-  year = "#{data["year"]}",
-  dayOfYear = "#{data["dayofyear"]}", 
-  version = "#{data["set"][instrument]["ver"]}",
-  inputDirectory = ".",
-/
-&output 
-  outputDirectory = ".",
-  prefixWPS = "SSTRSS",
-/
-&fakeoutput 
-  numFakeHours = 4, 
-  fakeHours = 0, 6, 12, 18,
-/  
-eos
-  end
-
 # Creates the executes script from the data structure w/metadata of a single date.
   def createMERRAExecuteScript(data)
     result=<<-eos
@@ -255,6 +253,71 @@ exit 0
 eos
   result
   end
+
+# Creates the namelist from the data structure w/metadata of a single date.
+  def createSSTNamelist(data,instrument)
+    content=<<-eos
+! SST namelist file: #{data["set"][instrument]["namelistfile"]}
+!------------------------------------
+&input
+  instrument = "#{instrument}",
+  year = #{data["year"]},
+  dayOfYear = #{data["dayofyear"]}, 
+  version = "#{data["set"][instrument]["ver"]}",
+  inputDirectory = ".",
+/
+&output 
+  outputDirectory = ".",
+  prefixWPS = "SSTRSS",
+/
+&fakeoutput 
+  numFakeHours = 4, 
+  fakeHours = 0, 6, 12, 18,
+/  
+eos
+
+  [content,data["set"][instrument]['namelistfile']]
+  end
+
+# Creates the executes script from the data structure w/metadata of a single date.
+  def createSSTExecuteScript(data)
+    result=<<-eos
+#!/bin/bash
+# SST script for date: #{data["year"]}-#{data["month"]}-#{data["day"]}
+# ------------------------------------
+
+eos
+
+    data["set"].keys.each do |instrument|
+       step=<<-eos
+if [ -f #{data["set"][instrument]['namelistfile']} ] ; then
+
+  rm namelist.sst2wrf
+  ln -s #{data["set"][instrument]['namelistfile']} namelist.sst2wrf
+  # Run the sst2wrf 
+  if ./sst2wrf ; then 
+    echo 'sst2wrf completed successfully for #{instrument} #{data["year"]}-#{data["month"]}-#{data["day"]}' 
+  else
+    echo 'ERROR: sst2wrf failed for #{instrument} #{data["year"]}-#{data["month"]}-#{data["day"]}'  
+    exit 1
+  fi
+else
+  echo "ERROR Unable to run sst2wrf: #{data["set"][instrument]['namelistfile']}  not found"
+  exit 1
+fi
+
+# Clean the downloaded data files
+
+exit 0
+
+eos
+
+    result<<step
+    end
+
+  result
+  end
+
 
   # Edit the lis.config file found in rundir according to the parameters
   # stored in the env data structure
@@ -1167,6 +1230,90 @@ exit 0
 eos
     header+body+footer
   end
+
+  def createSst2wrfLinks(env)
+    script=""
+    if env.run.sst2wrf_select and env.run.sst2wrf_select.class == Array
+      env.run.sst2wrf_select.each do |type|
+        script<<createTypedLinks(env,type)
+      end
+    elsif env.run.sst2wrf_select
+      script<<createTypedLinks(env,env.run.sst2wrf_select)
+    end
+    script
+  end
+
+  def createSst2wrfPreprocessorScript(env)
+
+    header=createPreprocessorHeader(env,'sst2wrf')
+
+    body=createCommonPreprocessorBody(env,'sst2wrf')
+
+    body<<createSst2wrfLinks(env)
+
+    #Express start and end dates in terms of Time objects
+    date_start=Time.utc(env.run.sst_dates.start.year,env.run.sst_dates.start.month,env.run.sst_dates.start.day)
+    date_end=Time.utc(env.run.sst_dates.end.year,env.run.sst_dates.end.month,env.run.sst_dates.end.day)
+    #Calculate a day in seconds for the interval
+    interval=60*60*24
+    #Initialize the sst data structure with the dates
+    sst_data=getDateArray(date_start,date_end,interval)
+    #Add the metadata to the data structure as dictated by the template
+    env.run.sst_instrument.each do |instr|
+      addSSTDailysetMetadata(sst_data,getSSTDailysetTemplate(),"sst2wrf",instr)
+    end
+
+    #Create one sst2wrf script per day
+    rundir=env.run.ddts_root
+    scripts_to_run =""
+    sst_data.each do |data|
+      
+      content=createSSTExecuteScript(data)
+      fileName = File.join(rundir,data["scriptfile"])
+      File.open(fileName, "w+") do |scriptFile|
+        scriptFile.print(content)
+        logd "Created script file: #{fileName}"
+        FileUtils.chmod(0754,fileName,:verbose=>true)
+      end
+      scripts_to_run<<data["scriptfile"]+" "
+
+      #Create the required namelist file
+      env.run.sst_instrument.each do |instr|
+        content,name=createSSTNamelist(data,instr)
+        fileName = File.join(rundir,name)
+        File.open(fileName, "w+") do |nlFile|
+          nlFile.print(content)
+          logd "Created file: #{fileName}"
+        end
+      end
+    end
+
+    #Finalize main driver script
+    footer=<<-eos
+
+for file in #{scripts_to_run} ; do
+   
+  if ! ./$file >> sst2wrf.log 2>&1 ; then
+    exit 1
+ fi
+
+done
+
+echo "Successful sst2wrf processing" >> sst2wrf.log
+
+# Tidy up logs
+mkdir -p sst2wrf_logs || exit 1
+
+mv sst2wrf.log sst2wrf_logs
+
+exit 0
+   
+eos
+
+    header+body+footer
+
+  end
+
 
   def createRunSstLinks(env)
     script=""

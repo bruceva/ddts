@@ -1,0 +1,65 @@
+ddts_extends: 'sbatch'
+ddts_build: 'all_discover'
+ddts_baseline: 'r_sst2wrf_intel'
+compiler: 'intel'
+
+namelist_link: []
+
+#baselinedir supplies missing data in cases when we just want to run a smaller pipeline
+baselinedir: '/discover/nobackup/projects/nu-wrf/regression_testing/data/R_SST2WRF'
+
+preprocessor_links:
+  utils: [['sst2wrf/bin/sst2wrf','sst2wrf']]
+
+sst2wrf_select: 'utils'
+
+
+sst_dates:
+  start: 
+    year: 2012
+    month: 12
+    day: 1
+  end: 
+    year: 2012
+    month: 12
+    day: 5
+
+sst_instrument: ["mw_ir"]
+  
+#This definition supports preprocessors: ['ftp_sst','sst2wrf']
+
+expectedStatusFiles:
+  ftp_sst: ['ftpsst_logs/ftpsst.log','Successful SST ftp processing']
+  sst2wrf: ['sst2wrf_logs/sst2wrf.log','Successful sst2wrf processing']
+
+expectedInputFiles:
+  ftp_sst: ''
+  sst2wrf: 'expectedOutputFiles.ftp_sst'
+
+expectedOutputFiles:
+  ftp_sst: ["mw_ir.fusion.2012.336.v04.0",
+     "mw_ir.fusion.2012.337.v04.0",
+     "mw_ir.fusion.2012.338.v04.0",
+     "mw_ir.fusion.2012.339.v04.0",
+     "mw_ir.fusion.2012.340.v04.0"]
+  sst2wrf: ["SSTRSS:2012-12-01_00",
+    "SSTRSS:2012-12-01_06",
+    "SSTRSS:2012-12-01_12",
+    "SSTRSS:2012-12-01_18",
+    "SSTRSS:2012-12-02_00",
+    "SSTRSS:2012-12-02_06",
+    "SSTRSS:2012-12-02_12",
+    "SSTRSS:2012-12-02_18",
+    "SSTRSS:2012-12-03_00",
+    "SSTRSS:2012-12-03_06",
+    "SSTRSS:2012-12-03_12",
+    "SSTRSS:2012-12-03_18",
+    "SSTRSS:2012-12-04_00",
+    "SSTRSS:2012-12-04_06",
+    "SSTRSS:2012-12-04_12",
+    "SSTRSS:2012-12-04_18",
+    "SSTRSS:2012-12-05_00",
+    "SSTRSS:2012-12-05_06",
+    "SSTRSS:2012-12-05_12",
+    "SSTRSS:2012-12-05_18"]
+

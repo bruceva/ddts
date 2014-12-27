@@ -12,15 +12,15 @@ preprocessor_links:
 
 sst_dates:
   start: 
-    year: 2000
+    year: 2012
     month: 12
     day: 1
   end: 
-    year: 2000
+    year: 2012
     month: 12
     day: 5
 
-sst_instrument: ["mw"]
+sst_instrument: ["mw","mw_ir"]
   
 #This definition supports preprocessors: ['ftp_sst']
 
@@ -31,8 +31,13 @@ expectedInputFiles:
   ftp_sst: ''
 
 expectedOutputFiles:
-  ftp_sst: ["mw.fusion.2000.336.v04.0.gz",
-     "mw.fusion.2000.337.v04.0.gz",
-     "mw.fusion.2000.338.v04.0.gz",
-     "mw.fusion.2000.339.v04.0.gz",
-     "mw.fusion.2000.340.v04.0.gz"]
+  ftp_sst: ["mw.fusion.2012.336.v04.0.gz",
+     "mw.fusion.2012.337.v04.0.gz",
+     "mw.fusion.2012.338.v04.0.gz",
+     "mw.fusion.2012.339.v04.0.gz",
+     "mw.fusion.2012.340.v04.0.gz",
+     "mw_ir.fusion.2012.336.v04.0.gz",
+     "mw_ir.fusion.2012.337.v04.0.gz",
+     "mw_ir.fusion.2012.338.v04.0.gz",
+     "mw_ir.fusion.2012.339.v04.0.gz",
+     "mw_ir.fusion.2012.340.v04.0.gz"]

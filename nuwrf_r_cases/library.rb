@@ -223,6 +223,9 @@ module Library
       elsif prep == 'ftp_sst'
         s=createFTPSstPreprocessorScript(env)
         f='ftp_sst.bash'
+      elsif prep == 'sst2wrf'
+        s=createSst2wrfPreprocessorScript(env)
+        f='sst2wrf.bash'
       elsif prep == 'merra2wrf'
         s=createMerra2wrfPreprocessorScript(env)
         f='merra2wrf.bash'
@@ -317,7 +320,7 @@ module Library
    
       laststep=prep
 
-      if 'ldt_prelis lis ldt_postlis geogrid geos2wrf ftp_sst merra2wrf run_merra ftp_merra run_sst ungrib metgrid real casa2wrf wrf rip gocart2wrf prep_chem_sources convert_emiss gsdsu'.include?(prep)
+      if 'ldt_prelis lis ldt_postlis geogrid geos2wrf ftp_sst sst2wrf merra2wrf run_merra ftp_merra run_sst ungrib metgrid real casa2wrf wrf rip gocart2wrf prep_chem_sources convert_emiss gsdsu'.include?(prep)
         arr=expectedInput(env.run,prep)
         if arr and arr.size >  0
           arr.each do |a|
@@ -398,7 +401,7 @@ module Library
         end
       end 
 
-      #abortprocessing = true
+     # abortprocessing = true
 
       if abortprocessing
         logd "ERROR: #{prep} processing aborted due to missing data"
