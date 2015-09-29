@@ -1,4 +1,5 @@
-email_to: 'nu-wrf-testing@lists.nasa.gov'
+#email_to: 'nu-wrf-testing@lists.nasa.gov'
+email_to: 'bruce.vanaartsen@nasa.gov'
 email_from: 'nuwrf@discover.nccs.nasa.gov'
 email_server: 'mail.nccs.nasa.gov'
 email_subject: 'NU-WRF regression test summary'

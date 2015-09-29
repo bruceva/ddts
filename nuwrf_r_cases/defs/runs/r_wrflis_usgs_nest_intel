@@ -1,0 +1,7 @@
+ddts_extends: 'r_wrflis_usgs_nest'
+
+#Define the pipeline to run
+preprocessors: ['ldt_prelis','lis','ldt_postlis','geogrid','ungrib','metgrid','real','wrf','rip']
+
+#preprocessors: ['wrf','rip']
+

@@ -1,0 +1,5 @@
+ddts_extends: 'r_geos2wrf_merra2_tinterp'
+
+#Define the pipeline to run
+preprocessors: ['geogrid','run_merra','geos2wrf','metgrid','ldt_prelis','lis','ldt_postlis','real','wrf','rip']
+

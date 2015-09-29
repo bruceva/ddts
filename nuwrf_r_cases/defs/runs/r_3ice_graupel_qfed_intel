@@ -1,0 +1,4 @@
+ddts_extends: 'r_3ice_graupel_qfed'
+
+preprocessors: ['geogrid','ungrib','metgrid','real','prep_chem_sources','convert_emiss','wrf','rip']
+

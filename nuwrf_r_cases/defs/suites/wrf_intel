@@ -30,11 +30,11 @@ ddts_retain_builds: true
 group14a:
   - r_case05_intel/preprocessors=!replace ['wrf'],batch_procline:wrf='p288_16'
 group14b:
-  - r_case05_intel/preprocessors=!replace ['wrf'],batch_procline:wrf='p72_16'
+  - r_case05_intel/preprocessors=!replace ['wrf'],batch_procline:wrf='p80_16'
 group15a:
   - r_case06_intel/preprocessors=!replace ['wrf'],batch_procline:wrf='p288_16'
 group15b:
-  - r_case06_intel/preprocessors=!replace ['wrf'],batch_procline:wrf='p72_16'
+  - r_case06_intel/preprocessors=!replace ['wrf'],batch_procline:wrf='p80_16'
 
 #group15:
 #  - r_case06_intel

@@ -1,2 +1,2 @@
 ddts_extends: 'allchem'
-config: 'discover.cfg'
+config: 'discover_intel13_impi4_sp1.cfg'

@@ -3,5 +3,5 @@ ddts_retain_builds: true
 #ddts_build_only: true
 ddts_continue: true
 group1:
-  - r_ftpmerra_intel
+  - r_wrflis_modis_nest_intel
 

@@ -1,0 +1,203 @@
+ddts_extends: 'sbatch'
+ddts_build: 'all_discover'
+ddts_baseline: 'r_geos2wrf_merra2_tinterp'
+compiler: 'intel'
+
+#override the number of processors for wrf
+batch_procline:
+  wrf: 'p256_16'
+  lis: 'p128_16'
+
+#override certain requested wall times
+batch_time:
+  wrf: '5:00:00'
+  lis: '1:00:00'
+  geos2wrf: '0:45:00'
+  metgrid: '0:45:00'
+
+namelist_link: [['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/ldt.config.modis.prelis','ldt.config.prelis'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/ldt.config.modis.postlis','ldt.config.postlis'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/lis.config.restart','lis.config.prewrf'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/lis.config.coupled','lis.config.wrf'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/ldt_prelis/param_attribs_modis.txt','param_attribs_modis.txt'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/lis/NOAH33_OUTPUT_LIST.TBL','NOAH33_OUTPUT_LIST.TBL'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/lis/forcing_variables_v2.txt','forcing_variables_v2.txt'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/wrf/forcing_variables_wrfcplmode.txt','forcing_variables_wrfcplmode.txt'],
+                ['/discover/nobackup/projects/lis/LS_PARAMETERS/UMD','input'],
+                ['/discover/nobackup/projects/lis/LS_PARAMETERS/noah33_parms','noah33_parms'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/lis/LIS_RST_NOAH33_200903312330.d01.nc','LIS_RST_NOAH33_200903312330.d01.nc'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/lis/LIS_RST_NOAH33_200903312330.d02.nc','LIS_RST_NOAH33_200903312330.d02.nc'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/batch_scripts/run_temporalInterpolation_merra2_3hr.discover.sh','run_temporalInterpolation_merra2_3hr.discover.sh'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/batch_scripts/config.discover.sh','config.discover.sh'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/merra2/MERRA2_300/stage/Y2009','Y2009'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/merra2','merra2'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/batch_scripts/Run_MERRA2.csh','Run_MERRA2.csh'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/namelist.wps','namelist.wps'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/namelist.input.wrf','namelist.input.wrf'],
+                ['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/namelist.input.real','namelist.input.real']]
+
+                #['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/Get_dates_daily.py','Get_dates_daily.py'],
+                #['/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP/merra2/MERRA2_300/stage/MERRA2_300.const_2d_asm_Nx.00000000.nc4','MERRA2_300.const_2d_asm_Nx.00000000.nc4'],
+               
+   #baselinedir supplies missing data in cases when we just want to run a smaller pipeline
+baselinedir: '/discover/nobackup/bvanaart/regtest/data/R_GEOS2WRF_MERRA2_TINTERP'
+
+preprocessor_links:
+  geogrid_nochem: ['GEOGRID.TBL.ARW','GEOGRID.TBL']
+  geogrid_chemerod: ['GEOGRID.TBL.ARW_CHEM_NUWRF','GEOGRID.TBL']
+  geogrid_chem: ['GEOGRID.TBL.ARW_CHEM','GEOGRID.TBL']
+  metgrid_arw: ['METGRID.TBL.ARW','METGRID.TBL']
+  metgrid_nmm: ['METGRID.TBL.NMM','METGRID.TBL']
+  metgrid_afwa: ['METGRID.TBL.AFWA','METGRID.TBL']
+  real: ['CAM_ABS_DATA','CAM_AEROPT_DATA','co2_trans','ETAMPNEW_DATA',
+         'ETAMPNEW_DATA_DBL', 'ETAMPNEW_DATA.expanded_rain',
+         'ETAMPNEW_DATA.expanded_rain_DBL', 'GENPARM.TBL', 'grib2map.tbl', 
+         'gribmap.txt', 'LANDUSE.TBL','MPTABLE.TBL', 'ozone.formatted',
+         'ozone_lat.formatted', 'ozone_plev.formatted', 'RRTM_DATA', 'RRTM_DATA_DBL', 
+         'RRTMG_LW_DATA', 'RRTMG_LW_DATA_DBL', 'RRTMG_SW_DATA', 'RRTMG_SW_DATA_DBL', 
+         'SOILPARM.TBL', 'tr49t67', 'tr49t85', 'tr67t85', 'URBPARM.TBL', 'URBPARM_UZE.TBL', 
+         'VEGPARM.TBL']
+  wrf: ['CAM_ABS_DATA','CAM_AEROPT_DATA','co2_trans','ETAMPNEW_DATA',
+        'ETAMPNEW_DATA_DBL', 'ETAMPNEW_DATA.expanded_rain',
+        'ETAMPNEW_DATA.expanded_rain_DBL', 'GENPARM.TBL', 'grib2map.tbl',
+        'gribmap.txt', 'LANDUSE.TBL','MPTABLE.TBL', 'ozone.formatted',
+        'ozone_lat.formatted', 'ozone_plev.formatted', 'RRTM_DATA', 'RRTM_DATA_DBL',
+        'RRTMG_LW_DATA', 'RRTMG_LW_DATA_DBL', 'RRTMG_SW_DATA', 'RRTMG_SW_DATA_DBL',
+        'SOILPARM.TBL', 'tr49t67', 'tr49t85', 'tr67t85', 'URBPARM.TBL', 'URBPARM_UZE.TBL',
+        'VEGPARM.TBL']
+  lis: ['LS_PARAMETERS','MET_FORCING']
+  ldt_lis: ['LS_PARAMETERS']
+  ldt_local_links_coupled: [['OUTPUT/SURFACEMODEL/2009/20090410/LIS_HIST_200904101200.d01.nc','LIS_HIST_200904101200.d01.nc'],
+                            ['OUTPUT/SURFACEMODEL/2009/20090410/LIS_HIST_200904101200.d02.nc','LIS_HIST_200904101200.d02.nc'],
+                            ['OUTPUT/SURFACEMODEL/2009/20090410/LIS_RST_NOAH33_200904101200.d01.nc','LIS_RST_NOAH33_200904101200.d01.nc'],
+                            ['OUTPUT/SURFACEMODEL/2009/20090410/LIS_RST_NOAH33_200904101200.d02.nc','LIS_RST_NOAH33_200904101200.d02.nc']]
+  rip: ['200','250','300','500Vort','700RH','850','sfcThk','sfcTUV','COMDBZ','sfcDBZUV']
+
+ldt_prelis_select: 'ldt_lis'
+lis_select: 'lis'
+ldt_postlis_select: ['ldt_lis','ldt_local_links_coupled']
+geogrid_select: 'geogrid_nochem'
+metgrid_select: 'metgrid_arw'
+real_select: 'real'
+#geos2wrf_select: 'utils'
+
+#note: processing wrf and lis properly requires 'wrf' and 'lis' to be part of the name respectively
+#ex: 'wrf' and 'wrf_other' will process the links according to wrf rules.
+#Must not have both 'wrf' and 'lis' in the same name! 
+wrf_select: ['wrf','lis','ldt_local_links_coupled']
+
+rip_select: 'rip'
+
+merra_dates:
+  start: '20090410'
+  end: '20090411'
+
+
+#This definition supports preprocessors: ['geogrid','run_merra','geos2wrf','metgrid','ldt_prelis','lis','ldt_postlis','real','wrf','rip']
+
+expectedStatusFiles:
+  ldt_prelis: ['ldtlog_prelis.0000','Finished LDT run']
+  lis: ['lis_logs/lislog.0000','LIS Run completed']
+#  ldt_postlis: ['ldtlog_modis_for_real.0000','Finished LDT run']
+  ldt_postlis: ['ldtlog_postlis.0000','Finished LDT run']
+  geogrid: ['geogrid_logs/geogrid.log.0000','Successful completion of program']
+  run_merra: ['runmerra_logs/runmerra.log','Completed MERRA ftp and MERRA2WRF processing']
+  metgrid: ['metgrid_logs/metgrid.log.0000','Successful completion of program']
+  geos2wrf: ['geos2wrf_logs/geos2wrf.log','Successful completion of program']
+  real: ['real_logs/real.rsl.out.0000','SUCCESS COMPLETE REAL_EM']
+  wrf:  ['wrf_logs/wrf.rsl.out.0000','SUCCESS COMPLETE WRF']
+  rip:  ['rip_logs/rip_results.out','Success']
+
+expectedInputFiles:
+  ldt_prelis: ["LIS_RST_NOAH33_200903312330.d01.nc",
+               "LIS_RST_NOAH33_200903312330.d02.nc"]
+  lis: 'expectedOutputFiles.ldt_prelis'
+  ldt_postlis: ['expectedOutputFiles.ldt_prelis','expectedOutputFiles.lis']
+  geogrid: ''
+  run_merra: ''
+  geos2wrf:  ["MERRA:2009-04-10_12",
+              "MERRA:2009-04-10_18",
+              "MERRA:2009-04-11_00",
+              "MERRA:2009-04-11_06",
+              "MERRA:2009-04-11_12"]
+  metgrid: ['expectedOutputFiles.geogrid','expectedOutputFiles.geos2wrf','expectedOutputFiles.run_merra']
+  real: ['expectedOutputFiles.metgrid','expectedOutputFiles.ldt_postlis']
+  wrf: ['expectedOutputFiles.real','expectedOutputFiles.ldt_postlis','expectedOutputFiles.lis','expectedOutputFiles.ldt_prelis']
+  rip: 'expectedOutputFiles.wrf'
+
+expectedOutputFiles:
+  ldt_prelis: ['lis_input_4km.modis.nc','lis_input_12km.modis.nc']
+  lis: ["OUTPUT/SURFACEMODEL/2009/20090410/LIS_HIST_200904101200.d01.nc",
+        "OUTPUT/SURFACEMODEL/2009/20090410/LIS_HIST_200904101200.d02.nc",
+        "OUTPUT/SURFACEMODEL/2009/20090410/LIS_RST_NOAH33_200904101200.d01.nc",
+        "OUTPUT/SURFACEMODEL/2009/20090410/LIS_RST_NOAH33_200904101200.d02.nc" ]
+  ldt_postlis: ['lis4real_input_4km.modis.nc','lis4real_input_12km.modis.nc']
+  geogrid: ["geo_em.d01.nc",
+            "geo_em.d02.nc"]
+  geos2wrf: ["MERRA:2009-04-10_15",
+              "MERRA:2009-04-10_21",
+              "MERRA:2009-04-11_03",
+              "MERRA:2009-04-11_09"]
+              
+  run_merra: ["MERRA:2009-04-10_00",
+              "MERRA:2009-04-10_06",
+              "MERRA:2009-04-10_12",
+              "MERRA:2009-04-10_18",
+              "MERRA:2009-04-11_00",
+              "MERRA:2009-04-11_06",
+              "MERRA:2009-04-11_12",
+              "MERRA:2009-04-11_18"]
+
+  metgrid: [ "met_em.d01.2009-04-10_12:00:00.nc",
+             "met_em.d01.2009-04-10_15:00:00.nc",
+             "met_em.d01.2009-04-10_18:00:00.nc",
+             "met_em.d01.2009-04-10_21:00:00.nc",
+             "met_em.d01.2009-04-11_00:00:00.nc",
+             "met_em.d01.2009-04-11_03:00:00.nc",
+             "met_em.d01.2009-04-11_06:00:00.nc",
+             "met_em.d01.2009-04-11_09:00:00.nc",
+             "met_em.d01.2009-04-11_12:00:00.nc",
+             "met_em.d02.2009-04-10_12:00:00.nc",
+             "met_em.d02.2009-04-10_15:00:00.nc",
+             "met_em.d02.2009-04-10_18:00:00.nc",
+             "met_em.d02.2009-04-10_21:00:00.nc",
+             "met_em.d02.2009-04-11_00:00:00.nc",
+             "met_em.d02.2009-04-11_03:00:00.nc",
+             "met_em.d02.2009-04-11_06:00:00.nc",
+             "met_em.d02.2009-04-11_09:00:00.nc",
+             "met_em.d02.2009-04-11_12:00:00.nc"]
+
+  real: ["wrfbdy_d01.real",
+         "wrfinput_d01.real",
+         "wrfinput_d02.real"]
+
+  wrf: ["wrfout_d01_2009-04-10_12:00:00",
+        "wrfout_d01_2009-04-10_15:00:00",
+        "wrfout_d01_2009-04-10_18:00:00",
+        "wrfout_d01_2009-04-10_21:00:00",
+        "wrfout_d01_2009-04-11_00:00:00",
+        "wrfout_d01_2009-04-11_03:00:00",
+        "wrfout_d01_2009-04-11_06:00:00",
+        "wrfout_d01_2009-04-11_09:00:00",
+        "wrfout_d01_2009-04-11_12:00:00",
+        "wrfout_d02_2009-04-10_12:00:00",
+        "wrfout_d02_2009-04-10_15:00:00",
+        "wrfout_d02_2009-04-10_18:00:00",
+        "wrfout_d02_2009-04-10_21:00:00",
+        "wrfout_d02_2009-04-11_00:00:00",
+        "wrfout_d02_2009-04-11_03:00:00",
+        "wrfout_d02_2009-04-11_06:00:00",
+        "wrfout_d02_2009-04-11_09:00:00",
+        "wrfout_d02_2009-04-11_12:00:00"]        
+
+  rip: ["200_d01.cgm",
+     "250_d01.cgm",
+     "300_d01.cgm",
+     "500Vort_d01.cgm",
+     "700RH_d01.cgm",
+     "850_d01.cgm",
+     "COMDBZ_d01.cgm",
+     "sfcDBZUV_d01.cgm",
+     "sfcThk_d01.cgm",
+     "sfcTUV_d01.cgm"]
+
