@@ -16,6 +16,7 @@ module Userutil
   #Returns array of date hashes containing year month day 0 padded,
   #between 'from' and 'to' dates of Time type.  Note step is number of seconds.
   # ex: getDateArray(Time.utc(2000,1,1),Time.utc(2000,1,5),60*60*24)
+  ##############################################################################
   def getDateArray(from,to,step)
     temp=from
     result=Array.new
@@ -29,6 +30,7 @@ module Userutil
 
   #Creates an Ftp script content assuming you have a hash data structure with year,month,day and set (hash) of associated
   # sites, paths and filenames
+  ##############################################################################
   def createFtpScript(data)
     header=<<-eos
 #!/bin/bash
@@ -74,6 +76,7 @@ eos
     header+body
   end
 
+  ##############################################################################
   def getMERRADailysetTemplate()
     result=Array.new
     elt={"setname"=>"const_2d_asm_Nx","filename"=>"MERRA300.prod.assim.${setname}.00000000.hdf",
@@ -94,6 +97,7 @@ eos
     result
   end
 
+  ##############################################################################
   def getSSTDailysetTemplate()
     result=Array.new
     elt={"setname"=>"sst_remss_${instrument}","ver"=>"v04.0","suffix"=>"${ver}.gz",
@@ -104,6 +108,7 @@ eos
     result
   end
 
+  ##############################################################################
   def addSSTDailysetMetadata(dates,settemplate,scriptprefix,instrument)
     dates.each do |elt|
       datelabel="#{elt['year']}#{elt['month']}#{elt['day']}"
@@ -144,6 +149,7 @@ eos
     end
   end
 
+  ##############################################################################
   def addMERRADailysetMetadata(dates,settemplate,scriptprefix)
     dates.each do |elt| 
       merraname=""
@@ -178,6 +184,7 @@ eos
   end 
 
 # Creates the namelist from the data structure w/metadata of a single date.
+  ##############################################################################
   def createMERRANamelist(data)
 
     result=<<-eos
@@ -224,6 +231,7 @@ eos
   end
 
 # Creates the executes script from the data structure w/metadata of a single date.
+  ##############################################################################
   def createMERRAExecuteScript(data)
     result=<<-eos
 #!/bin/bash
@@ -255,6 +263,7 @@ eos
   end
 
 # Creates the namelist from the data structure w/metadata of a single date.
+  ##############################################################################
   def createSSTNamelist(data,instrument)
     content=<<-eos
 ! SST namelist file: #{data["set"][instrument]["namelistfile"]}
@@ -280,6 +289,7 @@ eos
   end
 
 # Creates the executes script from the data structure w/metadata of a single date.
+  ##############################################################################
   def createSSTExecuteScript(data)
     result=<<-eos
 #!/bin/bash
@@ -321,6 +331,7 @@ eos
 
   # Edit the lis.config file found in rundir according to the parameters
   # stored in the env data structure
+  ##############################################################################
   def modifyLisConfig(env,rundir)
     lisconfig=File.join(rundir,'lis.config')
     if File.exists?(lisconfig)
@@ -343,6 +354,7 @@ eos
     end
   end 
 
+  ##############################################################################
   def pipe_ext(cmd,props={})
 
     # Execute a system command in a subshell, collecting stdout and stderr. If
@@ -382,6 +394,7 @@ eos
     [output,status,error]
   end
 
+  ##############################################################################
   def my_ext(cmd,props={})
 
     # Execute a system command in a subshell, collecting stdout and stderr. If
@@ -409,6 +422,7 @@ eos
   #This function allow multiple level dereferencing 
   #with a dot separated string of variables
   #ex: ref='input.ungrib'
+  ##############################################################################
   def deref(run,ref)
     result=run
     ref.split('.').each do |r|
@@ -419,6 +433,7 @@ eos
 
   #Given an opestruct run,create the list of expected input files
   #for the given processor.
+  ##############################################################################
   def expectedInput(run,processor)
     #logi "Getting input for #{processor}"
     result=[]
@@ -438,6 +453,7 @@ eos
     result
   end
 
+  ##############################################################################
   def getSourceRepository (env)
     repo_info=nil
     if env.build.code_repos and env.build.repo_select
@@ -456,6 +472,7 @@ eos
     repo
   end
 
+  ##############################################################################
   def createTypedLinks(env,type)
 
     script=""
@@ -479,6 +496,21 @@ eos
         fw=File.join('$WORKDIR',l)
         script<<"rm #{fw}\n"
         f=File.join('$LISDIR',l)
+        check=<<-eos
+if [ ! -e #{f} ] ; then 
+    echo "ERROR, #{f} does not exist!"
+    exit 1
+fi  
+eos
+        script<<check
+        script<<"ln -fs #{f} #{fw} || exit 1\n"
+      end
+    elsif type.include?('data')
+      links=env.run.preprocessor_links.send(type)
+      links.each do |l|
+        fw=File.join('$WORKDIR',l)
+        script<<"rm #{fw}\n"
+        f=File.join('$DATADIR',l)
         check=<<-eos
 if [ ! -e #{f} ] ; then 
     echo "ERROR, #{f} does not exist!"
@@ -567,6 +599,7 @@ eos
     script
   end
 
+  ##############################################################################
   def createCommonPreprocessorScript(env,rundir)
 
     loadModules=env.run.modules.send(env.run.compiler)
@@ -594,6 +627,7 @@ LDTDIR=#{env.build.ddts_root}/ldt
 LISDIR=#{env.run.lis_dir}
 NUWRFDIR=#{env.build.ddts_root}
 WORKDIR=#{rundir}
+DATADIR=#{env.run.baselinedir}
 
 # Set environment variables needed by RIP
 export RIP_ROOT=$NUWRFDIR/RIP4
@@ -604,18 +638,22 @@ eos
     script
   end
 
+  ##############################################################################
   def lib_re_str_job_id
     '(\d+).*'
   end
 
+  ##############################################################################
   def lib_submit_script
     'sbatch'
   end
 
+  ##############################################################################
   def batch_filename(env)
     "runWrf_#{env.run.proc_id}.job"
   end
 
+  ##############################################################################
   def createPreprocessorHeader(env, preprocessor)
 
     script="#!/bin/bash\n"
@@ -642,6 +680,7 @@ eos
     script
   end
 
+  ##############################################################################
   def createCommonPreprocessorBody(env, preprocessor, namelist=nil)
 
     script=nil
@@ -701,6 +740,7 @@ eos
     result
   end
 
+  ##############################################################################
   def createLdtLinks(env,var_select)
     script=""
     if env.run.send(var_select) and env.run.send(var_select).class == Array
@@ -713,6 +753,7 @@ eos
     script
   end
 
+  ##############################################################################
   def createLdtPrelisPreprocessorScript(env,scriptout)
 
     header=createPreprocessorHeader(env,'ldt_prelis')
@@ -744,6 +785,7 @@ eos
 
   end
 
+  ##############################################################################
   def createLisPreprocessorScript(env,scriptout)
 
     header=createPreprocessorHeader(env,'lis')
@@ -781,6 +823,7 @@ eos
   end
 
 
+  ##############################################################################
   def createLdtPostlisPreprocessorScript(env,scriptout)
 
     header=createPreprocessorHeader(env,'ldt_postlis')
@@ -812,6 +855,7 @@ eos
 
   end
 
+  ##############################################################################
   def createGeogridLinks(env)
 
     script=<<-eos
@@ -838,6 +882,7 @@ eos
   end
 
 
+  ##############################################################################
   def createGeogridPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'geogrid')
@@ -867,36 +912,43 @@ eos
     header+body+footer
   end
 
+  ##############################################################################
   def getUngribInputVtable(env)
     links=env.run.preprocessor_links.send(env.run.ungrib_select)
     links[0]
   end
 
+  ##############################################################################
   def getUngribInputVtableLink(env)
     links=env.run.preprocessor_links.send(env.run.ungrib_select)
     links[1]
   end
 
+  ##############################################################################
   def getUngribInputPattern(env)
     links=env.run.preprocessor_links.send(env.run.ungrib_select)
     links[3]
   end
 
+  ##############################################################################
   def getUngribInputLinkDir(env)
     links=env.run.preprocessor_links.send(env.run.ungrib_select)
     links[2]
   end
 
+  ##############################################################################
   def getGocart2wrfInputPattern(env)
     links=env.run.preprocessor_links.send(env.run.gocart2wrf_select)[0]
     links[1]
   end
 
+  ##############################################################################
   def getGocart2wrfInputLinkDir(env)
     links=env.run.preprocessor_links.send(env.run.gocart2wrf_select)[0]
     links[0]
   end
 
+  ##############################################################################
   def getInputPattern (env,prep)
     if prep == 'ungrib'
       getUngribInputPattern(env)
@@ -904,6 +956,8 @@ eos
       getGocart2wrfInputPattern(env)
     elsif prep == 'geos2wrf'
       "*"
+    #elsif prep == 'geos2wrf_merra2'
+    #  "*"
     elsif prep == 'prep_chem_sources'
       "*"
     else
@@ -911,6 +965,7 @@ eos
     end
   end
 
+  ##############################################################################
   def getInputLinkDir(env,prep)
     if prep == 'ungrib'
       getUngribInputLinkDir(env)
@@ -918,6 +973,8 @@ eos
       getGocart2wrfInputLinkDir(env)
     elsif prep == 'geos2wrf'
       '.'
+    #elsif prep == 'geos2wrf_merra2'
+    #  '.'
     elsif prep == 'prep_chem_sources'
       '.'
     else
@@ -925,6 +982,7 @@ eos
     end
   end
 
+  ##############################################################################
   def createUngribLinks(env)
 
     l=getUngribInputVtableLink(env)
@@ -966,6 +1024,7 @@ eos
     script+script2
   end
 
+  ##############################################################################
   def createUngribPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'ungrib')
@@ -997,6 +1056,7 @@ eos
     header+body+footer
   end
 
+  ##############################################################################
   def createFTPSstPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'ftp_sst')
@@ -1036,7 +1096,7 @@ for file in #{scripts_to_run} ; do
    
   if ! ./$file >> ftpsst.log 2>&1 ; then
     exit 1
- fi
+  fi
 
 done
 
@@ -1056,6 +1116,7 @@ eos
   end
 
 
+  ##############################################################################
   def createFTPMerraPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'ftp_merra')
@@ -1093,7 +1154,7 @@ for file in #{scripts_to_run} ; do
    
   if ! ./$file >> ftpmerra.log 2>&1 ; then
     exit 1
- fi
+  fi
 
 done
 
@@ -1112,6 +1173,7 @@ eos
 
   end
 
+  ##############################################################################
   def createMerra2wrfPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'merra2wrf')
@@ -1182,6 +1244,7 @@ eos
 
   end
 
+  ##############################################################################
   def createRunMerraLinks(env)
     script=""
     if env.run.run_merra_select and env.run.run_merra_select.class == Array
@@ -1194,6 +1257,7 @@ eos
     script
   end
 
+  ##############################################################################
   def createRunMerraPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'run_merra')
@@ -1211,14 +1275,16 @@ if [ ! -e merra2wrf ] ; then
 fi
 
 #Run script
-if [ ! -e Run_MERRA.csh ] ; then
-    echo "ERROR, Run_MERRA.csh does not exist!"
+if [ -e Run_MERRA.csh ] ; then
+    chmod +x Run_MERRA.csh
+    ./Run_MERRA.csh #{env.run.merra_dates.start} #{env.run.merra_dates.end} . $NUWRFDIR >& runmerra.log || exit
+elif [ -e Run_MERRA2.csh ] ; then
+    chmod +x Run_MERRA2.csh
+    ./Run_MERRA2.csh #{env.run.merra_dates.start} #{env.run.merra_dates.end} . $NUWRFDIR >& runmerra.log || exit
+else
+    echo "ERROR, Run_MERRA[2].csh does not exist!"
     exit 1
 fi
-
-chmod +x Run_MERRA.csh
-
-./Run_MERRA.csh #{env.run.merra_dates.start} #{env.run.merra_dates.end} .  >& runmerra.log || exit
 
 # Tidy up logs
 mkdir -p runmerra_logs || exit 1
@@ -1231,6 +1297,7 @@ eos
     header+body+footer
   end
 
+  ##############################################################################
   def createSst2wrfLinks(env)
     script=""
     if env.run.sst2wrf_select and env.run.sst2wrf_select.class == Array
@@ -1243,6 +1310,7 @@ eos
     script
   end
 
+  ##############################################################################
   def createSst2wrfPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'sst2wrf')
@@ -1295,7 +1363,7 @@ for file in #{scripts_to_run} ; do
    
   if ! ./$file >> sst2wrf.log 2>&1 ; then
     exit 1
- fi
+  fi
 
 done
 
@@ -1315,6 +1383,7 @@ eos
   end
 
 
+  ##############################################################################
   def createRunSstLinks(env)
     script=""
     if env.run.run_sst_select and env.run.run_sst_select.class == Array
@@ -1327,6 +1396,7 @@ eos
     script
   end
 
+  ##############################################################################
   def createRunSstPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'run_sst')
@@ -1345,7 +1415,7 @@ fi
 
 chmod +x Run_SST.csh
 
-./Run_SST.csh #{env.run.sst_dates.start} #{env.run.sst_dates.end} #{env.run.sst_instrument}  >& runsst.log || exit
+./Run_SST.csh #{env.run.sst_dates.start} #{env.run.sst_dates.end} #{env.run.sst_instrument} . $NUWRFDIR >& runsst.log || exit
 
 # Tidy up logs
 mkdir -p runsst_logs || exit 1
@@ -1359,6 +1429,7 @@ eos
   end
 
 
+  ##############################################################################
   def createGeos2wrfLinks(env)
     script=""
     if env.run.geos2wrf_select and env.run.geos2wrf_select.class == Array
@@ -1370,7 +1441,9 @@ eos
     end
     script
   end
-
+ 
+ 
+  ##############################################################################
   def createGeos2wrfPreprocessorScript(env)
     header=createPreprocessorHeader(env,'geos2wrf')
     body=createCommonPreprocessorBody(env,'geos2wrf','namelist.wps')
@@ -1404,12 +1477,21 @@ if [ ! -e createRH ] ; then
 fi
 
 #Run script
-if [ ! -e c1440_NR.geos2wrf.py ] ; then
-    echo "ERROR, c1440_NR.geos2wrf.py does not exist!"
+if [ -e c1440_NR.geos2wrf.py ] ; then
+    ./c1440_NR.geos2wrf.py c1440_NR.geos2wrf.settings.cfg c1440_NR.geos2wrf.variables.cfg >& geos2wrf.log || exit
+    
+elif [ -e $WORKDIR/run_geos2wrf_merra2_3hrassim.discover.sh ] ; then
+    chmod +x $WORKDIR/run_geos2wrf_merra2_3hrassim.discover.sh
+    $WORKDIR/run_geos2wrf_merra2_3hrassim.discover.sh >& $WORKDIR/geos2wrf.log || exit
+
+elif [ -e $WORKDIR/run_temporalInterpolation_merra2_3hr.discover.sh ] ; then
+    chmod +x $WORKDIR/run_temporalInterpolation_merra2_3hr.discover.sh
+    $WORKDIR/run_temporalInterpolation_merra2_3hr.discover.sh >& $WORKDIR/geos2wrf.log || exit
+
+else    
+    echo "Geos2wrfPreprocessor: ERROR, can't find c1440_NR.geos2wrf.py or run_geos2wrf_merra2_3hrassim.discover.sh or run_temporalInterpolation_merra2_3hr.discover.sh"
     exit 1
 fi
-
-./c1440_NR.geos2wrf.py c1440_NR.geos2wrf.settings.cfg c1440_NR.geos2wrf.variables.cfg >& geos2wrf.log || exit
 
 echo "Successful completion of program" >> geos2wrf.log
 
@@ -1423,7 +1505,81 @@ exit 0
 eos
     header+body+footer
   end
+  
+  
+#  ##############################################################################
+#  def createGeos2wrfMerra2Links(env)
+#    script=""
+#    if env.run.geos2wrf_merra2_select and env.run.geos2wrf_merra2_select.class == Array
+#      env.run.geos2wrf_merra2_select.each do |type|
+#        script<<createTypedLinks(env,type)
+#      end
+#    elsif env.run.geos2wrf_merra2_select
+#      script<<createTypedLinks(env,env.run.geos2wrf_merra2_select)
+#    end
+#    script
+#  end
+# 
+# 
+#  ##############################################################################
+#  def createGeos2wrfMerra2PreprocessorScript(env)
+#    header=createPreprocessorHeader(env,'geos2wrf_merra2')
+#    body=createCommonPreprocessorBody(env,'geos2wrf_merra2','namelist.wps')
+#
+#    body<<createGeos2wrfMerra2Links(env)
+#
+#    footer=<<-eos
+#    
+#export MERRA2ROOT=$WORKDIR
+#
+#ln -fs $NUWRFDIR/utils/geos2wrf_2/geos2wps  || exit 1
+#if [ ! -e geos2wps ] ; then
+#    echo "ERROR, geos2wps not found!"
+#    exit 1
+#fi
+#
+#ln -fs $NUWRFDIR/utils/geos2wrf_2/createSOILHGT  || exit 1
+#if [ ! -e createSOILHGT ] ; then
+#    echo "ERROR, createSOILHGT not found!"
+#    exit 1
+#fi
+#
+#ln -fs $NUWRFDIR/utils/geos2wrf_2/createLANDSEA  || exit 1
+#if [ ! -e createLANDSEA ] ; then
+#    echo "ERROR, createLANDSEA not found!"
+#    exit 1
+#fi
+#
+#ln -fs $NUWRFDIR/utils/geos2wrf_2/createRH  || exit 1
+#if [ ! -e createRH ] ; then
+#    echo "ERROR, createRH not found!"
+#    exit 1
+#fi
+#
+#
+##Run script
+#if [ ! -e run_geos2wrf_merra2_3hrassim.discover.sh ] ; then
+#    echo "ERROR, run_geos2wrf_merra2_3hrassim.discover.sh does not exist!"
+#    exit 1
+#fi
+#
+#./run_geos2wrf_merra2_3hrassim.discover.sh >& geos2wrf_merra2.log || exit
+#
+#echo "Successful completion of program" >> geos2wrf_merra2.log
+#
+## Tidy up logs
+#mkdir -p geos2wrf_merra2_logs || exit 1
+#mv geos2wrf_merra2.log geos2wrf_merra2_logs
+#
+## end
+#exit 0
+#
+#eos
+#    header+body+footer
+#  end
+#
 
+  ##############################################################################
   def createMetgridLinks(env)
 
     script=<<-eos
@@ -1449,6 +1605,7 @@ eos
     script+check
   end
 
+  ##############################################################################
   def createMetgridPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'metgrid')
@@ -1478,6 +1635,7 @@ eos
     header+body+footer
   end
 
+  ##############################################################################
   def createRealLinks(env)
 
     script=""
@@ -1498,6 +1656,7 @@ eos
     script
   end
 
+  ##############################################################################
   def createRealPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'real')
@@ -1553,6 +1712,7 @@ eos
     header+body+footer
   end
 
+  ##############################################################################
   def createGocart2wrfPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'gocart2wrf')
@@ -1587,6 +1747,7 @@ eos
     header+body+footer
   end
 
+  ##############################################################################
   def createCasa2wrfLinks(env)
 
     script=<<-eos
@@ -1615,6 +1776,7 @@ eos
     script
   end
 
+  ##############################################################################
   def createCasa2wrfPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'casa2wrf')
@@ -1657,6 +1819,7 @@ eos
     header+body+footer
   end
 
+  ##############################################################################
   def createPrepchemsourcesLinks(env)
 
     script=""
@@ -1679,6 +1842,7 @@ eos
   end
 
 
+  ##############################################################################
   def createPrepchemsourcesPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'prep_chem_sources')
@@ -1709,6 +1873,7 @@ eos
   end
 
 
+  ##############################################################################
   def createConvertemissLinks(env)
 
     script=""
@@ -1729,6 +1894,7 @@ eos
     script
   end
 
+  ##############################################################################
   def createConvertemissPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'convert_emiss')
@@ -1922,6 +2088,7 @@ eos
     header+body+footer
   end
 
+  ##############################################################################
   def createWrfLinks(env)
     script=""
     if env.run.wrf_select and env.run.wrf_select.class == Array
@@ -1934,6 +2101,7 @@ eos
     script
   end
 
+  ##############################################################################
   def createWrfPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'wrf')
@@ -1989,6 +2157,7 @@ eos
     header+body+footer
   end
 
+  ##############################################################################
   def createRipLinks(env)
 
     script=""
@@ -2010,6 +2179,7 @@ eos
     script
   end
 
+  ##############################################################################
   def listRipNames(env)
     list=""
     links=env.run.preprocessor_links.send(env.run.rip_select)
@@ -2019,6 +2189,7 @@ eos
     list
   end
 
+  ##############################################################################
   def createRipPreprocessorScript(env)
 
     header=createPreprocessorHeader(env,'rip')
@@ -2108,6 +2279,7 @@ eos
     header+body+footer
   end
 
+  ##############################################################################
   def createGsdsuLinks(env)
 
     script=""
@@ -2129,6 +2301,7 @@ eos
     script
   end
 
+  ##############################################################################
   def createGsdsuPreprocessorScript(env)
   
     header=createPreprocessorHeader(env,'gsdsu')
@@ -2156,6 +2329,7 @@ eos
     header+body+footer
   end
 
+  ##############################################################################
   def run_local_job(env,rundir,preprocessor)
     jobid=nil
     re1=Regexp.new(lib_re_str_job_id)
@@ -2176,6 +2350,7 @@ eos
     outfile
   end
 
+  ##############################################################################
   def run_batch_job(env,rundir,preprocessor)
     jobid=nil
     re1=Regexp.new(lib_re_str_job_id)
@@ -2207,6 +2382,7 @@ eos
     outfile
   end
 
+  ##############################################################################
   def wait_for_job(jobid)
     ok=%w[E H Q R T W S]
     # 'tolerance' is the number of seconds to continue trying qstat before deeming the job
@@ -2247,6 +2423,7 @@ eos
     state
   end
  
+  ##############################################################################
   def send_email(from,to,subject,server,body,include_log)
 
     marker= "alksjdhf7400297143627990123" #Used to separate sections of a multi-part email
