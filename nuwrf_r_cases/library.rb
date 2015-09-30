@@ -8,6 +8,7 @@ module Library
   
   # REQUIRED METHODS (CALLED BY DRIVER)
 
+  ##############################################################################
   def lib_build_prep(env)
     # Construct the name of the build directory and store it in the env.build
     # structure for later reference. The value of env.build.ddts_root is supplied
@@ -94,9 +95,10 @@ module Library
        env.build.local_src_rev="????"
        if o.length > 0 and o.grep(/^Revision/).length > 0
          env.build.local_src_rev= o.grep(/^Revision/)[0].split(":")[1].strip
+         env.build.trunk_rev= o.grep(/^Last\ Changed\ Rev/)[0].split(":")[1].strip
        end
        logd "Revision: #{env.build.local_src_rev}"
-
+       logd "Trunk Revision: #{env.build.trunk_rev}"
 
        logd "Retrieving build target repository info"
        cmd="svn info #{env.build.dir}"
@@ -132,6 +134,7 @@ module Library
     end
   end
 
+  ##############################################################################
   def lib_build(env,prepkit)
     # Construct the command to execute in a subshell to perform the build.
     buildscript="build.sh"
@@ -177,6 +180,7 @@ module Library
     end
   end
 
+  ##############################################################################
   def lib_build_post(env,buildkit)
     # Copying these files effectively checks for their existance. 
     logd "env.build.dir = #{env.build.dir}"
@@ -195,10 +199,12 @@ module Library
      :debug=>env.build.debug, :build_param=>env.build.param,:env_script=>env.build.env_script}
   end
 
+  ##############################################################################
   def lib_data(env)
     logd "No data-prep needed."
   end
 
+  ##############################################################################
   def lib_run_prep(env)
     rundir=env.run.ddts_root
     logd "Rundir: #{rundir}"
@@ -241,6 +247,9 @@ module Library
       elsif prep == 'geos2wrf'
         s=createGeos2wrfPreprocessorScript(env)
         f='geos2wrf.bash'
+      #elsif prep == 'geos2wrf_merra2'
+      #  s=createGeos2wrfMerra2PreprocessorScript(env)
+      #  f='geos2wrf_merra2.bash'
       elsif prep == 'metgrid'
         s=createMetgridPreprocessorScript(env)
         f='metgrid.bash'
@@ -297,6 +306,7 @@ module Library
           logd "sym linking namelist file: #{link[0]} -> #{link[1]}"
           FileUtils.ln_sf(link[0],File.join(rundir,link[1]))
         else
+          logd "sym linking namelist file: #{link[0]} -> #{link[1]}"
           die("Required namelist link not found")
         end
       end
@@ -306,6 +316,7 @@ module Library
     rundir
   end
 
+  ##############################################################################
   def lib_run(env,prepkit)
     rundir=env.run.ddts_root
     baselinedir=env.run.baselinedir if env.run.baselinedir
@@ -443,6 +454,7 @@ module Library
     end
   end
 
+  ##############################################################################
   def lib_outfiles(env,path)
     #Note must return list with [path,file] pairs or empty one 
     logd "lib_outputfiles->path-> #{path}"
@@ -453,10 +465,12 @@ module Library
     arr
   end
 
+  ##############################################################################
   def lib_queue_del_cmd(env)
     'qdel'
   end
 
+  ##############################################################################
   def re_str_success (env,processor)
     if env.run.expectedStatusFiles
       env.run.expectedStatusFiles.send(processor)[1]
@@ -465,15 +479,18 @@ module Library
     end
   end
 
+  ##############################################################################
   def lib_run_post(env,runkit)
     #By the time we get here the run output already contains the desired data structure
     runkit
   end
 
+  ##############################################################################
   def lib_run_check(env,postkit)
     postkit[:result]
   end
 
+  ##############################################################################
   def lib_comp(env,file1, file2, exec_id="")
     logi exec_id
     logi env.inspect()
@@ -485,7 +502,7 @@ module Library
     if o
       logd "Located #{exec_name} at #{o}"
     else
-      die ("Unable to located #{exec_name}. Please add it to the PATH env var, or establish alias.")
+      die ("Unable to locate #{exec_name}. Please add it to the PATH env var, or establish alias.")
     end
     if exec_params
       logd "#{exec_name} #{exec_params} comparison of #{file1} against #{file2}"
@@ -502,6 +519,7 @@ module Library
     end
   end
 
+  ##############################################################################
   def method_missing(meth, *args, &block)
     logi meth.to_s
     if meth.to_s =~ /^lib_comp_(.+)$/
@@ -513,6 +531,7 @@ module Library
     end
   end
 
+  ##############################################################################
   def respond_to?(meth)
     if meth.to_s =~ /^lib_comp_.*$/
       true
@@ -521,6 +540,7 @@ module Library
     end
   end
 
+  ##############################################################################
   def lib_suite_prep(env)
     logi self.userutil_version()
     logd "Preping suite"
@@ -533,6 +553,7 @@ module Library
     end
   end
 
+  ##############################################################################
   def lib_suite_post(env)
     # remove force build breadcrumb file
     forcebuild=File.join("..","src","ddts.forcebuild")
