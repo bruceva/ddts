@@ -1,2 +1,3 @@
 ddts_extends: 'all'
-config: 'discover_intel13_impi4_sp1.cfg'
+#config: 'discover_intel13_impi4_sp1.cfg'
+config: 'discover.cfg'

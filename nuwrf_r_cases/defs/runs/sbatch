@@ -156,15 +156,24 @@ submission_type:
 # Define the proc line for each supported processor count
 # -for now (9Mar2015), sp1 implies sand, but sand != sp1 (may be sp3)
 proc_line: 
-  p1: '1 -n 1 --ntasks-per-node=1 --constraint=sp1 --qos=debug'
-  p64_8: '8 -n 64 --ntasks-per-node=8 --constraint=sp1'
-  p64_16: '4 -n 64 --ntasks-per-node=16 --constraint=sp1'
-  p72_12: '6 -n 72 --ntasks-per-node=12 --constraint=sp1'
-  p80_16: '5 -n 80 --ntasks-per-node=16 --constraint=sp1 --qos=high'
-  p128_16: '8 -n 128 --ntasks-per-node=16 --constraint=sp1 --qos=debug'
-  p288_12: '24 -n 288 --ntasks-per-node=12 --constraint=sp1'
-  p288_16: '18 -n 288 --ntasks-per-node=16 --constraint=sp1 --qos=debug'
-  p256_16: '16 -n 256 --ntasks-per-node=16 --constraint=sp1 --qos=high'
+#  p1: '1 -n 1 --ntasks-per-node=1 --constraint=sp1 --qos=high'
+  p1: '1 -n 1 --ntasks-per-node=1 --constraint=hasw --qos=high'
+#  p64_8: '8 -n 64 --ntasks-per-node=8 --constraint=sp1'
+  p64_8: '4 -n 64 --ntasks-per-node=16 --constraint=hasw'
+#  p64_16: '4 -n 64 --ntasks-per-node=16 --constraint=sp1'
+  p64_16: '3 -n 64  --constraint=hasw'
+#  p72_12: '6 -n 72 --ntasks-per-node=12 --constraint=sp1'
+  p72_12: '3 -n 72 --ntasks-per-node=24 --constraint=hasw'
+#  p80_16: '5 -n 80 --ntasks-per-node=16 --constraint=sp1 --qos=high'
+  p80_16: '3 -n 80 --constraint=hasw --qos=high'
+#  p128_16: '8 -n 128 --ntasks-per-node=16 --constraint=sp1 --qos=debug'
+  p128_16: '5 -n 128 --constraint=hasw --qos=debug'
+#  p288_12: '24 -n 288 --ntasks-per-node=12 --constraint=sp1'
+  p288_12: '12 -n 288 --ntasks-per-node=24 --constraint=hasw'
+#  p288_16: '18 -n 288 --ntasks-per-node=16 --constraint=sp1 --qos=debug'
+  p288_16: '11 -n 288 --constraint=hasw --qos=debug'
+#  p256_16: '16 -n 256 --ntasks-per-node=16 --constraint=sp1 --qos=high'
+  p256_16: '10 -n 256 --constraint=hasw --qos=high'
 
 
 # lis.config x and y values for each supported processor count
@@ -186,7 +195,7 @@ lis_config:
 
 # modules to load
 modules: 
-  intel: 'comp/intel-13.1.3.192 mpi/impi-4.0.3.008'
+  intel: 'comp/intel-13.1.3.192 mpi/impi-5.0.2.044'
   gfortran: 'other/comp/gcc-4.8.1 other/mpi/openmpi/1.7.2-gcc-4.8.1-shared'
   intel13_w_mvapich2: 'comp/intel-13.1.3.192 other/mpi/mvapich2-2.0a2/intel-13.1.3.192'
 
